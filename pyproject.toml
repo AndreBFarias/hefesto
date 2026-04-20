@@ -30,7 +30,7 @@ dependencies = [
     "evdev>=1.6",
     "structlog>=23.0",
     "rich>=13.0",
-    "platformdirs>=4.0",
+    "platformdirs>=4.9.6",
     "filelock>=3.13",
 ]
 
