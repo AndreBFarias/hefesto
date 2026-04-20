@@ -9,7 +9,7 @@ Arquivo de contexto para agentes de IA colaborando neste repositório. Ler antes
 Em qualquer conflito, obedecer nesta ordem (mais forte primeiro):
 
 1. `~/.config/zsh/AI.md` v4.0 — regras universais (comunicação PT-BR, anonimato absoluto, código limpo, git, proteções, 800 linhas/arquivo, `.gitignore`, princípios, meta-regras anti-regressão, workflow, checklist pré-commit, assinatura).
-2. Arquivo global do CLI de IA em `~/.claude/` — extensões: meta-regras 9.6 (evidência empírica), 9.7 (zero follow-up), 9.8 (validação runtime-real); regras 13–14 (validação visual em UI/TUI, capacidades visuais disponíveis).
+2. Arquivo global de extensões do CLI de IA do mantenedor (convencionalmente em diretório dotfile do CLI) — meta-regras 9.6 (evidência empírica), 9.7 (zero follow-up), 9.8 (validação runtime-real); regras 13–14 (validação visual em UI/TUI, capacidades visuais disponíveis).
 3. `docs/process/HEFESTO_DECISIONS_V2.md` — patches 1–11 consolidados.
 4. `docs/process/HEFESTO_DECISIONS_V3.md` — deltas V3-1 a V3-8.
 5. `docs/process/HEFESTO_PROJECT.md` — visão do produto, waves e sprints.
