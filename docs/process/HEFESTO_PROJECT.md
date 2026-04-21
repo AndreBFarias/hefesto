@@ -997,14 +997,14 @@ gh pr merge --squash --delete-branch
 
 # NAO FACA
 
-- ❌ Chamar `subprocess.run("xdotool ...")` — use `python-xlib`.
-- ❌ `time.sleep()` em corrotina.
-- ❌ `print()` — use `logger`.
-- ❌ Hardcode de paths — use `xdg_paths`.
-- ❌ Dependencias Windows (pyvgamepad, win32api).
-- ❌ UI como sudo. Daemon como user. Udev rule uma vez.
-- ❌ Escrever "by Claude" em lugar nenhum.
-- ❌ Commit com nome proprio: `git config user.name` pode ser impessoal no repo (`hefesto-dev`).
+- (NAO) Chamar `subprocess.run("xdotool ...")` — use `python-xlib`.
+- (NAO) `time.sleep()` em corrotina.
+- (NAO) `print()` — use `logger`.
+- (NAO) Hardcode de paths — use `xdg_paths`.
+- (NAO) Dependencias Windows (pyvgamepad, win32api).
+- (NAO) UI como sudo. Daemon como user. Udev rule uma vez.
+- (NAO) Escrever "by Claude" em lugar nenhum.
+- (NAO) Commit com nome proprio: `git config user.name` pode ser impessoal no repo (`hefesto-dev`).
 
 ---
 
