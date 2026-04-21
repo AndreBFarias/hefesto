@@ -100,31 +100,22 @@ HOTKEY_BUFFER_MS_DEFAULT = 150
 
 ### V3-3 — Complementa Patch 11 V2 (`detect_installed_unit` defensivo)
 
+Revisada em SIMPLIFY-UNIT-01 (2026-04-21): a dualidade `hefesto.service` /
+`hefesto-headless.service` foi eliminada. Só existe `hefesto.service`. O helper
+vira checagem simples da presença do arquivo em `~/.config/systemd/user/`.
+
 ```python
 def detect_installed_unit() -> str | None:
-    """Retorna 'hefesto', 'hefesto-headless' ou None."""
-    try:
-        result = subprocess.run(
-            ["systemctl", "--user", "list-unit-files",
-             "hefesto.service", "hefesto-headless.service",
-             "--no-pager", "--plain"],
-            capture_output=True, text=True, check=True,
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
-
-    stdout = result.stdout.strip()
-    if not stdout:
-        return None
-
-    enabled_units: list[str] = []
-    for line in stdout.split("\n"):
-        parts = line.split()
-        if len(parts) >= 2 and parts[1] in ("enabled", "enabled-runtime"):
-            enabled_units.append(parts[0].removesuffix(".service"))
-
-    return enabled_units[0] if len(enabled_units) == 1 else None
+    """Retorna 'hefesto' ou None."""
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    target = base / "systemd" / "user" / "hefesto.service"
+    return "hefesto" if target.exists() else None
 ```
+
+Rationale da simplificação: instalador nunca criou `hefesto-headless.service`,
+o dropdown na GUI só expunha estado fantasma. Contexto do projeto (daemon
+DualSense em desktop com jogos) não justifica variante headless; casos de
+laboratório/CI já são cobertos por pytest. Decisão: unit única como padrão.
 
 ---
 
