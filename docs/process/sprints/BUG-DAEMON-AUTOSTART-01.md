@@ -31,7 +31,7 @@ Segundo vetor: a GUI, ao abrir, pode tentar conectar no IPC e falhar (daemon mor
   - Chama `systemctl --user is-active hefesto.service`; se não `active`, dispara `systemctl --user start hefesto.service` com timeout 5s.
   - Nunca bloqueia a thread GTK; falha silenciosa com `logger.warning`.
 - [ ] Teste manual: fechar GUI, `systemctl --user stop hefesto.service`, reabrir GUI. Header deve mostrar "Tentando Reconectar" inicialmente e migrar para "Conectado Via USB" em até 5s sem intervenção.
-- [ ] `assets/hefesto.service` mantém `After=graphical-session.target` e ganha também `Wants=hefesto.service` ou equivalente para encorajar auto-start.
+- [x] `assets/hefesto.service` mantém `After=graphical-session.target`. `Wants=` dispensado — `WantedBy=graphical-session.target` no bloco `[Install]` já garante ativação por sessão via `systemctl --user enable` (executado por `hefesto daemon install-service`).
 - [ ] `.venv/bin/pytest tests/unit -q` verde.
 
 ## Proof-of-work
