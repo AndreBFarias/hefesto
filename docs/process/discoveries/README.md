@@ -47,3 +47,4 @@ Atualize esta lista ao fechar cada jornada:
 | 2026-04-20 | `2026-04-20-hotfix-2-hid-playstation-kernel-conflict.md`     | Resolvida  | #49                 |
 | 2026-04-20 | `2026-04-20-infra2-capture-pipeline.md`                      | Resolvida  | #29, #54 (follow-up)|
 | 2026-04-20 | `2026-04-20-w5-1-tui-textual-proof-of-work.md`               | Resolvida  | #11                 |
+| 2026-04-20 | `2026-04-20-infra1-polling-benchmark.md`                     | Resolvida  | #27                 |
