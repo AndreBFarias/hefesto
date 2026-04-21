@@ -20,10 +20,10 @@ Dois ciclos de auditoria pré-execução fecharam. Este documento consolida:
 
 1. **Anonimato absoluto.** `check_anonymity.sh` (entregue separadamente) roda em CI e pré-commit. Exclui `LICENSE`, `NOTICE`, `CHANGELOG.md`, `docs/process/**`, `docs/history/**`, `tests/fixtures/**`.
 2. **Idioma.** PT-BR em código, comentários, commits, docs, logs. Termos técnicos retornados por APIs externas, `errno` strings, flags POSIX, nomes de protocolos e identificadores de sistema permanecem na forma EN original.
-   - ✅ `logger.error("falha ao ler hidraw: Permission denied")`
-   - ✅ `logger.warn("pacote UDP descartado: version desconhecida")`
-   - ❌ `logger.error("permissão negada ao ler hidraw")` (traduziu errno)
-   - ❌ `logger.error("hidraw read failed")` (deveria ser PT-BR)
+   - OK: `logger.error("falha ao ler hidraw: Permission denied")`
+   - OK: `logger.warn("pacote UDP descartado: version desconhecida")`
+   - ERRADO: `logger.error("permissão negada ao ler hidraw")` (traduziu errno)
+   - ERRADO: `logger.error("hidraw read failed")` (deveria ser PT-BR)
 3. **Escopo Linux.** Distros com systemd-logind. Alpine/Void/Gentoo = PR welcome, não support. Documentado em ADR-009.
 4. **Workflow.** `gh issue` → branch → commit impessoal → PR `Closes #N` → squash merge.
 
