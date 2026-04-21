@@ -45,3 +45,4 @@ Atualize esta lista ao fechar cada jornada:
 |------------|--------------------------------------------------------------|------------|---------------------|
 | 2026-04-20 | `2026-04-20-hotfix-1-pydualsense-state-attrs.md`             | Resolvida  | #48                 |
 | 2026-04-20 | `2026-04-20-hotfix-2-hid-playstation-kernel-conflict.md`     | Resolvida  | #49                 |
+| 2026-04-20 | `2026-04-20-infra2-capture-pipeline.md`                      | Resolvida  | #29, #54 (follow-up)|
