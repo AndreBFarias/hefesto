@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#73](https://github.com/AndreBFarias/hefesto/issues/73) — fechada por PR com `Closes #73` no body.
+
 ## Contexto
 
 Hoje existem 4 perfis default em `assets/profiles_default/`: `bow`, `driving`, `fallback`, `shooter`. Usuário quer 6 perfis pré-configurados com identidade e propósito claros, cobrindo estilos de jogo comuns. Nomes em português.

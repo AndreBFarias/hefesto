@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#83](https://github.com/AndreBFarias/hefesto/issues/83) — fechada por PR com `Closes #83` no body.
+
 ## Contexto
 
 `README.md` atual é técnico — lista dependências, arquitetura, protocolos. Bom para contribuidores, ruim para o usuário final que acabou de plugar o DualSense e quer fazer funcionar. Hefesto v1.0.0 merece um guia visual com GIFs: instalação, primeira conexão, troca de perfil, aba Mouse, etc.

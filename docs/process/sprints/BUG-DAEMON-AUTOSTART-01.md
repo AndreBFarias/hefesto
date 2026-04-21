@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#68](https://github.com/AndreBFarias/hefesto/issues/68) — fechada por PR com `Closes #68` no body.
+
 ## Sintoma
 
 Usuário abre a GUI (via launcher ou menu de aplicativos) — header mostra "○ Daemon Offline". Precisa clicar manualmente no botão "Reiniciar Daemon" na aba Daemon para subir. Espera razoável: daemon deve estar ativo antes mesmo da janela aparecer (ou subir no ato).

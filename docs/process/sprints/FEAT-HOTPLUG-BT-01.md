@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#82](https://github.com/AndreBFarias/hefesto/issues/82) — fechada por PR com `Closes #82` no body.
+
 ## Contexto
 
 FEAT-HOTPLUG-GUI-01 cobre só USB: regra udev `ACTION=="add"` no `subsystem=usb` dispara o spawn da GUI. Bluetooth não gera esse evento no subsystem USB — o pareamento BT cria um nó em `hidraw` via protocolo L2CAP + hid-playstation, e o evento correspondente é `ACTION=="add"` em `subsystem=hidraw` ou `subsystem=input` (dependendo do kernel).

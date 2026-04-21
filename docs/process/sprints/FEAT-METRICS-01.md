@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#85](https://github.com/AndreBFarias/hefesto/issues/85) — fechada por PR com `Closes #85` no body.
+
 ## Contexto
 
 Daemon hoje não expõe métricas. Para o usuário debugar "por que o controle está lento" ou "o daemon está pesado?" é preciso `top` / `htop` + ler logs. Sem dados quantitativos. Observabilidade é lição empírica (meta-regra 9.4 — "sistema adaptativo sem métrica de saúde é bomba-relógio").

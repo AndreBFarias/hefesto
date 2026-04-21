@@ -26,8 +26,8 @@ Objetivo: fechar os buracos de UX que o usuário reportou logo após a V1.0.0. C
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 1 | [BUG] **BUG-DAEMON-AUTOSTART-01** — daemon não sobe sozinho ao abrir GUI | S | sonnet |
-| 2 | [BUG] **BUG-MOUSE-TRIGGERS-01** — triggers param ao ligar mouse | M (investigação) | opus |
+| 1 | [BUG] [**BUG-DAEMON-AUTOSTART-01**](https://github.com/AndreBFarias/hefesto/issues/68) — daemon não sobe sozinho ao abrir GUI | S | sonnet |
+| 2 | [BUG] [**BUG-MOUSE-TRIGGERS-01**](https://github.com/AndreBFarias/hefesto/issues/69) — triggers param ao ligar mouse | M (investigação) | opus |
 
 ### Fase 2 — Features pequenas, paralelizáveis
 
@@ -35,17 +35,17 @@ Três sprints independentes, disparadas simultaneamente em worktrees isoladas.
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 3 | [FEAT] **FEAT-LED-BRIGHTNESS-01** — slider de luminosidade do lightbar | S | sonnet |
-| 3=> | [FEAT] **FEAT-HOTKEY-STEAM-01** — botão PS abre/foca Steam | S | sonnet |
-| 3=> | [FEAT] **FEAT-HOTKEY-MIC-01** — botão Mic toggle microfone do sistema | S | sonnet |
+| 3 | [FEAT] [**FEAT-LED-BRIGHTNESS-01**](https://github.com/AndreBFarias/hefesto/issues/70) — slider de luminosidade do lightbar | S | sonnet |
+| 3=> | [FEAT] [**FEAT-HOTKEY-STEAM-01**](https://github.com/AndreBFarias/hefesto/issues/71) — botão PS abre/foca Steam | S | sonnet |
+| 3=> | [FEAT] [**FEAT-HOTKEY-MIC-01**](https://github.com/AndreBFarias/hefesto/issues/72) — botão Mic toggle microfone do sistema | S | sonnet |
 
 ### Fase 3 — Perfis + estado central (depende da Fase 2)
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 4 | [FEAT] **FEAT-PROFILES-PRESET-06** — 6 perfis (navegação, fps, aventura, ação, corrida, esportes) com feedback/vibração por posição | M | sonnet |
-| 5 | [FEAT] **FEAT-PROFILE-STATE-01** — DraftConfig central, sync entre abas, apply-all atômico | M | opus |
-| 6 | [FEAT] **FEAT-HOTPLUG-GUI-01** — GUI abre automaticamente ao plugar controle (USB) | S | sonnet |
+| 4 | [FEAT] [**FEAT-PROFILES-PRESET-06**](https://github.com/AndreBFarias/hefesto/issues/73) — 6 perfis (navegação, fps, aventura, ação, corrida, esportes) com feedback/vibração por posição | M | sonnet |
+| 5 | [FEAT] [**FEAT-PROFILE-STATE-01**](https://github.com/AndreBFarias/hefesto/issues/74) — DraftConfig central, sync entre abas, apply-all atômico | M | opus |
+| 6 | [FEAT] [**FEAT-HOTPLUG-GUI-01**](https://github.com/AndreBFarias/hefesto/issues/75) — GUI abre automaticamente ao plugar controle (USB) | S | sonnet |
 
 ### Fase 4 — Dívida técnica + paridade
 
@@ -53,10 +53,10 @@ Quatro sprints paralelizáveis, fecham a V1.1.
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 7 | [CHORE] **CHORE-FAKEPATH-01** — mover FakeController para `src/hefesto/testing/` | S | sonnet |
-| 7=> | [CHORE] **CHORE-ACENTO-01** — 6 violações PT-BR em strings de código do IPC | XS | sonnet |
-| 7=> | [CHORE] **CHORE-CI-SMOKE-01** — rodar `./run.sh --smoke` no workflow CI | S | sonnet |
-| 7=> | [FEAT] **FEAT-CLI-PARITY-01** — CLI expõe luminosidade LED + mouse + daemon restart | M | sonnet |
+| 7 | [CHORE] [**CHORE-FAKEPATH-01**](https://github.com/AndreBFarias/hefesto/issues/76) — mover FakeController para `src/hefesto/testing/` | S | sonnet |
+| 7=> | [CHORE] [**CHORE-ACENTO-01**](https://github.com/AndreBFarias/hefesto/issues/77) — 6 violações PT-BR em strings de código do IPC | XS | sonnet |
+| 7=> | [CHORE] [**CHORE-CI-SMOKE-01**](https://github.com/AndreBFarias/hefesto/issues/78) — rodar `./run.sh --smoke` no workflow CI | S | sonnet |
+| 7=> | [FEAT] [**FEAT-CLI-PARITY-01**](https://github.com/AndreBFarias/hefesto/issues/79) — CLI expõe luminosidade LED + mouse + daemon restart | M | sonnet |
 
 ### Fase 5 — Marco
 
@@ -72,10 +72,10 @@ Objetivo: expandir onde o Hefesto roda (COSMIC, BT) e abrir a porta de entrada (
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 9 | [FEAT] **FEAT-COSMIC-WAYLAND-01** — compat com Pop!_OS 24.04 COSMIC via portal XDG | L | opus |
-| 10 | [FEAT] **FEAT-FLATPAK-BUNDLE-01** — manifest Flatpak + udev install-helper | L | opus |
-| 11 | [FEAT] **FEAT-HOTPLUG-BT-01** — auto-abertura GUI ao parear via Bluetooth | S | sonnet |
-| 12 | [DOCS] **DOCS-QUICKSTART-01** — guia visual com GIFs (pode começar antes, em paralelo) | M | sonnet |
+| 9 | [FEAT] [**FEAT-COSMIC-WAYLAND-01**](https://github.com/AndreBFarias/hefesto/issues/80) — compat com Pop!_OS 24.04 COSMIC via portal XDG | L | opus |
+| 10 | [FEAT] [**FEAT-FLATPAK-BUNDLE-01**](https://github.com/AndreBFarias/hefesto/issues/81) — manifest Flatpak + udev install-helper | L | opus |
+| 11 | [FEAT] [**FEAT-HOTPLUG-BT-01**](https://github.com/AndreBFarias/hefesto/issues/82) — auto-abertura GUI ao parear via Bluetooth | S | sonnet |
+| 12 | [DOCS] [**DOCS-QUICKSTART-01**](https://github.com/AndreBFarias/hefesto/issues/83) — guia visual com GIFs (pode começar antes, em paralelo) | M | sonnet |
 | 13 | [RELEASE] **Release v1.2.0** | — | — |
 
 ---
@@ -86,9 +86,9 @@ Objetivo: refatorar internals para sustentar crescimento; abrir plugin API.
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 14 | [CHORE] **REFACTOR-LIFECYCLE-01** — quebrar `lifecycle.py` em `subsystems/` | L | opus |
-| 15 | [FEAT] **FEAT-METRICS-01** — endpoint Prometheus `/metrics` opt-in | M | opus |
-| 16 | [FEAT] **FEAT-PLUGIN-01** — sistema de plugins Python via `plugin_api/` | XL | opus (2 iterações) |
+| 14 | [CHORE] [**REFACTOR-LIFECYCLE-01**](https://github.com/AndreBFarias/hefesto/issues/84) — quebrar `lifecycle.py` em `subsystems/` | L | opus |
+| 15 | [FEAT] [**FEAT-METRICS-01**](https://github.com/AndreBFarias/hefesto/issues/85) — endpoint Prometheus `/metrics` opt-in | M | opus |
+| 16 | [FEAT] [**FEAT-PLUGIN-01**](https://github.com/AndreBFarias/hefesto/issues/86) — sistema de plugins Python via `plugin_api/` | XL | opus (2 iterações) |
 | 17 | [RELEASE] **Release v2.0.0** | — | — |
 
 ---

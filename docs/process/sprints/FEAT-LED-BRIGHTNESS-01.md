@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#70](https://github.com/AndreBFarias/hefesto/issues/70) — fechada por PR com `Closes #70` no body.
+
 ## Contexto
 
 Lightbar do DualSense hoje aceita apenas RGB 0-255 por canal. A GUI (aba Lightbar) expõe cor via `GtkColorButton` e botões preset, mas não expõe luminosidade (brightness) independente da cor. O usuário quer um slider para atenuar sem mudar o matiz — ex.: cor favorita 50% menos intensa para não ofuscar à noite.
