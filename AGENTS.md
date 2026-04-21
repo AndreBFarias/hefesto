@@ -57,9 +57,12 @@ Acentuação correta é obrigatória. Nunca escrever `funcao`, `validacao`, `des
 - `docs/protocol/` — especificações de protocolo (UDP, IPC, trigger modes).
 - `docs/usage/` — guias ao usuário final.
 - `docs/process/` — artefatos vivos do processo de design: decisões atuais, roadmap, dúvidas em aberto.
+- `docs/process/discoveries/` — **diário de descobertas**: uma jornada por arquivo (sintoma → hipóteses → causa → solução → lições). Criar sempre que aparecer surpresa, conflito de ambiente ou hipótese desfeita. Ver `docs/process/discoveries/README.md` e `TEMPLATE.md`.
 - `docs/history/` — arquivo morto: auditorias antigas, RFCs rejeitadas, versões anteriores superadas.
 
 Regra de movimentação: quando um documento de `docs/process/` é substituído por uma versão mais nova, a versão antiga desce para `docs/history/` com sufixo de versão (`_V1`, `_V2`).
+
+Diário de descobertas nunca é arquivado — memória permanente.
 
 ---
 
