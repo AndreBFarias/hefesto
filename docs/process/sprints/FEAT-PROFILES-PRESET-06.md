@@ -11,6 +11,14 @@
 
 Hoje existem 4 perfis default em `assets/profiles_default/`: `bow`, `driving`, `fallback`, `shooter`. Usuário quer 6 perfis pré-configurados com identidade e propósito claros, cobrindo estilos de jogo comuns. Nomes em português.
 
+## Requisitos transversais (valem pra todos os 6 perfis)
+
+- **Feedback por posição** (`MultiPositionFeedback`): cada perfil pode usar em vez do efeito simples quando faz sentido (ex.: aventura com stamina em zonas; corrida com breakpoints de freio). Param shape: `[pos0, pos1, ..., pos9]` com intensidade 0-9 em cada posição do curso do gatilho.
+- **Vibração** (`MultiPositionVibration`): análogo ao feedback, mas com vibração discreta por posição. Adiciona sensação tátil quando atinge um "stop".
+- **Rumble pré-configurado**: cada perfil define `rumble.weak` e `rumble.strong` em base de bytes (0-255) ou mantém `passthrough: true` para receber do jogo. Perfis com contexto forte (aventura/ação) têm valores pequenos pré-setados para caso o jogo não envie rumble próprio (ex.: `weak: 40, strong: 80`).
+
+Quando o spec de um perfil listar `MultiPositionFeedback` ou `MultiPositionVibration`, o executor deve escolher valores coerentes com o estilo (pulsos mais densos em FPS, degraus largos em corrida etc.).
+
 ## Os 6 perfis
 
 ### 1. `navegacao.json` — Navegação desktop / menus
@@ -24,40 +32,41 @@ Uso: browser, terminal, launcher, navegação de menus de jogos antes de começa
 Uso: CS, Valorant, Apex, COD, Overwatch, Cyberpunk combate.
 - **R2**: `SemiAutoGun` params `(0, 9, 7, 7, 10, 0)` — resistência forte que "solta" ao atirar.
 - **L2**: `Rigid` params `(0, 255)` — para mira firme.
+- **R2 alt (opcional)**: `MultiPositionVibration` params `(0, 0, 0, 2, 5, 8, 9, 9, 9, 0)` — pulso crescente nos últimos 60% do curso, nada nos primeiros.
 - **Lightbar**: vermelho intenso `(200, 20, 20)`, brightness 0.9.
-- **Rumble passthrough**: True.
+- **Rumble**: `weak: 0, strong: 0, passthrough: true` (jogo gera).
 - **Match**: nomes de processo/janela de FPS conhecidos (lista inicial 10-15).
 
 ### 3. `aventura.json` — Aventura RPG (Elden Ring, God of War, Zelda-like)
 Uso: combate com timing, parries, stamina.
 - **R2**: `Galloping` params `(0, 9, 7, 7, 10)` — pulsação que indica carregamento de ataque.
-- **L2**: `Feedback` params `(0, 3)` — resistência leve que comunica bloqueio / defesa.
+- **L2**: `MultiPositionFeedback` params `(0, 0, 3, 5, 7, 9, 9, 5, 3, 0)` — rampa de resistência simulando stamina drain com "alívio" no fim.
 - **Lightbar**: dourado `(220, 170, 30)`, brightness 0.7.
-- **Rumble passthrough**: True.
+- **Rumble**: `weak: 30, strong: 60, passthrough: true` (base pré-setada + passthrough; se jogo envia, substitui; se não, ainda sente o mundo).
 - **Match**: `eldenring.exe`, `HorizonZeroDawn`, `GodOfWar.exe`, `Witcher3.exe`, `DarkSouls*`, `Sekiro`.
 
 ### 4. `acao.json` — Ação hack-and-slash
 Uso: DMC, Bayonetta, Devil May Cry, Hi-Fi Rush.
-- **R2**: `Pulse` params `(1, 10, 4)` — pulsação rápida que premia cadência.
+- **R2**: `MultiPositionVibration` params `(0, 2, 4, 6, 8, 9, 7, 5, 3, 0)` — pulso em onda que premia manter trigger na zona "sweet".
 - **L2**: `Rigid` params `(0, 180)` — firmeza para esquiva/guard.
 - **Lightbar**: laranja neon `(255, 80, 0)`, brightness 1.0.
-- **Rumble passthrough**: True.
+- **Rumble**: `weak: 20, strong: 40, passthrough: true`.
 - **Match**: `DevilMayCry`, `Bayonetta`, `Hi-FiRush`, `NieR`.
 
 ### 5. `corrida.json` — Corrida / driving sim
 Uso: Forza, Gran Turismo, Assetto Corsa, F1.
-- **R2**: `AutoGun` params `(2, 8, 3)` — progressão de freio tipo pedal.
-- **L2**: `Feedback` params `(1, 2)` — embreagem / handbrake com toque.
+- **R2**: `MultiPositionFeedback` params `(0, 1, 2, 4, 6, 8, 9, 9, 9, 9)` — pedal de freio progressivo, trava-se perto do fundo.
+- **L2**: `MultiPositionFeedback` params `(0, 0, 0, 0, 2, 5, 8, 9, 9, 9)` — embreagem/handbrake que só resiste na segunda metade (ponto de engate).
 - **Lightbar**: ciano `(0, 180, 220)`, brightness 0.8.
-- **Rumble passthrough**: True.
+- **Rumble**: `weak: 50, strong: 90, passthrough: true` — base tátil de motor + rumble do jogo.
 - **Match**: `Forza*`, `AssettoCorsa`, `GranTurismo`, `F1_20*`, `DirtRally`.
 
 ### 6. `esportes.json` — Esportes
 Uso: FIFA, eFootball, NBA 2K, MLB.
 - **R2**: `PulseA` params `(0, 8, 5)` — chute/passe com resposta crescente.
-- **L2**: `Rigid` params `(0, 120)` — controle firme de time / marcação.
+- **L2**: `MultiPositionVibration` params `(0, 0, 1, 2, 3, 5, 7, 5, 3, 0)` — pulso de "dribble" no meio do curso.
 - **Lightbar**: verde `(40, 200, 80)`, brightness 0.85.
-- **Rumble passthrough**: True.
+- **Rumble**: `weak: 25, strong: 50, passthrough: true` — base de estádio + passthrough do jogo.
 - **Match**: `FIFA*`, `eFootball`, `NBA2K*`, `MLB*`.
 
 ## Critérios de aceite
