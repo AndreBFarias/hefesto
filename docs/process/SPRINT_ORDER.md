@@ -38,6 +38,7 @@ Três sprints independentes, disparadas simultaneamente em worktrees isoladas.
 | 3 | [FEAT] [**FEAT-LED-BRIGHTNESS-01**](https://github.com/AndreBFarias/hefesto/issues/70) — slider de luminosidade do lightbar | S | sonnet |
 | 3=> | [FEAT] [**FEAT-HOTKEY-STEAM-01**](https://github.com/AndreBFarias/hefesto/issues/71) — botão PS abre/foca Steam | S | sonnet |
 | 3=> | [FEAT] [**FEAT-HOTKEY-MIC-01**](https://github.com/AndreBFarias/hefesto/issues/72) — botão Mic toggle microfone do sistema | S | sonnet |
+| 3=> | [FEAT] [**FEAT-MOUSE-02**](https://github.com/AndreBFarias/hefesto/issues/87) — Circle=Enter, Square=Esc no modo Mouse | XS | sonnet |
 
 ### Fase 3 — Perfis + estado central (depende da Fase 2)
 
