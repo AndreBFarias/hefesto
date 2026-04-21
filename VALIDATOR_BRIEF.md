@@ -108,7 +108,12 @@ Risco: decorre de A-01. Smoke deveria usar socket isolado (ex.: nome parametriz�
 ### A-04: Diff working-tree 2026-04-21 removeu glyphs Unicode de estado
 Local: `src/hefesto/app/actions/{status,daemon,emulation}_actions.py`, `src/hefesto/tui/widgets/__init__.py`, `tests/unit/test_tui_widgets.py`, `docs/process/HEFESTO_PROJECT.md`, `docs/process/HEFESTO_DECISIONS_V2.md`.
 Risco: interpretação errada de "zero emojis" strippou BLACK/WHITE CIRCLE (U+25CF/U+25CB) dos markups Pango, zerou `BatteryMeter._icon_for_level` (retorna `""` para todos os níveis) e adaptou o teste para esconder a regressão (viola meta-regras 9.2 e 9.6). Docs perderam `HEAVY CHECK MARK` / `CROSS MARK` sem substituição por texto.
-Fix canônico: reverter os `*_actions.py` e `tui/widgets/__init__.py` ao HEAD~0 pré-diff; nos docs, substituir por texto "OK" / "ERRADO".
+Fix canônico: reverter os `*_actions.py` e `tui/widgets/__init__.py` ao HEAD~0 pré-diff; nos docs, substituir por texto "OK" / "ERRADO". **RESOLVIDA** pela sprint UX-HEADER-01 em 2026-04-21.
+
+### A-05: USB autosuspend derruba DualSense durante polling
+Local: kernel Linux com `CONFIG_USB_RUNTIME_PM=y` (default Pop!_OS/Ubuntu/Fedora).
+Risco: suspende device USB inativo após ~2s. Gamepad em polling HID a 60-120 Hz perde conexão transiente; hidraw devolve `ENODEV`; daemon entra em reconnect loop; GUI mostra "daemon offline" ou "tentando reconectar" com controle fisicamente ligado.
+Fix canônico: aplicar `assets/72-ps5-controller-autosuspend.rules` via `install_udev.sh`. Regra força `power/control=on` e `power/autosuspend_delay_ms=-1` para `054c:0ce6` e `054c:0df2` no subsystem=usb. Ver sprint USB-POWER-01. Trazido de projeto irmão (desbloqueador Switch) onde a gotcha foi primeiro documentada.
 
 ---
 
