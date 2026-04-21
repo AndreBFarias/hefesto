@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#75](https://github.com/AndreBFarias/hefesto/issues/75) — fechada por PR com `Closes #75` no body.
+
 ## Contexto
 
 Usuário pluga o DualSense no USB. Espera que a GUI do Hefesto apareça automaticamente — não precisar abrir pelo menu ou lembrar do tray. Hoje o daemon detecta a conexão (via udev rule de permissão já existente), mas a GUI é quietamente iniciada apenas via tray ou menu.

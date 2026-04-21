@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#74](https://github.com/AndreBFarias/hefesto/issues/74) — fechada por PR com `Closes #74` no body.
+
 ## Contexto
 
 Hoje cada aba (Gatilhos, Lightbar, Rumble, Mouse, Emulação) aplica mudanças direto no daemon via IPC — isoladamente. Trocar de aba perde o estado intermediário. Não há visão "estou configurando um perfil inteiro" vs "estou aplicando um efeito ao vivo". Usuário relata:

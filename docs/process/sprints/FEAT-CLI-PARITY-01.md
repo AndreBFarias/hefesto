@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#79](https://github.com/AndreBFarias/hefesto/issues/79) — fechada por PR com `Closes #79` no body.
+
 ## Contexto
 
 `hefesto` CLI (typer) expõe subcomandos `status`, `battery`, `led`, `profile`, `trigger`, `daemon`, `emulate`. Com features novas da GUI (luminosidade LED, emulação mouse, botão reiniciar daemon), a CLI precisa de paridade para scripts/headless users que não abrem a GUI.

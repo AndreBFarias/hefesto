@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#80](https://github.com/AndreBFarias/hefesto/issues/80) — fechada por PR com `Closes #80` no body.
+
 ## Contexto
 
 Pop!_OS 24.04 traz o **COSMIC DE** (System76, Wayland-nativo). ADR-007 já fala em deferir Wayland, mas o desembarque do COSMIC em produção exige revisitar. Pontos do Hefesto que quebram em Wayland:

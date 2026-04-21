@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#84](https://github.com/AndreBFarias/hefesto/issues/84) — fechada por PR com `Closes #84` no body.
+
 ## Contexto
 
 `src/hefesto/daemon/lifecycle.py` concentra hoje ≥ 300 linhas com responsabilidades heterogêneas: poll loop, IPC start/stop, UDP start/stop, autoswitch, mouse emulation, battery debouncer, signal handlers, shutdown. O arquivo é central mas mistura níveis de abstração — fica difícil: (a) adicionar um subsistema novo (ex.: FEAT-METRICS-01); (b) testar um subsistema em isolamento; (c) escrever um plugin externo (FEAT-PLUGIN-01).

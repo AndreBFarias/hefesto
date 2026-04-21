@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#78](https://github.com/AndreBFarias/hefesto/issues/78) — fechada por PR com `Closes #78` no body.
+
 ## Contexto
 
 `.github/workflows/ci.yml` hoje roda `ruff check`, `mypy`, `pytest tests/unit`. Não roda smoke de runtime-real (meta-regra 9.8). Um refactor pode passar nos testes unitários mas quebrar o boot do daemon — só pegaria num usuário real. Com `FakeController` em `src/hefesto/testing/` (após CHORE-FAKEPATH-01), dá pra rodar `./run.sh --smoke` em CI sem hardware.

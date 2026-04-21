@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#81](https://github.com/AndreBFarias/hefesto/issues/81) — fechada por PR com `Closes #81` no body.
+
 ## Contexto
 
 Usuário solicitou versão Flatpak para uso em Pop!_OS COSMIC. Flatpak é o formato de pacote preferido no COSMIC Store. Desafios específicos do Hefesto:

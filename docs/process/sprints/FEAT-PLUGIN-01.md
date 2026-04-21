@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#86](https://github.com/AndreBFarias/hefesto/issues/86) — fechada por PR com `Closes #86` no body.
+
 ## Contexto
 
 Perfis hoje são JSON estáticos: `triggers/leds/rumble` declarados. Não há como escrever um perfil que reaja ao jogo em tempo real — ex.: "mudar lightbar para vermelho quando HP < 30% no Elden Ring" ou "vibração forte quando recarregar no FPS".

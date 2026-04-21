@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#76](https://github.com/AndreBFarias/hefesto/issues/76) — fechada por PR com `Closes #76` no body.
+
 ## Contexto
 
 Armadilha **A-06** descoberta durante BUG-FREEZE-01 (2026-04-21): `hefesto daemon start` com `HEFESTO_FAKE=1` falha com `ModuleNotFoundError: No module named 'tests'`. Causa:

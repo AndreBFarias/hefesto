@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#71](https://github.com/AndreBFarias/hefesto/issues/71) — fechada por PR com `Closes #71` no body.
+
 ## Contexto
 
 Botão PS (home) no DualSense hoje faz parte do combo sagrado (`PS + D-pad` para trocar perfil). Usuário quer: **PS isolado, pressionado+solto sem combo**, abre a Steam se ela não estiver rodando OU traz Steam para foreground se já estiver rodando. Replica o comportamento do botão Xbox no Xbox Game Bar / Steam Input.

@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#72](https://github.com/AndreBFarias/hefesto/issues/72) — fechada por PR com `Closes #72` no body.
+
 ## Contexto
 
 DualSense tem um botão físico dedicado ao microfone (ao lado do touchpad). Nativamente ele muta o microfone interno do controle. O usuário quer que ele **também toggle o microfone padrão do sistema Linux** — toda vez que pressionar, o mic do host liga ou desliga.

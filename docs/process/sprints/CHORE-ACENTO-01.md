@@ -8,6 +8,8 @@
 
 ---
 
+**Tracking:** issue [#77](https://github.com/AndreBFarias/hefesto/issues/77) — fechada por PR com `Closes #77` no body.
+
 ## Contexto
 
 Durante o proof-of-work de `BUG-IPC-01`, a varredura de acentuação periférica

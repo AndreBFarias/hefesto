@@ -7,6 +7,8 @@
 
 ---
 
+**Tracking:** issue [#69](https://github.com/AndreBFarias/hefesto/issues/69) — fechada por PR com `Closes #69` no body.
+
 ## Sintoma
 
 Usuário aplica um efeito de gatilho (ex.: `Rigid`/`Galloping`) via aba Gatilhos — funciona. Liga toggle da aba Mouse para ativar emulação de mouse — o cursor do mouse responde aos sticks, mas os gatilhos deixam de aplicar (ou voltam a `Off`). O usuário espera que ambos coexistam: mouse emulado E triggers ativos.
