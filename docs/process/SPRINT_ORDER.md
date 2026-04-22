@@ -1,96 +1,186 @@
 # SPRINT_ORDER.md — Roadmap de execução do Hefesto
 
-> Ordem recomendada de execução das sprints pendentes, agrupadas por wave/milestone.
+> Ordem recomendada de execução das sprints pendentes, agrupadas por wave/fase.
 > Cada sprint tem spec em `docs/process/sprints/<ID>.md` e issue correspondente no GitHub.
 
-**Status de main:** `v1.0.0` publicada em 2026-04-21. Release `release.yml` dispara wheel + AppImage + GitHub release automaticamente na tag.
+**Status de main:** `v1.0.0` publicada em 2026-04-21. Sprint **BUG-MULTI-INSTANCE-01** entregue em 2026-04-22 (takeover + auto-start opt-in + quit_app encerra daemon). Próximos objetivos: fechar **v1.1.0** com polish UX visível + perfis robustos, e **v1.2.0** com plataforma (BT, Flatpak, deb, COSMIC).
 
 ---
 
 ## Legenda
 
-- **[BUG]** correção crítica de UX (reportado pelo usuário).
-- **[FEAT]** feature nova pedida pelo usuário.
-- **[CHORE]** dívida técnica interna.
-- **[DOCS]** documentação.
+- **[BUG]** correção de UX quebrado (reportado pelo usuário).
+- **[FEAT]** feature nova.
+- **[UI]** polish visual ou tema.
+- **[CHORE]** dívida técnica ou docs.
+- **[REFACTOR]** limpeza arquitetural.
+- **[RESEARCH]** pesquisa experimental.
 - **[RELEASE]** marco de publicação.
 - **=>** pode rodar em paralelo com a sprint acima.
 
 ---
 
-## Wave V1.1 — Correções de UX + features pequenas
+## Wave V1.1 — Estabilidade + UX polido
 
-Objetivo: fechar os buracos de UX que o usuário reportou logo após a V1.0.0. Cadência curta, muito paralelismo.
+Objetivo: fechar buracos reportados pelo usuário, polir a GUI, deixar o Hefesto apresentável pra terceiros.
 
-### Fase 1 — Bugs críticos (bloqueiam o uso cotidiano)
+### Fase 1 — Bugs críticos (concluída)
+
+| Ordem | Sprint | Status |
+|---|---|---|
+| 1 | [BUG] **BUG-DAEMON-AUTOSTART-01** (#68) | MERGED 2026-04-22 |
+| 2 | [BUG] **BUG-MOUSE-TRIGGERS-01** (#69) | MERGED 2026-04-22 |
+
+### Fase 2 — Features pequenas (concluída)
+
+| Ordem | Sprint | Status |
+|---|---|---|
+| 3 | [FEAT] **FEAT-LED-BRIGHTNESS-01** (#70) | MERGED 2026-04-22 |
+| 3=> | [FEAT] **FEAT-HOTKEY-STEAM-01** (#71) | MERGED 2026-04-22 |
+| 3=> | [FEAT] **FEAT-MOUSE-02** (#87) | MERGED 2026-04-22 |
+
+### Fase 3 — Fundamentos do daemon (concluída)
+
+| Ordem | Sprint | Status |
+|---|---|---|
+| 4 | [FEAT] **FEAT-HOTPLUG-GUI-01** (#75) | MERGED 2026-04-22 |
+| 4=> | [FEAT] **FEAT-CLI-PARITY-01** (#79) | MERGED 2026-04-22 |
+| 5 | [CHORE] **CHORE-FAKEPATH-01** (#76) | MERGED 2026-04-22 |
+| 5=> | [CHORE] **CHORE-CI-SMOKE-01** (#78) | MERGED 2026-04-22 |
+| 5=> | [CHORE] **CHORE-ACENTO-01** (#77) | MERGED 2026-04-22 |
+| 6 | [FEAT] **FEAT-PERSIST-SESSION-01** | DIRECT TO MAIN 2026-04-22 |
+
+### Fase 4 — Estabilidade de processo (concluída)
+
+| Ordem | Sprint | Status |
+|---|---|---|
+| 7 | [BUG] **BUG-MULTI-INSTANCE-01** (single-instance takeover + opt-in autostart) | DIRECT TO MAIN 2026-04-22 |
+
+### Fase 5 — Fixes P0 pós-usuario-real (PRÓXIMA)
+
+Ordem sequencial porque bugs podem interagir entre si.
+
+| Ordem | Sprint | Porte | Modelo sugerido |
+|---|---|---|---|
+| 8 | [BUG] **BUG-TRAY-SINGLE-FLASH-01** — GUI abre e fecha ao plugar (virar "primeira vence") | S | sonnet |
+| 9 | [BUG] **BUG-DAEMON-STATUS-MISMATCH-01** — painel Daemon confuso | S | sonnet |
+| 10 | [BUG] **BUG-RUMBLE-APPLY-IGNORED-01** — "Aplicar rumble" não persiste | S | sonnet |
+| 11 | [FEAT] **FEAT-PLAYER-LEDS-APPLY-01** — envio real dos Player LEDs | M | opus (HID direto) |
+| 12 | [FEAT] **FEAT-LED-BRIGHTNESS-02** — propagação brightness no ProfileManager | XS | sonnet |
+| 13 | [FEAT] **FEAT-LED-BRIGHTNESS-03** — persist handler GUI do brightness | XS | sonnet |
+| 14 | [REFACTOR] **REFACTOR-HOTKEY-EVDEV-01** — dedup snapshot por tick (A-09) | XS | sonnet |
+| 15 | [CHORE] **DOCS-VERSION-SYNC-01** — README reflete 1.0.0 + script CI | XS | sonnet |
+
+### Fase 6 — Polish UX visível (4 em paralelo possíveis)
+
+Bloco dependente de fases anteriores. Inicia quando Fase 5 está quase completa.
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 1 | [BUG] [**BUG-DAEMON-AUTOSTART-01**](https://github.com/AndreBFarias/hefesto/issues/68) — daemon não sobe sozinho ao abrir GUI | S | sonnet |
-| 2 | [BUG] [**BUG-MOUSE-TRIGGERS-01**](https://github.com/AndreBFarias/hefesto/issues/69) — triggers param ao ligar mouse | M (investigação) | opus |
+| 16 | [UI] **UI-THEME-BORDERS-PURPLE-01** — CSS Drácula global (pré-req dos outros UI) | M | sonnet |
+| 17 | [FEAT] **FEAT-BUTTON-SVG-01** — 19 SVGs minimalistas + `ButtonGlyph` (pré-req Status redesign) | M | opus (design SVG) |
+| 18 | [UI] **UI-STATUS-STICKS-REDESIGN-01** — bloco Status com glyphs + PT-BR | M | sonnet |
+| 19 | [UI] **UI-PROFILES-EDITOR-SIMPLE-01** — editor modo simples/avançado | M | sonnet |
+| 20 | [UI] **UI-DAEMON-LOG-WRAP-01** — log com card + wrap | XS | sonnet |
+| 21 | [UI] **UI-EMULATION-ALIGN-01** — alinhamento da aba Emulação | XS | sonnet |
+| 22 | [UI] **UI-MOUSE-CLEANUP-01** — cleanup aba Mouse | XS | sonnet |
 
-### Fase 2 — Features pequenas, paralelizáveis
+### Fase 7 — Estado central + perfis
 
-Três sprints independentes, disparadas simultaneamente em worktrees isoladas.
-
-| Ordem | Sprint | Porte | Modelo |
-|---|---|---|---|
-| 3 | [FEAT] [**FEAT-LED-BRIGHTNESS-01**](https://github.com/AndreBFarias/hefesto/issues/70) — slider de luminosidade do lightbar | S | sonnet |
-| 3=> | [FEAT] [**FEAT-HOTKEY-STEAM-01**](https://github.com/AndreBFarias/hefesto/issues/71) — botão PS abre/foca Steam | S | sonnet |
-| 3=> | [FEAT] [**FEAT-HOTKEY-MIC-01**](https://github.com/AndreBFarias/hefesto/issues/72) — botão Mic toggle microfone do sistema | S | sonnet |
-| 3=> | [FEAT] [**FEAT-MOUSE-02**](https://github.com/AndreBFarias/hefesto/issues/87) — Circle=Enter, Square=Esc no modo Mouse | XS | sonnet |
-
-### Fase 3 — Perfis + estado central (depende da Fase 2)
+Dependência cruzada. Executa em sequência.
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 4 | [FEAT] [**FEAT-PROFILES-PRESET-06**](https://github.com/AndreBFarias/hefesto/issues/73) — 6 perfis (navegação, fps, aventura, ação, corrida, esportes) com feedback/vibração por posição | M | sonnet |
-| 5 | [FEAT] [**FEAT-PROFILE-STATE-01**](https://github.com/AndreBFarias/hefesto/issues/74) — DraftConfig central, sync entre abas, apply-all atômico | M | opus |
-| 6 | [FEAT] [**FEAT-HOTPLUG-GUI-01**](https://github.com/AndreBFarias/hefesto/issues/75) — GUI abre automaticamente ao plugar controle (USB) | S | sonnet |
+| 23 | [FEAT] **FEAT-PROFILE-STATE-01** (#74) — DraftConfig central (pré-req do rodapé) | L | opus |
+| 24 | [UI] **UI-GLOBAL-FOOTER-ACTIONS-01** — rodapé Aplicar/Salvar/Importar/Default | M | sonnet |
+| 25 | [FEAT] **FEAT-PROFILES-PRESET-06** (#73) — 6 perfis + "Meu Perfil" | M | sonnet |
 
-### Fase 4 — Dívida técnica + paridade
-
-Quatro sprints paralelizáveis, fecham a V1.1.
+### Fase 8 — Rumble + gatilhos polidos
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 7 | [CHORE] [**CHORE-FAKEPATH-01**](https://github.com/AndreBFarias/hefesto/issues/76) — mover FakeController para `src/hefesto/testing/` | S | sonnet |
-| 7=> | [CHORE] [**CHORE-ACENTO-01**](https://github.com/AndreBFarias/hefesto/issues/77) — 6 violações PT-BR em strings de código do IPC | XS | sonnet |
-| 7=> | [CHORE] [**CHORE-CI-SMOKE-01**](https://github.com/AndreBFarias/hefesto/issues/78) — rodar `./run.sh --smoke` no workflow CI | S | sonnet |
-| 7=> | [FEAT] [**FEAT-CLI-PARITY-01**](https://github.com/AndreBFarias/hefesto/issues/79) — CLI expõe luminosidade LED + mouse + daemon restart | M | sonnet |
+| 26 | [FEAT] **FEAT-TRIGGER-PRESETS-POSITION-01** — presets Feedback/Vibração por posição | M | sonnet |
+| 27 | [FEAT] **FEAT-RUMBLE-POLICY-01** — política global + modo Auto | M | opus |
 
-### Fase 5 — Marco
+### Fase 9 — Marco
 
-| Ordem | Sprint | Porte | Modelo |
-|---|---|---|---|
-| 8 | [RELEASE] **Release v1.1.0** — CHANGELOG + tag + push, workflow dispara artifacts | — | — |
+| Ordem | Sprint | Porte |
+|---|---|---|
+| 28 | [RELEASE] **Release v1.1.0** — CHANGELOG + tag + push, release.yml gera wheel + AppImage | — |
 
 ---
 
 ## Wave V1.2 — Plataforma + docs
 
-Objetivo: expandir onde o Hefesto roda (COSMIC, BT) e abrir a porta de entrada (quickstart).
+Objetivo: chegar a plataformas novas (COSMIC, BT) e packaging (deb, Flatpak). Lançar pra usuário Linux "assistido" que instala sem tutorial.
+
+### Fase 1 — Plataformas (até 3 em paralelo)
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 9 | [FEAT] [**FEAT-COSMIC-WAYLAND-01**](https://github.com/AndreBFarias/hefesto/issues/80) — compat com Pop!_OS 24.04 COSMIC via portal XDG | L | opus |
-| 10 | [FEAT] [**FEAT-FLATPAK-BUNDLE-01**](https://github.com/AndreBFarias/hefesto/issues/81) — manifest Flatpak + udev install-helper | L | opus |
-| 11 | [FEAT] [**FEAT-HOTPLUG-BT-01**](https://github.com/AndreBFarias/hefesto/issues/82) — auto-abertura GUI ao parear via Bluetooth | S | sonnet |
-| 12 | [DOCS] [**DOCS-QUICKSTART-01**](https://github.com/AndreBFarias/hefesto/issues/83) — guia visual com GIFs (pode começar antes, em paralelo) | M | sonnet |
-| 13 | [RELEASE] **Release v1.2.0** | — | — |
+| 29 | [FEAT] **FEAT-HOTPLUG-BT-01** (#82) — hotplug via Bluetooth | S | sonnet |
+| 29=> | [FEAT] **FEAT-DEB-PACKAGE-01** — pacote `.deb` | M | sonnet |
+| 30 | [FEAT] **FEAT-FLATPAK-BUNDLE-01** (#81) — bundle Flatpak | L | opus |
+| 31 | [FEAT] **FEAT-COSMIC-WAYLAND-01** (#80) — COSMIC/Wayland via portal | L | opus (2 iter) |
+
+### Fase 2 — Quickstart
+
+| Ordem | Sprint | Porte | Modelo |
+|---|---|---|---|
+| 32 | [DOCS] **DOCS-QUICKSTART-01** (#83) — quickstart visual com GIFs | M | sonnet |
+
+### Fase 3 — Refactor preparatório
+
+| Ordem | Sprint | Porte | Modelo |
+|---|---|---|---|
+| 33 | [REFACTOR] **REFACTOR-DAEMON-RELOAD-01** — hot-reload do HotkeyManager (A-08) | S | sonnet |
+
+### Fase 4 — Marco
+
+| Ordem | Sprint | Porte |
+|---|---|---|
+| 34 | [RELEASE] **Release v1.2.0** | — |
 
 ---
 
-## Wave V2.0 — Arquitetura + observabilidade
+## Wave V2.0 — Infra avançada + MIC
 
-Objetivo: refatorar internals para sustentar crescimento; abrir plugin API.
+Objetivo: novos controles adaptativos (Mic, áudio), plataforma de plugins.
+
+### Fase 1 — Infra MIC (sequencial)
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
-| 14 | [CHORE] [**REFACTOR-LIFECYCLE-01**](https://github.com/AndreBFarias/hefesto/issues/84) — quebrar `lifecycle.py` em `subsystems/` | L | opus |
-| 15 | [FEAT] [**FEAT-METRICS-01**](https://github.com/AndreBFarias/hefesto/issues/85) — endpoint Prometheus `/metrics` opt-in | M | opus |
-| 16 | [FEAT] [**FEAT-PLUGIN-01**](https://github.com/AndreBFarias/hefesto/issues/86) — sistema de plugins Python via `plugin_api/` | XL | opus (2 iterações) |
-| 17 | [RELEASE] **Release v2.0.0** | — | — |
+| 35 | [INFRA] **INFRA-BUTTON-EVENTS-01** (#90) — `EventTopic.BUTTON_DOWN` no poll loop | S | sonnet |
+| 36 | [INFRA] **INFRA-MIC-HID-01** (#91) — botão Mic em `ControllerState` | S | sonnet |
+| 37 | [INFRA] **INFRA-SET-MIC-LED-01** (#92) — `IController.set_mic_led` | S | sonnet |
+| 38 | [FEAT] **FEAT-HOTKEY-MIC-01** (#72) — botão Mic toggle microfone sistema | S | sonnet |
+| 38=> | [FEAT] **FEAT-AUDIO-CONTROL-01** (#93) — AudioControl autônomo (wpctl/pactl + debounce) | M | sonnet |
+
+### Fase 2 — Arquitetura
+
+| Ordem | Sprint | Porte | Modelo |
+|---|---|---|---|
+| 39 | [REFACTOR] **REFACTOR-LIFECYCLE-01** (#84) — quebrar `lifecycle.py` em subsistemas | L | opus |
+| 40 | [FEAT] **FEAT-METRICS-01** (#85) — endpoint Prometheus opt-in | M | opus |
+
+### Fase 3 — Plugin API
+
+| Ordem | Sprint | Porte | Modelo |
+|---|---|---|---|
+| 41 | [FEAT] **FEAT-PLUGIN-01** (#86) — plugins Python via `plugin_api/` | XL | opus (2 iter) |
+
+### Fase 4 — Firmware updater (experimental, paralelo a tudo)
+
+| Ordem | Sprint | Porte | Modelo |
+|---|---|---|---|
+| ~ | [RESEARCH] **FEAT-FIRMWARE-UPDATE-01** (research-heavy, 3 fases) | XL | — |
+
+### Fase 5 — Marco
+
+| Ordem | Sprint | Porte |
+|---|---|---|
+| 42 | [RELEASE] **Release v2.0.0** | — |
 
 ---
 
@@ -98,45 +188,44 @@ Objetivo: refatorar internals para sustentar crescimento; abrir plugin API.
 
 ### Paralelização
 
-- **Fase 1 V1.1**: sequencial (BUG-DAEMON-AUTOSTART-01 → BUG-MOUSE-TRIGGERS-01). São bugs que podem interagir.
-- **Fase 2 V1.1**: 3 executores em paralelo (worktrees isoladas).
-- **Fase 4 V1.1**: 4 executores em paralelo.
-- **Wave V1.2**: até 3 executores em paralelo (COSMIC+Flatpak dependem entre si; HOTPLUG-BT e DOCS independentes).
-- **Wave V2.0**: sequencial (REFACTOR antes de METRICS e PLUGIN).
+- **V1.1 Fase 5**: 8-15 são rápidas. Sonnet pode disparar 8→9→10 em sequência; 11 em paralelo.
+- **V1.1 Fase 6**: Theme (16) primeiro; depois SVG (17) e redesign (18) em sequência; outros UI em paralelo.
+- **V1.1 Fase 7**: 23→24→25 sequencial (dependências reais).
+- **V1.2 Fase 1**: 3 executores paralelos em worktrees isoladas.
+- **V2.0 Fase 1**: sequencial (35→36→37 são pré-req de 38).
 
-### Orçamento
+### Orçamento por iteração
 
-Por iteração (CLAUDE_SPRINT_CICLO_MAX_RETRIES=3). Em sprints sinalizadas L ou XL, esperar 1-2 rodadas de executor com patch-brief em caso de REPROVADO.
+`CLAUDE_SPRINT_CICLO_MAX_RETRIES=3`. Em sprints sinalizadas **L** ou **XL**, esperar 1-2 rodadas de executor com patch-brief em caso de REPROVADO.
 
-### Validação
+### Validação canônica
 
 Toda sprint passa por:
+
 1. Pytest unit verde.
-2. Ruff clean.
+2. Ruff limpo nos arquivos tocados.
 3. `./scripts/check_anonymity.sh` OK.
-4. `./run.sh --smoke` USB+BT verde (quando aplicável).
-5. Proof-of-work visual quando toca UI (skill `validacao-visual`).
-
-### Merge
-
-Ordem de cherry-pick entre worktrees preserva dependências. Conflitos típicos em `main.glade`, `app.py`, `status_actions.py` — resolvidos preservando a intenção de CADA sprint (nunca descartar delta).
+4. `./run.sh --smoke` USB+BT verde quando toca daemon/poll loop.
+5. Proof-of-work visual via skill `validacao-visual` quando toca UI.
 
 ### Tracking
 
-Cada sprint tem issue GitHub correspondente com labels canônicos do projeto (`P1-high`/`P2-medium`/`P3-low` + `type:feature`/`type:refactor`/`type:infra`/`type:docs` + `status:ready` + `ai-task`). O número da issue é registrado em cada spec `.md` na seção **Tracking** no topo do arquivo. PRs devem fechar a issue via `Closes #N` no body.
+Cada sprint tem issue GitHub com labels canônicos (`P0-urgent`/`P1-high`/`P2-medium`/`P3-low` + `type:feature`/`type:refactor`/`type:infra`/`type:docs`/`type:bug` + `status:ready` + `ai-task`). PRs fecham via `Closes #N` no body.
 
 ---
 
-## Backlog aberto sem sprint (para V2.x+)
+## Backlog aberto sem sprint (V2.x+)
 
-- **Observabilidade estendida**: tracing OpenTelemetry, dashboard Grafana canônico.
-- **Multi-controle simultâneo**: HID + IPC multiplexado.
-- **UI tema claro/escuro**: settings de aparência.
-- **EN/ES/FR i18n**: só PT-BR hoje.
-- **Onboarding wizard**: dialog de primeira execução, pede perfil preferido.
-- **Pairing BT pela própria GUI**: integração com BlueZ.
-- **Atalhos configuráveis**: hotkey customizado pelo usuário (hoje só combo sagrado PS+D-pad).
-- **Sandbox forte para plugins**: bubblewrap ou cgroups.
+- Observabilidade estendida: tracing OpenTelemetry, dashboard Grafana canônico.
+- Multi-controle simultâneo: HID + IPC multiplexado.
+- UI tema claro: settings de aparência (hoje só Drácula dark).
+- EN/ES/FR i18n (hoje só PT-BR).
+- Onboarding wizard: dialog de primeira execução, pede perfil preferido.
+- Pairing BT pela própria GUI: integração com BlueZ.
+- Atalhos configuráveis: hotkey custom (hoje combo sagrado PS+D-pad).
+- Sandbox forte pra plugins: bubblewrap ou cgroups.
+- Rumble-per-profile override (FEAT-RUMBLE-POLICY-01 fase 2).
+- Presets custom de gatilho com import/export (FEAT-TRIGGER-PRESETS-POSITION-01 fase 2).
 
 ---
 

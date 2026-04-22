@@ -139,12 +139,39 @@ Pico de paralelismo: 5 executores simultâneos (UX-BANNER + SIMPLIFY + FEAT-MOUS
 
 ## 7. O que vem em seguida
 
-`docs/process/SPRINT_ORDER.md` lista 17 sprints categorizadas em 3 waves:
-- **V1.1** — 13 sprints de bugs + features pequenas + dívida técnica.
-- **V1.2** — 4 sprints de plataforma (COSMIC/Wayland, Flatpak, BT hotplug, docs).
-- **V2.0** — 3 sprints arquiteturais (refactor lifecycle, métricas, plugin system).
+`docs/process/SPRINT_ORDER.md` (atualizado 2026-04-22) lista ~42 sprints categorizadas em 3 waves, com detalhamento de fases:
+
+- **V1.1** — fases 1-4 concluídas (bugs críticos + CLI parity + hotplug GUI + chores + single-instance). Fases 5-8 pendentes: 15 sprints (fixes P0 pós-usuário-real, polish UX visível, perfis com DraftConfig, rumble policy). Marco v1.1.0.
+- **V1.2** — plataformas (HOTPLUG-BT, DEB, Flatpak, COSMIC), quickstart docs, refactor daemon reload. Marco v1.2.0.
+- **V2.0** — infra MIC (4 sprints), refactor lifecycle, métricas, plugins. Marco v2.0.0.
+- **Experimental (paralelo)** — FEAT-FIRMWARE-UPDATE-01: pesquisa em 3 fases (research/CLI/UI) do updater de firmware DualSense.
 
 Ordem, paralelismo recomendado e modelo sugerido (Opus/Sonnet) definidos.
+
+---
+
+## 8. Apêndice — Onda pós-v1.0.0 (em progresso, 2026-04-22)
+
+Após feedback do usuário instalando/usando v1.0.0 em ambiente próprio, entregamos **BUG-MULTI-INSTANCE-01** direto no main:
+
+- Módulo `src/hefesto/utils/single_instance.py`: `acquire_or_takeover(name)` via flock + SIGTERM(2s) → SIGKILL. Modelo "última vence" pra daemon.
+- `run_daemon` e `HefestoApp.__init__` fazem takeover no startup.
+- `assets/hefesto.service`: `SuccessExitStatus=143 SIGTERM` + `StartLimitIntervalSec=30 StartLimitBurst=3`.
+- `install.sh` passos 6-7 viram opt-in (default NÃO). Flags `--enable-autostart`, `--enable-hotplug-gui`.
+- `HefestoApp.quit_app` chama `systemctl --user stop hefesto.service` antes de `Gtk.main_quit` — "Sair" do tray encerra daemon junto.
+- `uninstall.sh` faz `pkill -TERM → pkill -KILL` após `systemctl stop`.
+- Armadilha **A-10** documentada no BRIEF.
+- 10 testes novos (6 single_instance + 4 quit_app_stops_daemon). Total 412 passed.
+- Proof-of-work runtime com hardware real: takeover daemon (50ms) + takeover GUI + cenário "mouse sozinho" resolvido (cursor delta 0,0 com stick parado, 1 único uinput device).
+
+Feedback usuário subsequente (2026-04-22 tarde) gerou **22 sprints novas** pra fases 5-8 da V1.1 + V1.2, incluindo:
+- 3 bugs P0 (tray flash, daemon status mismatch, rumble apply ignorado).
+- 1 feat completion (Player LEDs enviando ao hardware).
+- 8 polish UI (theme Drácula + bordas roxas, SVGs, redesign Status, log wrap, emulation align, mouse cleanup, profile editor simples, rodapé global).
+- 2 features (trigger presets por posição, rumble policy Economia/Balanceado/Máx/Auto).
+- 1 packaging (`.deb`).
+- 1 research (firmware updater 3 fases).
+- 5 dívidas técnicas (refactor hotkey evdev, refactor daemon reload, led brightness 02+03, docs version sync).
 
 ---
 
