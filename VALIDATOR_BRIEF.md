@@ -115,6 +115,11 @@ Local: kernel Linux com `CONFIG_USB_RUNTIME_PM=y` (default Pop!_OS/Ubuntu/Fedora
 Risco: suspende device USB inativo após ~2s. Gamepad em polling HID a 60-120 Hz perde conexão transiente; hidraw devolve `ENODEV`; daemon entra em reconnect loop; GUI mostra "daemon offline" ou "tentando reconectar" com controle fisicamente ligado.
 Fix canônico: aplicar `assets/72-ps5-controller-autosuspend.rules` via `install_udev.sh`. Regra força `power/control=on` e `power/autosuspend_delay_ms=-1` para `054c:0ce6` e `054c:0df2` no subsystem=usb. Ver sprint USB-POWER-01. Trazido de projeto irmão (desbloqueador Switch) onde a gotcha foi primeiro documentada.
 
+### A-06: Campo novo em `LedsConfig`/`TriggersConfig`/`RumbleConfig` precisa sprint-par de profile-apply
+Local: `src/hefesto/profiles/manager.py:85-93` (`_to_led_settings`) e `apply()` :62-70.
+Risco: sprint adiciona campo ao pydantic schema e aos 4 JSONs de `assets/profiles_default/`, mas `_to_led_settings()` (ou equivalente para triggers/rumble) só lê um subconjunto fixo de campos. Campo novo vira letra morta no autoswitch/profile.switch. Detectado em FEAT-LED-BRIGHTNESS-01 (2026-04-21): `lightbar_brightness` chegou ao schema, JSON e GUI, mas `_to_led_settings` não propagou ao `LedSettings` → RGB bruto foi ao hardware ignorando perfil.
+Fix canônico: toda spec que adiciona campo a `*Config` DEVE incluir na lista de critérios a alteração do mapper correspondente (`_to_led_settings`, `build_from_name`, etc.) e teste de integração `test_profile_manager.py` que valide propagação ao controller via mock. Planejador-sprint passa a considerar "profile-apply propagation" item obrigatório.
+
 ---
 
 ## [CORE] Padrões de código
@@ -144,3 +149,9 @@ Após cada sprint de correção, atualizar este brief:
 ---
 
 *"A forja não revela o ferreiro. Só a espada."*
+
+---
+
+**Rodapé de enriquecimento**
+
+- 2026-04-21T21:15Z — modo VALIDATE — validação FEAT-LED-BRIGHTNESS-01. Adicionada armadilha A-06 (campo novo de perfil exige sprint-par em `_to_led_settings`/mappers). Detectada na revisão: `lightbar_brightness` salvo em schema e 4 JSONs mas ignorado no `ProfileManager.apply()`. Sprints-filhas abertas: FEAT-LED-BRIGHTNESS-02 (profile-apply propaga brightness) e FEAT-LED-BRIGHTNESS-03 (handler GUI persiste valor no state).
