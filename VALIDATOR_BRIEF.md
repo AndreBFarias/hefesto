@@ -120,6 +120,21 @@ Local: `src/hefesto/profiles/manager.py:85-93` (`_to_led_settings`) e `apply()` 
 Risco: sprint adiciona campo ao pydantic schema e aos 4 JSONs de `assets/profiles_default/`, mas `_to_led_settings()` (ou equivalente para triggers/rumble) só lê um subconjunto fixo de campos. Campo novo vira letra morta no autoswitch/profile.switch. Detectado em FEAT-LED-BRIGHTNESS-01 (2026-04-21): `lightbar_brightness` chegou ao schema, JSON e GUI, mas `_to_led_settings` não propagou ao `LedSettings` → RGB bruto foi ao hardware ignorando perfil.
 Fix canônico: toda spec que adiciona campo a `*Config` DEVE incluir na lista de critérios a alteração do mapper correspondente (`_to_led_settings`, `build_from_name`, etc.) e teste de integração `test_profile_manager.py` que valide propagação ao controller via mock. Planejador-sprint passa a considerar "profile-apply propagation" item obrigatório.
 
+### A-07: Wire-up de novo subsistema do Daemon precisa 3 pontos sincronizados
+Local: `src/hefesto/daemon/lifecycle.py` — `run()`, `_poll_loop()`, `_shutdown()`.
+Risco: sprint adiciona novo subsystem (HotkeyManager, MouseDevice, AutoSwitcher) mas esquece de um dos 3 pontos canônicos. Detectado em FEAT-HOTKEY-STEAM-01 iter.1: `_on_ps_solo` foi definido no HotkeyManager, testes do manager isolado passaram, mas `Daemon` nunca instanciou o manager nem chamou `observe()` no poll loop — hotkey morreu antes de existir em produção.
+Fix canônico: toda sprint de subsystem novo DEVE ter seção "wire-up no Daemon" nos critérios de aceite listando (1) slot no dataclass `Daemon`, (2) método `_start_<subsys>()` chamado em `run()` antes do `await self._stop_event.wait()`, (3) consumo no `_poll_loop()` se aplicável, (4) zeragem no `_shutdown()`. Teste obrigatório: `test_start_<subsys>_instancia_e_executa_callback` que construa `Daemon` com config real e dispare o callback, provando que a instância é alcançável via `daemon._<subsys>`.
+
+### A-08: Closure em `_start_<subsys>` captura `config` por alias — reload quebra silenciosamente
+Local: `src/hefesto/daemon/lifecycle.py:269-270` (padrão) — `action = self.config.ps_button_action; command = self.config.ps_button_command`.
+Risco: `daemon.reload` futuro substitui `self.config = NewConfig(...)`, mas closures já capturadas continuam apontando para os valores antigos. Bug latente: `action="steam"` no disco, mas hotkey ainda dispara o custom antigo.
+Fix canônico: capturar `cfg = self.config` no outer e ler `cfg.field` **dentro** da closure, não fora. Mesmo assim, se reload faz `self.config = novo`, ainda quebra — melhor resolver via hot-reload do HotkeyManager (`_stop_hotkey_manager() + _start_hotkey_manager()`) quando IPC `daemon.reload` existir. Registrar no planejamento de V1.2 `daemon.reload`.
+
+### A-09: Múltiplos consumidores de `_evdev.snapshot()` por tick
+Local: `src/hefesto/daemon/lifecycle.py:176-181` (hotkey) e `:328-332` (mouse).
+Risco: cada subsystem novo que precisa ler botões físicos via evdev snapshot duplica o custo por tick. Atualmente 2 consumidores → 2 snapshots/tick (120/s a 60Hz quando ambos ativos). Cada novo subsystem (ex.: Circle=Enter/Square=Esc de FEAT-MOUSE-02 #87) multiplica.
+Fix canônico: sprint REFACTOR-HOTKEY-EVDEV-01 (ainda a planejar) extrai `_evdev_buttons_snapshot() -> frozenset[str]` cached-per-tick, invocado 1× em `_poll_loop` e injetado nos consumidores.
+
 ---
 
 ## [CORE] Padrões de código
@@ -155,3 +170,4 @@ Após cada sprint de correção, atualizar este brief:
 **Rodapé de enriquecimento**
 
 - 2026-04-21T21:15Z — modo VALIDATE — validação FEAT-LED-BRIGHTNESS-01. Adicionada armadilha A-06 (campo novo de perfil exige sprint-par em `_to_led_settings`/mappers). Detectada na revisão: `lightbar_brightness` salvo em schema e 4 JSONs mas ignorado no `ProfileManager.apply()`. Sprints-filhas abertas: FEAT-LED-BRIGHTNESS-02 (profile-apply propaga brightness) e FEAT-LED-BRIGHTNESS-03 (handler GUI persiste valor no state).
+- 2026-04-22T00:25Z — modo VALIDATE — validação FEAT-HOTKEY-STEAM-01 iter.2/3. APROVADO_COM_RESSALVAS. Iter.1 falhou por wire-up ausente no Daemon (só manager isolado, sem instância). Iter.2 corrigiu: `_hotkey_manager` slot no dataclass, `_start_hotkey_manager()` chamado em `run()`, `observe()` chamado em `_poll_loop` lendo `_evdev.snapshot().buttons_pressed`, zerado em `_shutdown()`. Adicionadas 3 armadilhas: A-07 (wire-up de subsystem precisa 3 pontos sincronizados), A-08 (closure captura config por alias quebra reload), A-09 (snapshot evdev duplicado por tick). Ressalvas: ramo `action="custom"` com `command=[]` é silenciado sem log (IMPORTANTE, Edit pronto); sprint nova REFACTOR-HOTKEY-EVDEV-01 proposta para deduplicar snapshot.
