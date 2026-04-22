@@ -1,9 +1,9 @@
-# FEAT-PROFILES-PRESET-06 — 6 perfis pré-configurados (Navegação, FPS, Aventura, Ação, Corrida, Esportes)
+# FEAT-PROFILES-PRESET-06 — 6 perfis pré-configurados (Navegação, FPS, Aventura, Ação, Corrida, Esportes) + "Meu Perfil"
 
 **Tipo:** feat (content + UX).
-**Wave:** V1.1.
+**Wave:** V1.1 — fase 4.
 **Estimativa:** 1 iteração.
-**Dependências:** FEAT-LED-BRIGHTNESS-01 (se for incluir brightness diferenciado por perfil).
+**Dependências:** FEAT-LED-BRIGHTNESS-01 (brightness diferenciado), FEAT-PROFILE-STATE-01 (draft pra "Meu Perfil").
 
 ---
 
@@ -71,14 +71,28 @@ Uso: FIFA, eFootball, NBA 2K, MLB.
 - **Rumble**: `weak: 25, strong: 50, passthrough: true` — base de estádio + passthrough do jogo.
 - **Match**: `FIFA*`, `eFootball`, `NBA2K*`, `MLB*`.
 
+### 7. `meu_perfil.json` — "Meu Perfil" (slot do usuário)
+Uso: slot canônico do usuário — o que ele constrói mexendo nas abas e clica em "Salvar Perfil" no rodapé global (UI-GLOBAL-FOOTER-ACTIONS-01).
+
+- **Comportamento**: na primeira instalação, `meu_perfil.json` é uma cópia de `navegacao.json` com `priority: 0` e matcher universal (`MatchAny`). Usuário pode editar via GUI sem risco de "perder" (é só um perfil a mais, e o `profiles_default/` preserva o original se o usuário quiser restaurar).
+- **Por que existe**: pedido explícito do usuário em 2026-04-22:
+  > Falta um [perfil] pra o usuário caso eu mexa em todas as abas e queira salvar tudo.
+- **Fluxo de salvar**:
+  1. Usuário mexe em abas → `DraftConfig` acumula (spec FEAT-PROFILE-STATE-01).
+  2. Clica "Salvar Perfil" no rodapé → dialog pergunta nome (default: "Meu Perfil").
+  3. Se nome == "Meu Perfil" e já existe: sobrescreve. Se nome novo: cria `<nome-slugificado>.json`.
+  4. Aba Perfis se atualiza via `profile.list` pull.
+
+- **Botão "Restaurar Default"** no rodapé global (UI-GLOBAL-FOOTER-ACTIONS-01 ação "Default"): limpa `meu_perfil.json` restaurando cópia de `navegacao.json`.
+
 ## Critérios de aceite
 
-- [ ] Criar os 6 arquivos JSON em `assets/profiles_default/` com os valores acima. Schema v1 (pydantic).
-- [ ] `scripts/install_profiles.sh` (NOVO) ou lógica em `install.sh`: copia os perfis de `assets/profiles_default/` para `~/.config/hefesto/profiles/` se o diretório estiver vazio (primeira instalação); NÃO sobrescreve perfis do usuário em reinstalações.
+- [ ] Criar os **7 arquivos JSON** em `assets/profiles_default/` (6 de jogo + `meu_perfil.json`) com os valores acima. Schema v1 (pydantic).
+- [ ] `scripts/install_profiles.sh` (NOVO) ou lógica em `install.sh`: copia todos os perfis de `assets/profiles_default/` para `~/.config/hefesto/profiles/` se o diretório estiver vazio (primeira instalação); NÃO sobrescreve perfis do usuário em reinstalações. **Exceção**: `meu_perfil.json` é sempre copiado se ausente (pra sempre existir o slot do usuário), mas NUNCA sobrescrito.
 - [ ] Decisão sobre `driving.json` e `shooter.json` já existentes: **deletar** — `corrida.json` substitui `driving.json`; `fps.json` substitui `shooter.json`; `bow.json` pode ser preservado ou incorporado ao `aventura.json` (decidir).
-- [ ] Teste `tests/unit/test_profiles_preset.py`: carrega cada perfil via `load_profile()` e valida que pydantic aceita; nome, priority, triggers, leds e rumble presentes.
-- [ ] Aba Perfis da GUI lista os 6 (via `profile_list`); clicar ativa (via `profile.switch`).
-- [ ] Proof-of-work visual: aba Perfis com lista dos 6, print + sha256.
+- [ ] Teste `tests/unit/test_profiles_preset.py`: carrega cada perfil via `load_profile()` e valida que pydantic aceita; nome, priority, triggers, leds e rumble presentes. Inclui `meu_perfil.json`.
+- [ ] Aba Perfis da GUI lista os 7 (via `profile_list`); clicar ativa (via `profile.switch`).
+- [ ] Proof-of-work visual: aba Perfis com lista dos 7, print + sha256.
 
 ## Arquivos tocados (previsão)
 

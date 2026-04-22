@@ -135,6 +135,23 @@ Local: `src/hefesto/daemon/lifecycle.py:176-181` (hotkey) e `:328-332` (mouse).
 Risco: cada subsystem novo que precisa ler botões físicos via evdev snapshot duplica o custo por tick. Atualmente 2 consumidores → 2 snapshots/tick (120/s a 60Hz quando ambos ativos). Cada novo subsystem (ex.: Circle=Enter/Square=Esc de FEAT-MOUSE-02 #87) multiplica.
 Fix canônico: sprint REFACTOR-HOTKEY-EVDEV-01 (ainda a planejar) extrai `_evdev_buttons_snapshot() -> frozenset[str]` cached-per-tick, invocado 1× em `_poll_loop` e injetado nos consumidores.
 
+### A-11: Race de udev ADD disparando unit oneshot 2x em <200ms
+Local: `assets/73-ps5-controller-hotplug.rules` + `assets/hefesto-gui-hotplug.service`.
+Risco: o plug USB do DualSense gera múltiplos eventos `ACTION=="add"` em <200ms (interface USB + filhos hidraw). Guard `pgrep -f hefesto.app.main` na unit oneshot é race-prone — dois eventos em paralelo entram antes do 1º processo ser visível. Resultado: 2 GUIs sobem; a 2ª (takeover "última vence" do single_instance) mata a 1ª → efeito visual de "tray abre e fecha". Reportado em 2026-04-22 pelo usuário após instalar v1.0.0 + BUG-MULTI-INSTANCE-01.
+Fix canônico (sprint BUG-TRAY-SINGLE-FLASH-01): remover guard `pgrep`; `HefestoApp.__init__` usa novo `acquire_or_bring_to_front("gui", ...)` (modelo "primeira vence") em vez de `acquire_or_takeover`. Predecessor vivo é trazido ao foco via `xdotool windowactivate` ou SIGUSR1 handler; nova GUI sai com rc 0. Daemon continua com `acquire_or_takeover` porque ali "última vence" é desejado.
+
+### A-10: Múltiplas instâncias de daemon/GUI concorrendo por hardware
+Local: `src/hefesto/daemon/main.py` (run_daemon), `src/hefesto/app/app.py` (HefestoApp.__init__), `install.sh` (passos 6-7), `assets/hefesto.service` + `assets/hefesto-gui-hotplug.service` + udev rule 73.
+Risco: cinco fontes independentes de spawn sem mutex (install.sh restart + hotplug unit + udev ADD + launcher GUI + ensure_daemon_running da GUI) geram 2+ daemons concorrentes. Cada daemon cria seu próprio `UinputMouseDevice` e ambos emitem REL_X/REL_Y → cursor "voando" ao ativar o toggle Mouse. Matar processo via monitor não basta — `Restart=on-failure RestartSec=2` respawna em ≤2s, dando sensação de "PID novo aparece cada vez". Reportado pelo usuário em 2026-04-22 após rodar install/uninstall.
+Fix canônico (sprint BUG-MULTI-INSTANCE-01, 2026-04-22):
+  - `src/hefesto/utils/single_instance.py`: `acquire_or_takeover(name)` via `fcntl.flock` em `$XDG_RUNTIME_DIR/hefesto/<name>.pid`. Modelo "última vence" — envia `SIGTERM` ao predecessor (grace 2s, poll 50ms), escala `SIGKILL` se necessário.
+  - `run_daemon` e `HefestoApp.__init__` chamam `acquire_or_takeover("daemon")` e `acquire_or_takeover("gui")` no topo.
+  - `assets/hefesto.service`: `SuccessExitStatus=143 SIGTERM` (takeover não dispara respawn) + `StartLimitIntervalSec=30 StartLimitBurst=3` em `[Unit]`.
+  - `install.sh` passos 6-7 viram opt-in (default NÃO). Flags `--enable-autostart`, `--enable-hotplug-gui`.
+  - `HefestoApp.quit_app`: chama `systemctl --user stop hefesto.service` antes de `Gtk.main_quit()` — "Sair" do tray encerra GUI + daemon.
+  - `ensure_daemon_running`: antes de disparar `systemctl start`, verifica pid file via `is_alive()` para não duplicar spawn.
+  - `uninstall.sh`: após systemctl stop+disable, `pkill -TERM` em `hefesto\.app\.main` e `hefesto daemon start` com grace 2s + `pkill -KILL` residual.
+
 ---
 
 ## [CORE] Padrões de código
@@ -171,3 +188,4 @@ Após cada sprint de correção, atualizar este brief:
 
 - 2026-04-21T21:15Z — modo VALIDATE — validação FEAT-LED-BRIGHTNESS-01. Adicionada armadilha A-06 (campo novo de perfil exige sprint-par em `_to_led_settings`/mappers). Detectada na revisão: `lightbar_brightness` salvo em schema e 4 JSONs mas ignorado no `ProfileManager.apply()`. Sprints-filhas abertas: FEAT-LED-BRIGHTNESS-02 (profile-apply propaga brightness) e FEAT-LED-BRIGHTNESS-03 (handler GUI persiste valor no state).
 - 2026-04-22T00:25Z — modo VALIDATE — validação FEAT-HOTKEY-STEAM-01 iter.2/3. APROVADO_COM_RESSALVAS. Iter.1 falhou por wire-up ausente no Daemon (só manager isolado, sem instância). Iter.2 corrigiu: `_hotkey_manager` slot no dataclass, `_start_hotkey_manager()` chamado em `run()`, `observe()` chamado em `_poll_loop` lendo `_evdev.snapshot().buttons_pressed`, zerado em `_shutdown()`. Adicionadas 3 armadilhas: A-07 (wire-up de subsystem precisa 3 pontos sincronizados), A-08 (closure captura config por alias quebra reload), A-09 (snapshot evdev duplicado por tick). Ressalvas: ramo `action="custom"` com `command=[]` é silenciado sem log (IMPORTANTE, Edit pronto); sprint nova REFACTOR-HOTKEY-EVDEV-01 proposta para deduplicar snapshot.
+- 2026-04-22T — sprint BUG-MULTI-INSTANCE-01 executada. Usuário reportou cursor "voando" ao ativar toggle Mouse + PIDs renascendo ao matar processo. Raiz: 5 fontes de spawn sem mutex. Fix: módulo `single_instance` (flock + SIGTERM→SIGKILL "última vence"), wire-up em `run_daemon` e `HefestoApp.__init__`, unit hardening (SuccessExitStatus=143, StartLimit 3/30s), install.sh opt-in (prompts default N), quit_app para daemon via systemctl stop, uninstall.sh com pkill residual. Armadilha A-10 adicionada. Testes: `test_single_instance.py` (6) + `test_quit_app_stops_daemon.py` (4). Proof-of-work runtime pendente de hardware real conectado.
