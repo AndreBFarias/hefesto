@@ -91,19 +91,20 @@ Proof-of-work visual obriga: PNG absoluto + sha256 + descrição multimodal (3-5
 
 ## [CORE] Armadilhas conhecidas (atualizar quando sprint descobrir nova)
 
-### A-01: `IpcServer.start()` / `stop()` com `unlink()` cego
-Local: `src/hefesto/daemon/ipc_server.py:79-80` e `:94-95`.
+### A-01: `IpcServer.start()` / `stop()` com `unlink()` cego — **RESOLVIDA**
+Local original: `src/hefesto/daemon/ipc_server.py:79-80` e `:94-95`.
 Risco: dois processos daemon compartilhando o mesmo socket_path se destroem mutuamente. Reproduzido 2026-04-21: daemon systemd em execução teve seu socket apagado por `./run.sh --smoke`, deixando a GUI órfã mostrando "daemon offline" apesar de `systemctl is-active = active`.
-Fix canônico: antes de `unlink()`, tentar conectar temporariamente; só deletar se falhar (socket morto).
+Fix aplicado: método `_probe_socket_and_cleanup()` em `src/hefesto/daemon/ipc_server.py:126-157`. Antes de qualquer `unlink`, tenta `socket.connect` com timeout 100ms; se conexão aceita, levanta `SocketInUseError` (não apaga); só remove arquivo órfão de socket morto. Chamado em `start()` linha 116. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
-### A-02: `udp_server.py:106` AssertionError a cada startup
-Local: `src/hefesto/daemon/udp_server.py:106`.
-Código: `assert isinstance(transport, asyncio.DatagramTransport)`. Em Python 3.10, o objeto real `_SelectorDatagramTransport` não passa o isinstance check para a classe pública `asyncio.DatagramTransport`. Traceback no journal a cada startup; não impede o listen, mas polui logs de produção.
-Fix canônico: remover o assert ou trocar por `if transport is None: ...`.
+### A-02: `udp_server.py` AssertionError a cada startup — **RESOLVIDA**
+Local original: `src/hefesto/daemon/udp_server.py:106`.
+Código antigo: `assert isinstance(transport, asyncio.DatagramTransport)`. Em Python 3.10, o objeto real `_SelectorDatagramTransport` não passa o isinstance check para a classe pública `asyncio.DatagramTransport`. Traceback no journal a cada startup.
+Fix aplicado: `src/hefesto/daemon/udp_server.py:112`. Assert removido; atribuição direta com `# type: ignore[assignment]` e comentário referenciando `BUG-UDP-01 / A-02`. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
-### A-03: Smoke compartilha socket path com daemon de produção
+### A-03: Smoke compartilha socket path com daemon de produção — **RESOLVIDA (indireto)**
 Local: `run.sh:52-78` + `src/hefesto/utils/xdg_paths.py:52-53`.
-Risco: decorre de A-01. Smoke deveria usar socket isolado (ex.: nome parametrizável via env `HEFESTO_IPC_SOCKET_NAME`).
+Risco original: decorre de A-01; smoke poderia destruir socket de daemon vivo.
+Status: risco concreto de destruição mútua está fechado pela resolução de A-01 — probe ativo impede apagar socket em uso. Isolamento via env `HEFESTO_IPC_SOCKET_NAME` não foi implementado (opcional, não mais crítico). Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
 ### A-04: Diff working-tree 2026-04-21 removeu glyphs Unicode de estado
 Local: `src/hefesto/app/actions/{status,daemon,emulation}_actions.py`, `src/hefesto/tui/widgets/__init__.py`, `tests/unit/test_tui_widgets.py`, `docs/process/HEFESTO_PROJECT.md`, `docs/process/HEFESTO_DECISIONS_V2.md`.
