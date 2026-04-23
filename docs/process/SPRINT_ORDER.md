@@ -261,11 +261,35 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 60 | [REFACTOR] **REFACTOR-CONNECTION-FUNCTIONS-01** — move `connection.py` fora de `subsystems/` (P2-02) | XS | sonnet | PENDING |
 | 61 | [HARDENING] **HARDEN-IPC-RUMBLE-CUSTOM-01** — limite 256 no vetor de curva (P2-03) | XS | sonnet | PENDING |
 
+### Bloco E — CI/release (P0 — release travado há 5 tags)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 62 | [BUG] **BUG-CI-RELEASE-MYPY-GATE-01** — release.yml aborta no mypy, nenhum release real desde v0.1.0 | S | opus | PENDING |
+| 63 | [FEAT] **FEAT-CI-RELEASE-FLATPAK-ATTACH-01** — anexar bundle Flatpak ao release | XS | sonnet | PENDING |
+| 64 | [CHORE] **CHORE-CI-REPUBLISH-TAGS-01** — re-publicar v2.0.0 e v2.1.0 com artifacts | XS | sonnet | PENDING |
+| 65 | [CHORE] **CHORE-MYPY-CLEANUP-V22-01** — zerar mypy errors (30 dias para fechar débito) | M | sonnet | PENDING |
+
+### Bloco F — meta/processo (operacionaliza lições V2.1)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 66 | [META] **META-LESSONS-V21-BRIEF-01** — registrar 6 lições V2.1 no BRIEF | XS | sonnet | PENDING |
+| 67 | [CHORE] **CHORE-VENV-BOOTSTRAP-CHECK-01** — script `dev-setup.sh` + regra de sessão viva | XS | sonnet | PENDING |
+| 68 | [DOCS] **DOCS-STATUS-PROTOCOL-READY-01** — status `PROTOCOL_READY` para sprints sem execução humana | XS | sonnet | PENDING |
+
+### Bloco G — firmware experimental (requer hardware)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real do protocolo DFU (requer hardware + VM Win) | L | opus | BLOCKED-ON-HARDWARE |
+| 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial | XL | opus | BLOCKED-ON-PHASE-2 |
+
 ### Fase — Marco
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 62 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
+| 71 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
 
 ---
 
