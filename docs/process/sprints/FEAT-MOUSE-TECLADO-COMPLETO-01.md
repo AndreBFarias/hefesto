@@ -1,8 +1,14 @@
 # FEAT-MOUSE-TECLADO-COMPLETO-01 — Emulação completa de teclado + personalização de mapeamentos
 
+> **Status:** SUPERSEDED — 2026-04-23. Escopo estimado em ~1200 linhas de diff,
+> dividido em 3 filhas para manter lotes <500L e gates verdes por entrega:
+> - `FEAT-KEYBOARD-EMULATOR-01` (infra device + defaults + wire-up A-07) — **MERGED**.
+> - `FEAT-KEYBOARD-PERSISTENCE-01` (campo ProfileConfig + mapper A-06) — READY.
+> - `FEAT-KEYBOARD-UI-01` (aba rename + TreeView CRUD + L3/R3 onboard) — READY.
+
 **Tipo:** feat (grande — aditivo).
 **Wave:** V2.2 — polish pós-v2.1.0.
-**Estimativa:** 2-3 iterações.
+**Estimativa original:** 2-3 iterações.
 **Modelo sugerido:** opus.
 **Dependências:** FEAT-MOUSE-02 (toggle de emulação mouse), INFRA-BUTTON-EVENTS-01 (BUTTON_DOWN/UP).
 
