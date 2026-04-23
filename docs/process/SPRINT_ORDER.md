@@ -285,6 +285,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 62.1 | [BUG] **BUG-VALIDAR-ACENTUACAO-FALSE-POS-01** — remove par "facilmente" falso-positivo + reescrita de spec (colateral) | XS | opus | MERGED |
 | 53.1 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — dev-setup.sh valida gi; BRIEF ganha A-12 (colateral) | XS | opus | PENDING |
 | 63.1 | [BUG] **BUG-FLATPAK-PIP-OFFLINE-01** — python-uinput via pip falha no sandbox; declarar como source git | XS | opus | PENDING |
+| 63.2 | [BUG] **BUG-DEB-MISSING-DEPS-01** — .deb não declara rich/evdev/xlib/filelock (colateral dispatch v2.1.0) | XS | opus | MERGED |
 
 ### Bloco F — meta/processo (operacionaliza lições V2.1)
 
