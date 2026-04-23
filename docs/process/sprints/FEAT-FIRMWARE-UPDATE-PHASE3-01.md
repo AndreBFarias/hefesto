@@ -13,7 +13,7 @@
 
 Fase 3 implementa o utilitário Linux que, partindo do blob de firmware **que o próprio usuário** obtém via PlayStation Accessories e da especificação derivada na fase 2, re-aplica o update sem depender de Windows.
 
-**Escopo ético rígido**: esta sprint **não** distribui, redistribui, incorpora, embala ou referencia blob proprietário. A ferramenta aceita um arquivo local que o próprio usuário forneceu. Sem URL de download. Sem mirror. Sem cache.
+**Escopo ético rígido**: esta sprint **não** distribui, redistribui, incorpora, embala ou faz referência a blob proprietário. A ferramenta aceita um arquivo local que o próprio usuário forneceu. Sem URL de download. Sem mirror. Sem cache.
 
 ## Decisão
 
