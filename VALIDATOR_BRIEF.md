@@ -28,9 +28,14 @@ Referência canônica para validador-sprint. Invariantes, contratos de runtime, 
 
 ## [CORE] Contratos de runtime
 
+Executor que chegar em sessão nova sem `.venv/bin/pytest` acessível DEVE rodar `bash scripts/dev-setup.sh` antes de qualquer gate. Execução cega é violação de L-21-4.
+
 Toda sprint runtime obriga execução destes comandos como proof-of-work:
 
 ```bash
+# Preparação de ambiente (idempotente; rápido se .venv/ viva)
+bash scripts/dev-setup.sh
+
 # Smoke USB (2s) — FakeController
 HEFESTO_FAKE=1 HEFESTO_FAKE_TRANSPORT=usb HEFESTO_SMOKE_DURATION=2.0 ./run.sh --smoke
 
