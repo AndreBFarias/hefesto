@@ -284,6 +284,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 65 | [CHORE] **CHORE-MYPY-CLEANUP-V22-01** — zerar mypy errors + gate rígido no CI | M | sonnet | MERGED |
 | 62.1 | [BUG] **BUG-VALIDAR-ACENTUACAO-FALSE-POS-01** — remove par "facilmente" falso-positivo + reescrita de spec (colateral) | XS | opus | MERGED |
 | 53.1 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — dev-setup.sh valida gi; BRIEF ganha A-12 (colateral) | XS | opus | PENDING |
+| 63.1 | [BUG] **BUG-FLATPAK-PIP-OFFLINE-01** — python-uinput via pip falha no sandbox; declarar como source git | XS | opus | PENDING |
 
 ### Bloco F — meta/processo (operacionaliza lições V2.1)
 
@@ -304,7 +305,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 71 | [FEAT] **FEAT-GITHUB-PROJECT-VISIBILITY-01** — SEO, topics, social preview, CONTRIBUTING, epígrafe da forja | S | opus | PENDING |
+| 71 | [FEAT] **FEAT-GITHUB-PROJECT-VISIBILITY-01** — governança + social-preview PNG + badges; gh CLI em docs/history/ aguarda execução humana | S | opus | PROTOCOL_READY |
 
 ### Fase — Marco
 
