@@ -265,8 +265,9 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 60 | [REFACTOR] **REFACTOR-CONNECTION-FUNCTIONS-01** — move `connection.py` fora de `subsystems/` (P2-02) | XS | sonnet | PENDING |
-| 61 | [HARDENING] **HARDEN-IPC-RUMBLE-CUSTOM-01** — limite 256 no vetor de curva (P2-03) | XS | sonnet | PENDING |
+| 60 | [REFACTOR] **REFACTOR-CONNECTION-FUNCTIONS-01** — move `connection.py` fora de `subsystems/` (P2-02) | XS | sonnet | MERGED |
+| 61 | [HARDENING] ~~**HARDEN-IPC-RUMBLE-CUSTOM-01**~~ — SUPERSEDED por HARDEN-IPC-PAYLOAD-LIMIT-01 (L-21-3: vetor não existe) | XS | — | SUPERSEDED |
+| 61.1 | [HARDENING] **HARDEN-IPC-PAYLOAD-LIMIT-01** — limite 32 KiB por request no `_dispatch` (P2-03 reescopado) | XS | opus | MERGED |
 
 ### Bloco E — CI/release (P0 — release travado há 5 tags)
 
