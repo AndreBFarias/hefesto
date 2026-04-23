@@ -223,7 +223,49 @@ Objetivo: fechar dívida técnica identificada após v2.0.0 — campo `display_n
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 51 | [RELEASE] **Release v2.1.0** — tag a publicar pós-auditoria | — | MERGED |
+| 51 | [RELEASE] **Release v2.1.0** — tag publicada 2026-04-23 (9 sprints) | — | MERGED |
+
+---
+
+## Wave V2.2 — Polish pós-v2.1.0 (PENDING 2026-04-23)
+
+Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (UI polish, bugs da aba Daemon, rename Mouse→Mouse e Teclado com personalização completa, cores dos botões do footer, Player LEDs inoperantes, carregamento do último perfil na GUI, README renovado com screenshots, polish da aba Perfis) + 2 achados P2 da auditoria V2 (refactor do connection.py, hardening do `rumble.policy_custom`).
+
+### Bloco A — polish visual + bugs de UX (rápido)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 52 | [POLISH] **UI-POLISH-EMULACAO-DAEMON-STATUS-01** — alinhamentos, UINPUT maiúsculo, título Gatilhos | S | sonnet | PENDING |
+| 53 | [BUG] **BUG-GUI-DAEMON-STATUS-INITIAL-01** — GUI abre com "Offline" apesar de daemon ativo | S | sonnet | PENDING |
+| 54 | [FEAT] **FEAT-GUI-LOAD-LAST-PROFILE-01** — GUI abre com último perfil selecionado | S | sonnet | PENDING |
+| 55 | [POLISH] **UI-FOOTER-BUTTON-COLORS-01** — cores Dracula nos 4 botões do footer | S | sonnet | PENDING |
+| 56 | [BUG] **BUG-PLAYER-LEDS-APPLY-01** — Player LEDs sem botão Aplicar e inoperantes | M | sonnet | PENDING |
+
+### Bloco B — investigação + rewrite (médio)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 57 | [POLISH] **UI-PROFILES-LAYOUT-POLISH-01** — investigação + fix do layout aba Perfis | M | sonnet+opus | PENDING |
+| 58 | [DOCS] **DOCS-README-RENOVATE-01** — README renovado com screenshots, layout Conversor-Video-Para-ASCII | S | opus | PENDING |
+
+### Bloco C — grande, estratégica (opus)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 59 | [FEAT] **FEAT-MOUSE-TECLADO-COMPLETO-01** — emulação completa de teclado + personalização por perfil | L | opus | PENDING |
+
+### Bloco D — débito técnico da auditoria V2
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 60 | [REFACTOR] **REFACTOR-CONNECTION-FUNCTIONS-01** — move `connection.py` fora de `subsystems/` (P2-02) | XS | sonnet | PENDING |
+| 61 | [HARDENING] **HARDEN-IPC-RUMBLE-CUSTOM-01** — limite 256 no vetor de curva (P2-03) | XS | sonnet | PENDING |
+
+### Fase — Marco
+
+| Ordem | Sprint | Porte | Status |
+|---|---|---|---|
+| 62 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
 
 ---
 
