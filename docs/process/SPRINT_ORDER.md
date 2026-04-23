@@ -20,6 +20,13 @@ Todas as sprints marcadas MERGED abaixo foram entregues — spec original preser
 - **[RELEASE]** marco de publicação.
 - **=>** pode rodar em paralelo com a sprint acima.
 
+### Status de sprint
+
+- **PENDING** — spec escrito, ainda não executado.
+- **IN_PROGRESS** — executor em voo.
+- **PROTOCOL_READY** — entregável é apenas documento/protocolo/checklist; código não foi executado. Requer ≥1 execução humana registrada para virar MERGED. Operacionaliza lição L-21-6.
+- **MERGED** — código (ou, no caso de sprints só-doc, protocolo com ≥1 execução humana) entregue e validado. Release notes contam MERGED vs. PROTOCOL_READY separadamente.
+
 ---
 
 ## Wave V1.1 — Estabilidade + UX polido
@@ -215,8 +222,8 @@ Objetivo: fechar dívida técnica identificada após v2.0.0 — campo `display_n
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 48 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE1-01** — research DFU do DualSense (fase 1) | L | opus | MERGED |
-| 49 | [DOCS] **HARDWARE-VALIDATION-PROTOCOL-01** — checklist 21 itens reprodutíveis | S | opus | MERGED |
+| 48 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE1-01** — research DFU do DualSense (fase 1) | L | opus | PROTOCOL_READY |
+| 49 | [DOCS] **HARDWARE-VALIDATION-PROTOCOL-01** — checklist 21 itens reprodutíveis | S | opus | PROTOCOL_READY |
 | 50 | [CHORE] **AUDIT-V2-COMPLETE-01** — auditoria manual v1.0.0..HEAD (sem subagente) | L | opus | MERGED |
 
 ### Fase — Marco
@@ -277,7 +284,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 |---|---|---|---|---|
 | 66 | [META] **META-LESSONS-V21-BRIEF-01** — registrar 6 lições V2.1 no BRIEF | XS | sonnet | MERGED |
 | 67 | [CHORE] **CHORE-VENV-BOOTSTRAP-CHECK-01** — script `dev-setup.sh` + regra de sessão viva | XS | sonnet | MERGED |
-| 68 | [DOCS] **DOCS-STATUS-PROTOCOL-READY-01** — status `PROTOCOL_READY` para sprints sem execução humana | XS | sonnet | PENDING |
+| 68 | [DOCS] **DOCS-STATUS-PROTOCOL-READY-01** — status `PROTOCOL_READY` para sprints sem execução humana | XS | sonnet | MERGED |
 
 ### Bloco G — firmware experimental (requer hardware)
 

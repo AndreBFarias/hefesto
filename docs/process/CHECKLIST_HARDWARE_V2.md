@@ -290,4 +290,16 @@ Ao preencher o checklist para uma release:
 
 ---
 
+## Execuções registradas
+
+Esta seção recebe registros cada vez que um humano com hardware físico executar qualquer item da checklist. Enquanto estiver vazia, a sprint `HARDWARE-VALIDATION-PROTOCOL-01` permanece no status `PROTOCOL_READY` — doc entregue, dívida de execução em aberto (lição L-21-6).
+
+Formato: `| data | quem | item N | resultado | notas |`.
+
+| Data | Quem | Item | Resultado | Notas |
+|---|---|---|---|---|
+| _(nenhum ainda)_ | — | — | — | — |
+
+---
+
 *"A forja não revela o ferreiro. Só a espada."*
