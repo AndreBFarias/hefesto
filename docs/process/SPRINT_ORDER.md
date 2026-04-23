@@ -250,6 +250,7 @@ Toda sprint passa por:
 3. `./scripts/check_anonymity.sh` OK.
 4. `./run.sh --smoke` USB+BT verde quando toca daemon/poll loop.
 5. Proof-of-work visual via skill `validacao-visual` quando toca UI.
+6. Pré-release: `docs/process/CHECKLIST_HARDWARE_V2.md` preenchido por quem tem controle físico (criado por HARDWARE-VALIDATION-PROTOCOL-01).
 
 ### Tracking
 
