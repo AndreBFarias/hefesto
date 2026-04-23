@@ -143,6 +143,11 @@ Local original: `src/hefesto/daemon/lifecycle.py:176-181` (hotkey) e `:328-332` 
 Risco: cada subsystem novo que precisa ler botões físicos via evdev snapshot duplica o custo por tick. Antes: 2 consumidores → 2 snapshots/tick (120/s a 60Hz quando ambos ativos).
 Fix aplicado (REFACTOR-HOTKEY-EVDEV-01, 2026-04-22): método `_evdev_buttons_once() -> frozenset[str]` extraído em `Daemon`. Chamado 1× em `_poll_loop` antes dos consumidores; resultado injetado via parâmetro em `_dispatch_mouse_emulation(state, buttons_pressed)` e passado diretamente a `_hotkey_manager.observe(buttons_pressed, now=tick_started)`. Teste: `tests/unit/test_poll_loop_evdev_cache.py` (5 cenários) confirma exatamente 1 snapshot/tick com 0, 1 ou 2 consumidores ativos. Novos consumidores (FEAT-HOTKEY-MIC-01 etc.) devem receber `buttons_pressed` como parâmetro — não relendo evdev internamente.
 
+### A-12: PyGObject ausente no `.venv` sem `--with-tray`
+Local: `scripts/dev_bootstrap.sh`, `run.sh`, `scripts/dev-setup.sh`.
+Risco: `.venv/bin/python -m hefesto.app.main` falha com `ModuleNotFoundError: No module named 'gi'` quando bootstrap rodou sem `--with-tray`. O `run.sh` contorna invocando `/usr/bin/python3` que tem `python3-gi` do sistema, mas validação visual via `.venv` quebra. Detectado em BUG-GUI-DAEMON-STATUS-INITIAL-01 (2026-04-23): executor precisou injetar `PYTHONPATH` apontando para `/usr/lib/python3/dist-packages` para reproduzir o bug.
+Fix canônico (sprint INFRA-VENV-PYGOBJECT-01): `dev-setup.sh` valida `gi` importável pelo `.venv/bin/python` e, quando ausente, imprime instrução literal (`bash scripts/dev_bootstrap.sh --with-tray` ou `apt install python3-gi libgirepository-1.0-dev + pip install -e ".[tray]"`). README menciona a decisão opt-in.
+
 ### A-11: Race de udev ADD disparando unit oneshot 2x em <200ms
 Local: `assets/73-ps5-controller-hotplug.rules` + `assets/hefesto-gui-hotplug.service`.
 Risco: o plug USB do DualSense gera múltiplos eventos `ACTION=="add"` em <200ms (interface USB + filhos hidraw). Guard `pgrep -f hefesto.app.main` na unit oneshot é race-prone — dois eventos em paralelo entram antes do 1º processo ser visível. Resultado: 2 GUIs sobem; a 2ª (takeover "última vence" do single_instance) mata a 1ª → efeito visual de "tray abre e fecha". Reportado em 2026-04-22 pelo usuário após instalar v1.0.0 + BUG-MULTI-INSTANCE-01.
