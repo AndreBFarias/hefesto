@@ -325,7 +325,7 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 73 | [BUG] **BUG-APPIMAGE-VERSION-NAME-01** — AppImage gerado com nome 1.0.0 em vez da tag; causa raiz real: `__init__.py:3` hardcoded afetava 5 consumidores (CLI, TUI x2, AppImage, test_cli); fix opção B em `importlib.metadata.version` + fallback + `build_appimage.sh` alinhado ao padrão `build_deb.sh` | XS | opus | MERGED |
 | 73.1 | [CHORE] **CHORE-VERSION-SYNC-GATE-01** — gate CI detecta drift fallback `__init__.py` vs `pyproject.toml` (colateral do 73, pós execução) | XS | sonnet | PENDING |
 | 74 | [BUG] **BUG-DEB-PYDANTIC-V2-UBUNTU-22-01** — `control` declara `python3-pydantic (>= 2.0)` + smoke job migra para `ubuntu-24.04` + README seção Ubuntu 22.04 com 3 workarounds | S | opus | MERGED |
-| 75 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — dev-setup.sh valida/instala PyGObject (A-12); desbloqueia test_status_actions_reconnect e valid visual local | XS | sonnet | PENDING |
+| 75 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — `dev-setup.sh` valida `gi`+`Gtk` e imprime instrução acionável quando ausente; README marca `--with-tray` como pré-req de GUI; VALIDATOR_BRIEF.md A-12 PARCIALMENTE RESOLVIDA | XS | opus | MERGED |
 | 76 | [BUG] **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02** — blindar validar-acentuacao.py com whitelist ADR-011 + fix dry-run default + logging verbose (previne 3ª reprodução do strip) | XS | sonnet | PENDING |
 | 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — radio "Aplica a:" redesign (H1 do UI-PROFILES-LAYOUT-POLISH-01) | S | opus | PENDING |
 | 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — rebalancear coluna direita (H5) | S | sonnet | PENDING |
