@@ -186,6 +186,47 @@ Objetivo: novos controles adaptativos (Mic, áudio), plataforma de plugins. **En
 
 ---
 
+## Wave V2.1 — Polish pós-v2.0.0 (EM ANDAMENTO 2026-04-23)
+
+Objetivo: fechar dívida técnica identificada após v2.0.0 — campo `display_name` separado do slug, schema `params` aninhado para multi-position, CI smoke de `.deb` e `.flatpak`, research de firmware updater, checklist de validação em hardware, hook strict de acentuação, auditoria manual completa do diff v1.0.0..HEAD. Tudo aditivo/polish, zero quebra de API — minor bump.
+
+### Bloco A — gate + onboarding
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 43 | [CHORE] **CHORE-ACENTUACAO-STRICT-HOOK-01** — gate strict PT-BR (primeira do ciclo) | S | sonnet | PENDING |
+| 44 | [DOCS] **QUICKSTART-PROFILES-SCREENSHOT-01** — captura aba Perfis no quickstart | XS | sonnet | PENDING |
+
+### Bloco B — schema/perfis (sequencial)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 45 | [FEAT] **PROFILE-DISPLAY-NAME-01** — campo `display_name` separado do slug | M | sonnet | PENDING |
+| 46 | [FEAT] **SCHEMA-MULTI-POSITION-PARAMS-01** — params aninhado + migra aventura/corrida | L | opus | PENDING |
+
+### Bloco C — CI/release (paralelizável)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 47 | [CHORE] **SMOKE-DEB-INSTALL-CI-01** — CI instala `.deb` real em ubuntu-22.04 | S | sonnet | PENDING |
+| 47=> | [CHORE] **SMOKE-FLATPAK-BUILD-CI-01** — CI faz install --user do bundle Flatpak | S | sonnet | PENDING |
+
+### Bloco D — documentação técnica + auditoria (opus direto)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 48 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE1-01** — research DFU do DualSense (fase 1) | L | opus | PENDING |
+| 49 | [DOCS] **HARDWARE-VALIDATION-PROTOCOL-01** — checklist 21 itens reprodutíveis | S | opus | PENDING |
+| 50 | [CHORE] **AUDIT-V2-COMPLETE-01** — auditoria manual v1.0.0..HEAD (sem subagente) | L | opus | PENDING |
+
+### Fase — Marco
+
+| Ordem | Sprint | Porte | Status |
+|---|---|---|---|
+| 51 | [RELEASE] **Release v2.1.0** — tag a publicar pós-auditoria | — | PENDING |
+
+---
+
 ## Execução recomendada
 
 ### Paralelização
