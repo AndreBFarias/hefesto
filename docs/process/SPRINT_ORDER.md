@@ -265,16 +265,17 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 62 | [BUG] **BUG-CI-RELEASE-MYPY-GATE-01** — release.yml aborta no mypy, nenhum release real desde v0.1.0 | S | opus | PENDING |
+| 62 | [BUG] **BUG-CI-RELEASE-MYPY-GATE-01** — release.yml aborta no mypy, nenhum release real desde v0.1.0 | S | opus | MERGED |
 | 63 | [FEAT] **FEAT-CI-RELEASE-FLATPAK-ATTACH-01** — anexar bundle Flatpak ao release | XS | sonnet | PENDING |
 | 64 | [CHORE] **CHORE-CI-REPUBLISH-TAGS-01** — re-publicar v2.0.0 e v2.1.0 com artifacts | XS | sonnet | PENDING |
 | 65 | [CHORE] **CHORE-MYPY-CLEANUP-V22-01** — zerar mypy errors (30 dias para fechar débito) | M | sonnet | PENDING |
+| 62.1 | [BUG] **BUG-VALIDAR-ACENTUACAO-FALSE-POS-01** — remove par "facilmente" falso-positivo + reescrita de spec (colateral) | XS | opus | MERGED |
 
 ### Bloco F — meta/processo (operacionaliza lições V2.1)
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 66 | [META] **META-LESSONS-V21-BRIEF-01** — registrar 6 lições V2.1 no BRIEF | XS | sonnet | PENDING |
+| 66 | [META] **META-LESSONS-V21-BRIEF-01** — registrar 6 lições V2.1 no BRIEF | XS | sonnet | MERGED |
 | 67 | [CHORE] **CHORE-VENV-BOOTSTRAP-CHECK-01** — script `dev-setup.sh` + regra de sessão viva | XS | sonnet | PENDING |
 | 68 | [DOCS] **DOCS-STATUS-PROTOCOL-READY-01** — status `PROTOCOL_READY` para sprints sem execução humana | XS | sonnet | PENDING |
 
