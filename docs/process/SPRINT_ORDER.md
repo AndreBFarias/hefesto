@@ -327,7 +327,8 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 74 | [BUG] **BUG-DEB-PYDANTIC-V2-UBUNTU-22-01** — `control` declara `python3-pydantic (>= 2.0)` + smoke job migra para `ubuntu-24.04` + README seção Ubuntu 22.04 com 3 workarounds | S | opus | MERGED |
 | 75 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — `dev-setup.sh` valida `gi`+`Gtk` e imprime instrução acionável quando ausente; README marca `--with-tray` como pré-req de GUI; VALIDATOR_BRIEF.md A-12 PARCIALMENTE RESOLVIDA | XS | opus | MERGED |
 | 76 | [BUG] **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02** — whitelist ADR-011 (`UNICODE_ALLOWED_RANGES`) em `scripts/validar-acentuacao.py` filtra substituições em `corrigir_arquivo`; warning stderr quando par malicioso é bloqueado; 23 testes regressão em `tests/unit/test_validar_acentuacao_glyphs.py` (parametrizado por codepoint, par malicioso simulado) | XS | opus | MERGED |
-| 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — radio "Aplica a:" redesign (H1 do UI-PROFILES-LAYOUT-POLISH-01) | S | opus | PENDING |
+| 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — 6 GtkRadioButton → GtkComboBoxText (`profile_aplica_a_combo`) com 6 ids em main.glade; `_selected_simple_choice`/`_select_radio` via `get/set_active_id`; handler `_on_aplica_a_changed` esconde `profile_game_entry_box` quando id != "game"; 5 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
+| 77.1 | [BUG] **BUG-FIRMWARE-SIGNAL-HANDLERS-01** — colateral descoberto em validação visual da 77: handlers `on_firmware_*` faltavam em `_signal_handlers()` do `app.py`; botões da aba Firmware ficavam mortos; fix aplicado junto com 77 | XS | opus | MERGED |
 | 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — rebalancear coluna direita (H5) | S | sonnet | PENDING |
 
 ### Fase — Marco v2.2.1
