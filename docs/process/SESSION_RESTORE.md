@@ -6,16 +6,24 @@
 
 ---
 
-## Última atualização: 2026-04-23 (sessão pós-restore; aba Firmware implementada)
+## Última atualização: 2026-04-23 (v2.2.1 — 6/6 sprints MERGED, pronto pro release)
 
 ## Onde paramos
 
-1. **v2.2.0 publicada** no GitHub com 5 assets (whl, tar.gz, AppImage, deb, flatpak). Tag `f6ca6a8` no remote.
-2. **Sessão anterior (`92996300`) crashou** após commit `e6c0e29`. Regressão de glyph strip em 25 arquivos corrigida nesta sessão (`d244106`).
-3. **Estado git:** HEAD = `a41ce85` em `origin/main` (sincronizado). Working tree limpo.
-4. **Firmware 69/70 resolvido via upstream + implementação nesta sessão:** descoberto que `dualsensectl` PR#53 mergeou protocolo DFU funcional em 2026-02-19. Opção A+UI implementada (aba Firmware na GUI, wrapper subprocess, 17 testes).
-5. **Próximo alvo:** **release v2.2.1 (patch)** com 6 sprints pendentes (ver § Roadmap). Firmware (70.2) MERGED fica incluída na v2.2.1.
-6. **Keyboard (59.2/59.3)** adiado para v2.3.0.
+1. **v2.2.0 publicada** no GitHub com 5 assets. Tag `f6ca6a8` no remote.
+2. **Estado git:** HEAD = `e8d6fcf` em `origin/main` (sincronizado). Working tree limpo.
+3. **v2.2.1 pronto para release:** 6 sprints planejadas + 3 colaterais descobertas durante execução — **todas MERGED**.
+   - 70.2 FEAT-FIRMWARE-UPDATE-GUI-01 (sessão anterior).
+   - 73 BUG-APPIMAGE-VERSION-NAME-01 (causa raiz: `__init__.py` hardcoded).
+   - 73.1 CHORE-VERSION-SYNC-GATE-01 (spec colateral; ainda PENDING — gate CI opcional para v2.2.2).
+   - 74 BUG-DEB-PYDANTIC-V2-UBUNTU-22-01.
+   - 75 INFRA-VENV-PYGOBJECT-01 (A-12 parcialmente resolvida).
+   - 76 BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02 (whitelist ADR-011 + 23 tests).
+   - 77 UI-PROFILES-RADIO-GROUP-REDESIGN-01 (6 radios → combo).
+   - 77.1 BUG-FIRMWARE-SIGNAL-HANDLERS-01 (colateral da validação visual da 77).
+   - 78 UI-PROFILES-RIGHT-PANEL-REBALANCE-01 (preview JSON ao vivo).
+4. **Próximo alvo:** **bump + release v2.2.1** (sprint 79 do roadmap). Só falta pyproject 2.2.0→2.2.1, CHANGELOG finalização, tag, `gh workflow run release.yml -f tag=v2.2.1`.
+5. **Keyboard (59.2/59.3)** adiado para v2.3.0.
 
 ---
 
