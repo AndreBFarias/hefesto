@@ -1,13 +1,13 @@
-# HARDEN-IPC-RUMBLE-CUSTOM-01 — Limite de tamanho no handler `rumble.policy_custom`
+# HARDEN-IPC-RUMBLE-CUSTOM-01 — Limite de tamanho no handler `rumble.policy_custom` — **SUPERSEDED**
 
-**Tipo:** hardening.
-**Wave:** V2.2 — polish pós-v2.1.0.
-**Estimativa:** 0.5 iteração.
-**Dependências:** FEAT-RUMBLE-POLICY-CUSTOM-01 (existente).
+**Status:** SUPERSEDED em 2026-04-23 por HARDEN-IPC-PAYLOAD-LIMIT-01.
+**Razão (L-21-3):** o spec assumiu que o handler `rumble.policy_custom` aceita vetor `list[int]` para curva customizada. Leitura do código (`src/hefesto/daemon/ipc_server.py:724-745`) mostra que o handler atual aceita apenas `mult: float 0.0-1.0` — não há vetor de curva a limitar. A auditoria AUDIT-V2-COMPLETE-01 também leu o spec original (FEAT-RUMBLE-POLICY-CUSTOM-01) em vez do código implementado, propagando a premissa falsa.
+
+A proteção pretendida (evitar payload gigante via IPC) continua válida como preocupação genérica. Foi migrada para sprint `HARDEN-IPC-PAYLOAD-LIMIT-01`, que aplica limite de bytes no dispatch geral (cobre qualquer handler presente e futuro).
 
 ---
 
-**Tracking:** label `type:hardening`, `security`, `ai-task`, `status:ready`. Origem: AUDIT-V2-COMPLETE-01 achado P2-03.
+**Tracking original:** label `type:hardening`, `security`, `ai-task`, `status:ready`. Origem: AUDIT-V2-COMPLETE-01 achado P2-03.
 
 ## Contexto
 

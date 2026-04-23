@@ -91,6 +91,7 @@ Proof-of-work visual obriga: PNG absoluto + sha256 + descrição multimodal (3-5
 - **PT-BR obrigatório** em código, comentários, docs, commits, logs `INFO`+. EN preservado em `errno`, flags POSIX, identificadores de protocolo.
 - **Acentuação PT-BR obrigatória** — todo arquivo tocado pela sprint passa por varredura de acentuação periférica. Não aceitar `funcao`, `validacao`, `comunicacao`, `configuracao`, `descricao`, etc.
 - **Zero emojis gráficos** (Emoji_Presentation block: U+1F000+, U+2600+ coloridos). **Glyphs Unicode de estado** (U+25CF BLACK CIRCLE, U+25CB WHITE CIRCLE, U+25AE/AF block elements, box drawing) **são permitidos e devem ser preservados** — fazem parte da UI textual funcional.
+- **Limite de request IPC:** `MAX_PAYLOAD_BYTES = 32_768` em `src/hefesto/daemon/ipc_server.py`. Requests maiores são rejeitados com erro JSON-RPC `-32600`. Ajuste defensivo (HARDEN-IPC-PAYLOAD-LIMIT-01).
 
 ---
 
