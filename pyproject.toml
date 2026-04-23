@@ -47,7 +47,7 @@ emulation = [
     "python-uinput>=0.11",
 ]
 tray = [
-    "PyGObject>=3.44",
+    "PyGObject>=3.56.2",
 ]
 # FEAT-METRICS-01 — opcional; text exposition manual não precisa desta dep.
 # Instalar se quiser usar prometheus_client diretamente (ex: dashboards avançados).
