@@ -1,4 +1,10 @@
-# BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01 — `--fix` apaga glyphs Unicode de estado (regressão A-04)
+# BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01 — Anomalia de working tree durante execução paralela (INVESTIGAÇÃO)
+
+> **Atualização 2026-04-23**: hipótese original ("`--fix` apaga glyphs") **não reproduz** em execução controlada — rodar `scripts/validar-acentuacao.py --all --fix` em HEAD `7aea630` com working tree limpa resulta em zero modificações. Os glyphs Unicode de estado (`▮▯●○◐`) continuam sãos em HEAD. Sprint reclassificada como **investigativa** — causa raiz real não identificada. Delegada à sprint 9 (AUDIT-V2-COMPLETE-01) como item específico de auditoria.
+>
+> Spec original preservado abaixo por contexto histórico da hipótese inicial.
+
+---
 
 **Tipo:** bug (crítico — corrompe arquivos silenciosamente).
 **Wave:** V2.1 — fora de bloco (emergencial).
