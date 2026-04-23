@@ -255,7 +255,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 57 | [POLISH] **UI-PROFILES-LAYOUT-POLISH-01** — discovery + fixes H4 (headers) + H6 (slider marks); H1/H5 viram sprints-filhas | M | sonnet+opus | MERGED |
 | 57.1 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — radio "Aplica a:" redesign (H1, colateral) | S | opus | PENDING |
 | 57.2 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — rebalancear coluna direita (H5, colateral) | S | sonnet | PENDING |
-| 58 | [DOCS] **DOCS-README-RENOVATE-01** — README renovado com screenshots, layout Conversor-Video-Para-ASCII | S | opus | PENDING |
+| 58 | [DOCS] **DOCS-README-RENOVATE-01** — README renovado com 7 screenshots, layout Conversor-Video-Para-ASCII | S | opus | MERGED |
 
 ### Bloco C — grande, estratégica (opus)
 
