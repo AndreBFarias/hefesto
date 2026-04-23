@@ -157,6 +157,30 @@ Fix canônico (sprint BUG-MULTI-INSTANCE-01, 2026-04-22):
 
 ---
 
+## [PROCESS] Lições acumuladas por ciclo
+
+Regras de metodologia descobertas durante sprints anteriores. Planejador/executor/validador leem esta seção como trilho permanente. Auditor de release revisa: lições violadas geram achado.
+
+### L-21-1: Spec com gate massivo exige dry-run ANTES do spec
+Origem: CHORE-ACENTUACAO-STRICT-HOOK-01 (V2.1). Sprint previu 3-10 falsos-positivos; explodiu em 267. Regra: quando sprint instala gate novo (pre-commit, CI check, linter), rodar o dry-run contra a base inteira **antes** de escrever o spec e dimensionar whitelist/correção em massa com número real, não estimativa. Se dry-run excede 10 ocorrências, spec inclui mini-commit "chore: <tema> pré-existente" como etapa separada.
+
+### L-21-2: Bug vira sprint só após reprodução em árvore limpa
+Origem: BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01 (V2.1). Spec foi escrito com base em diff sujo do working tree, sem `git stash` + teste isolado. Quando testado em HEAD limpo, não reproduziu. Regra: antes de abrir spec de bug, rodar `git stash && git checkout <HEAD>` e anexar ao spec o diff do comando-bug executado em árvore limpa. Se não reproduziu, sprint é **investigativa**, não de fix.
+
+### L-21-3: Ler o código-chave ANTES de escrever spec
+Origem: PROFILE-DISPLAY-NAME-01 → SUPERSEDED por PROFILE-SLUG-SEPARATION-01 (V2.1). Planejador assumiu que `Profile.name` era ASCII e escreveu spec de `display_name`; `Profile.name` já era acentuado e o problema era oposto (filename colidindo com defaults). Regra: todo spec que toca um módulo lista em "Contexto" os trechos lidos (arquivo:linha) que confirmam a premissa. Sem leitura, planejador não pode escrever sobre o módulo.
+
+### L-21-4: Toda sessão nova valida `.venv` antes de rodar sprints
+Origem: AUDIT-V2-COMPLETE-01 (V2.1). Auditor rodou sem `.venv/` pronto e confiou em "último baseline verde". Débito silencioso. Regra: primeiro passo de executor em sessão nova é `bash scripts/dev-setup.sh` (ou `pip install -e ".[dev]" + .venv/bin/pytest --collect-only`). Execução cega é violação.
+
+### L-21-5: Paralelo de subagents só com pool <50% usado
+Origem: sessão release V2.1 (V2.1). 4 subagents em paralelo com pool ~80% usado: 2 foram rate-limited, zero ganho de velocidade. Regra: antes de disparar N subagents, estimar tokens/minuto ativos (sessão + agents em voo). Se pool >50%, serializar. Paralelo de 3+ só em pool fresco (<30%).
+
+### L-21-6: "Protocolo escrito" ≠ "Executado"
+Origem: HARDWARE-VALIDATION-PROTOCOL-01, FEAT-FIRMWARE-UPDATE-PHASE1-01 (V2.1). Sprints marcadas MERGED sem execução humana dos 21 itens / metodologia. Regra: sprint cujo entregável é **apenas** documento/protocolo/checklist ganha status `PROTOCOL_READY` (não MERGED) até registro formal de ≥1 execução humana. Release notes diferenciam sprints MERGED (código executado) de PROTOCOL_READY (doc pronto).
+
+---
+
 ## [CORE] Padrões de código
 
 - `from __future__ import annotations` em arquivos novos.
