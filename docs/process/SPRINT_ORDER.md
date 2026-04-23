@@ -329,7 +329,7 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 76 | [BUG] **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02** — whitelist ADR-011 (`UNICODE_ALLOWED_RANGES`) em `scripts/validar-acentuacao.py` filtra substituições em `corrigir_arquivo`; warning stderr quando par malicioso é bloqueado; 23 testes regressão em `tests/unit/test_validar_acentuacao_glyphs.py` (parametrizado por codepoint, par malicioso simulado) | XS | opus | MERGED |
 | 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — 6 GtkRadioButton → GtkComboBoxText (`profile_aplica_a_combo`) com 6 ids em main.glade; `_selected_simple_choice`/`_select_radio` via `get/set_active_id`; handler `_on_aplica_a_changed` esconde `profile_game_entry_box` quando id != "game"; 5 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
 | 77.1 | [BUG] **BUG-FIRMWARE-SIGNAL-HANDLERS-01** — colateral descoberto em validação visual da 77: handlers `on_firmware_*` faltavam em `_signal_handlers()` do `app.py`; botões da aba Firmware ficavam mortos; fix aplicado junto com 77 | XS | opus | MERGED |
-| 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — rebalancear coluna direita (H5) | S | sonnet | PENDING |
+| 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — preview JSON ao vivo (`GtkFrame` + `GtkScrolledWindow` + `profile_preview_label` em main.glade) ocupa o espaço vazio liberado pela 77; `_refresh_preview()` reutiliza `_build_profile_from_editor`; CSS `.hefesto-profile-preview` monospace Drácula; 3 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
 
 ### Fase — Marco v2.2.1
 
