@@ -285,11 +285,17 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real do protocolo DFU (requer hardware + VM Win) | L | opus | BLOCKED-ON-HARDWARE |
 | 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial | XL | opus | BLOCKED-ON-PHASE-2 |
 
+### Bloco H — visibilidade / open source (pós-CI funcionar)
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 71 | [FEAT] **FEAT-GITHUB-PROJECT-VISIBILITY-01** — SEO, topics, social preview, CONTRIBUTING, epígrafe da forja | S | opus | PENDING |
+
 ### Fase — Marco
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 71 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
+| 72 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
 
 ---
 
