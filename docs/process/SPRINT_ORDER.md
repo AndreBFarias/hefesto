@@ -243,7 +243,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
 | 52 | [POLISH] **UI-POLISH-EMULACAO-DAEMON-STATUS-01** — alinhamentos, UINPUT maiúsculo, título Gatilhos | S | sonnet | MERGED |
-| 53 | [BUG] **BUG-GUI-DAEMON-STATUS-INITIAL-01** — GUI abre com "Offline" apesar de daemon ativo | S | sonnet | PENDING |
+| 53 | [BUG] **BUG-GUI-DAEMON-STATUS-INITIAL-01** — GUI abre com "Offline" apesar de daemon ativo | S | sonnet | MERGED |
 | 54 | [FEAT] **FEAT-GUI-LOAD-LAST-PROFILE-01** — GUI abre com último perfil selecionado | S | sonnet | PENDING |
 | 55 | [POLISH] **UI-FOOTER-BUTTON-COLORS-01** — cores Dracula nos 4 botões do footer | S | sonnet | PENDING |
 | 56 | [BUG] **BUG-PLAYER-LEDS-APPLY-01** — Player LEDs sem botão Aplicar e inoperantes | M | sonnet | PENDING |
@@ -277,6 +277,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 64 | [CHORE] **CHORE-CI-REPUBLISH-TAGS-01** — re-publicar v2.0.0 e v2.1.0 com artifacts | XS | sonnet | PENDING |
 | 65 | [CHORE] **CHORE-MYPY-CLEANUP-V22-01** — zerar mypy errors (30 dias para fechar débito) | M | sonnet | PENDING |
 | 62.1 | [BUG] **BUG-VALIDAR-ACENTUACAO-FALSE-POS-01** — remove par "facilmente" falso-positivo + reescrita de spec (colateral) | XS | opus | MERGED |
+| 53.1 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — dev-setup.sh valida gi; BRIEF ganha A-12 (colateral) | XS | opus | PENDING |
 
 ### Bloco F — meta/processo (operacionaliza lições V2.1)
 
