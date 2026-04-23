@@ -201,7 +201,7 @@ Objetivo: fechar dívida técnica identificada após v2.0.0 — campo `display_n
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 45 | [FEAT] **PROFILE-DISPLAY-NAME-01** — campo `display_name` separado do slug | M | sonnet | PENDING |
+| 45 | [FEAT] **PROFILE-SLUG-SEPARATION-01** — slugify filename separa do display `Profile.name` (substitui PROFILE-DISPLAY-NAME-01 SUPERSEDIDA) | S | sonnet | PENDING |
 | 46 | [FEAT] **SCHEMA-MULTI-POSITION-PARAMS-01** — params aninhado + migra aventura/corrida | L | opus | PENDING |
 
 ### Bloco C — CI/release (paralelizável)
