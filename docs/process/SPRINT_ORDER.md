@@ -3,7 +3,9 @@
 > Ordem recomendada de execução das sprints pendentes, agrupadas por wave/fase.
 > Cada sprint tem spec em `docs/process/sprints/<ID>.md` e issue correspondente no GitHub.
 
-**Status de main:** `v1.0.0` publicada em 2026-04-21. Sprint **BUG-MULTI-INSTANCE-01** entregue em 2026-04-22 (takeover + auto-start opt-in + quit_app encerra daemon). Próximos objetivos: fechar **v1.1.0** com polish UX visível + perfis robustos, e **v1.2.0** com plataforma (BT, Flatpak, deb, COSMIC).
+**Status de main:** `v2.0.0` publicada em 2026-04-23. 42 sprints entregues em 3 waves (v1.0 → v1.1 → v1.2 → v2.0) em ~48h corridas. Próximos objetivos: backlog V2.x (PPA Launchpad, OpenTelemetry, i18n, onboarding wizard, sandbox forte de plugins).
+
+Todas as sprints marcadas MERGED abaixo foram entregues — spec original preservada por auditoria.
 
 ---
 
@@ -56,7 +58,7 @@ Objetivo: fechar buracos reportados pelo usuário, polir a GUI, deixar o Hefesto
 |---|---|---|
 | 7 | [BUG] **BUG-MULTI-INSTANCE-01** (single-instance takeover + opt-in autostart) | DIRECT TO MAIN 2026-04-22 |
 
-### Fase 5 — Fixes P0 pós-usuario-real (PRÓXIMA)
+### Fase 5 — Fixes P0 pós-usuario-real (MERGED 2026-04-22)
 
 Ordem sequencial porque bugs podem interagir entre si.
 
@@ -71,7 +73,7 @@ Ordem sequencial porque bugs podem interagir entre si.
 | 14 | [REFACTOR] **REFACTOR-HOTKEY-EVDEV-01** — dedup snapshot por tick (A-09) | XS | sonnet |
 | 15 | [CHORE] **DOCS-VERSION-SYNC-01** — README reflete 1.0.0 + script CI | XS | sonnet |
 
-### Fase 6 — Polish UX visível (4 em paralelo possíveis)
+### Fase 6 — Polish UX visível (MERGED 2026-04-22)
 
 Bloco dependente de fases anteriores. Inicia quando Fase 5 está quase completa.
 
@@ -85,7 +87,7 @@ Bloco dependente de fases anteriores. Inicia quando Fase 5 está quase completa.
 | 21 | [UI] **UI-EMULATION-ALIGN-01** — alinhamento da aba Emulação | XS | sonnet |
 | 22 | [UI] **UI-MOUSE-CLEANUP-01** — cleanup aba Mouse | XS | sonnet |
 
-### Fase 7 — Estado central + perfis
+### Fase 7 — Estado central + perfis (MERGED 2026-04-22)
 
 Dependência cruzada. Executa em sequência.
 
@@ -95,7 +97,7 @@ Dependência cruzada. Executa em sequência.
 | 24 | [UI] **UI-GLOBAL-FOOTER-ACTIONS-01** — rodapé Aplicar/Salvar/Importar/Default | M | sonnet |
 | 25 | [FEAT] **FEAT-PROFILES-PRESET-06** (#73) — 6 perfis + "Meu Perfil" | M | sonnet |
 
-### Fase 8 — Rumble + gatilhos polidos
+### Fase 8 — Rumble + gatilhos polidos (MERGED 2026-04-22)
 
 | Ordem | Sprint | Porte | Modelo |
 |---|---|---|---|
@@ -106,13 +108,13 @@ Dependência cruzada. Executa em sequência.
 
 | Ordem | Sprint | Porte |
 |---|---|---|
-| 28 | [RELEASE] **Release v1.1.0** — CHANGELOG + tag + push, release.yml gera wheel + AppImage | — |
+| 28 | [RELEASE] **Release v1.1.0** — tag publicada 2026-04-22 (17 sprints) | MERGED |
 
 ---
 
-## Wave V1.2 — Plataforma + docs
+## Wave V1.2 — Plataforma + docs (MERGED 2026-04-22)
 
-Objetivo: chegar a plataformas novas (COSMIC, BT) e packaging (deb, Flatpak). Lançar pra usuário Linux "assistido" que instala sem tutorial.
+Objetivo: chegar a plataformas novas (COSMIC, BT) e packaging (deb, Flatpak). Lançar pra usuário Linux "assistido" que instala sem tutorial. **Entregue — tag v1.2.0 publicada.**
 
 ### Fase 1 — Plataformas (até 3 em paralelo)
 
@@ -139,13 +141,13 @@ Objetivo: chegar a plataformas novas (COSMIC, BT) e packaging (deb, Flatpak). La
 
 | Ordem | Sprint | Porte |
 |---|---|---|
-| 34 | [RELEASE] **Release v1.2.0** | — |
+| 34 | [RELEASE] **Release v1.2.0** — tag publicada 2026-04-22 (6 sprints) | MERGED |
 
 ---
 
-## Wave V2.0 — Infra avançada + MIC
+## Wave V2.0 — Infra avançada + MIC (MERGED 2026-04-23)
 
-Objetivo: novos controles adaptativos (Mic, áudio), plataforma de plugins.
+Objetivo: novos controles adaptativos (Mic, áudio), plataforma de plugins. **Entregue — tag v2.0.0 publicada.**
 
 ### Fase 1 — Infra MIC (sequencial)
 
@@ -180,7 +182,7 @@ Objetivo: novos controles adaptativos (Mic, áudio), plataforma de plugins.
 
 | Ordem | Sprint | Porte |
 |---|---|---|
-| 42 | [RELEASE] **Release v2.0.0** | — |
+| 42 | [RELEASE] **Release v2.0.0** — tag publicada 2026-04-23 (9 sprints) | MERGED |
 
 ---
 
