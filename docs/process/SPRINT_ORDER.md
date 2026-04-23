@@ -261,7 +261,10 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 59 | [FEAT] **FEAT-MOUSE-TECLADO-COMPLETO-01** — emulação completa de teclado + personalização por perfil | L | opus | PENDING |
+| 59 | [FEAT] ~~**FEAT-MOUSE-TECLADO-COMPLETO-01**~~ — SUPERSEDED: escopo dividido em 3 filhas (59.1/59.2/59.3) | L | — | SUPERSEDED |
+| 59.1 | [FEAT] **FEAT-KEYBOARD-EMULATOR-01** — infraestrutura device virtual + wire-up A-07 + defaults conservadores (Options/Share/L1/R1) | M | opus | MERGED |
+| 59.2 | [FEAT] **FEAT-KEYBOARD-PERSISTENCE-01** — campo ProfileConfig.key_bindings + mapper A-06 + JSONs defaults | M | opus | PENDING |
+| 59.3 | [FEAT] **FEAT-KEYBOARD-UI-01** — aba "Mouse e Teclado" + TreeView CRUD + L3/R3 onboard/wvkbd + inversão R2/L2 | L | opus | PENDING |
 
 ### Bloco D — débito técnico da auditoria V2
 
