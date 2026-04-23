@@ -30,13 +30,11 @@ Regra geral: pares `Xmente` só têm acento quando o adjetivo de origem é oxít
 
 ### Par `referencia -> referência` (falso-positivo contextual)
 
-`scripts/validar-acentuacao.py:322` define `_par("refer" + "encia", "refer" + EC + "ncia")`. Em PT-BR, "referencia" é forma ambígua:
-- Substantivo "referência" (paroxítona com acento na antepenúltima) — escrita correta com acento.
-- Verbo "referenciar" conjugado (ele referencia, sem acento) — correto sem acento.
+`scripts/validar-acentuacao.py:322` define `_par("refer" + "encia", "refer" + EC + "ncia")`. Em PT-BR a forma sem acento é ambígua:
+- Como substantivo, "referência" (paroxítona) leva acento na antepenúltima — forma correta com acento.
+- Como verbo ("referenciar" conjugado: ele <forma-sem-acento> algo), a mesma grafia sem acento é a forma correta.
 
-O par vale para 90% dos casos (substantivo). Para verbo, é falso-positivo contextual. Spec `FEAT-FIRMWARE-UPDATE-PHASE3-01.md:16` usa forma verbal:
-
-> esta sprint **não** distribui, redistribui, incorpora, embala ou **referencia** blob proprietário
+O par vale para 90% dos casos (substantivo). Para verbo é falso-positivo contextual. No spec `FEAT-FIRMWARE-UPDATE-PHASE3-01.md:16` a forma verbal aparecia na frase: "esta sprint **não** distribui, redistribui, incorpora, embala ou <forma-verbal> blob proprietário".
 
 Par dispara incorretamente. Fix cirúrgico: reescrever a frase com substantivo ("faz referência a") ou sinônimo ("menciona"), mantendo o par no script (útil no geral).
 
