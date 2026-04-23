@@ -1,4 +1,20 @@
-# PROFILE-DISPLAY-NAME-01 — Campo `display_name` separado do slug em `Profile`
+# PROFILE-DISPLAY-NAME-01 — Campo `display_name` separado do slug em `Profile` (SUPERSEDIDA)
+
+> **SUPERSEDIDA em 2026-04-23 antes de ser executada.**
+>
+> Motivo: premissa errada. O spec assumia que `Profile.name` era slug ASCII, mas o
+> estado real do código é o inverso — `name` já é o display acentuado (`"Ação"`,
+> `"Navegação"`), e o filename/slug não está separado (bug latente: `save_profile`
+> graveria `Ção.json` se chamado com `name="Ação"`, duplicando `acao.json`).
+>
+> Substituída por **PROFILE-SLUG-SEPARATION-01** (em `docs/process/sprints/`), que
+> mantém `name` como display canônico e adiciona `slugify(name)` para derivar
+> filename.
+>
+> Este spec preservado por auditoria — decisão documentada na conversação de
+> 2026-04-23 após sprint 6 (screenshot) revelar acentuação já correta na GUI.
+
+---
 
 **Tipo:** feat (schema + backend + GUI).
 **Wave:** V2.1 — Bloco B.
