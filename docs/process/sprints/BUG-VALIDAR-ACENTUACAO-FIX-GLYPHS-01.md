@@ -1,8 +1,53 @@
-# BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01 — Anomalia de working tree durante execução paralela (INVESTIGAÇÃO)
+# BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01 — Strip de glyphs Unicode (REPRODUZIDO 2x, causa raiz não identificada)
 
-> **Atualização 2026-04-23**: hipótese original ("`--fix` apaga glyphs") **não reproduz** em execução controlada — rodar `scripts/validar-acentuacao.py --all --fix` em HEAD `7aea630` com working tree limpa resulta em zero modificações. Os glyphs Unicode de estado (`▮▯●○◐`) continuam sãos em HEAD. Sprint reclassificada como **investigativa** — causa raiz real não identificada. Delegada à sprint 9 (AUDIT-V2-COMPLETE-01) como item específico de auditoria.
->
-> Spec original preservado abaixo por contexto histórico da hipótese inicial.
+> **Status 2026-04-23 (segunda reprodução):** hipótese original **reproduziu** 2 vezes em sessões distintas. Primeira reprodução em V2.1 (22 arquivos, HEAD `b5b1a48`). Segunda em V2.2 pós-release (25 arquivos, HEAD `e6c0e29`). Tentativas de reprodução isolada rodando apenas `scripts/validar-acentuacao.py --all --fix` em árvore limpa resultaram em zero modificações — o bug depende de **contexto de execução** ainda não identificado (provavelmente combinação de hook + subagent + timing). Classificação: bug reproduzido, causa raiz não isolada. Próximo passo: `BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02` (spec-filha para fix canônico + blindagem).
+
+## Segunda reprodução (2026-04-23, V2.2 pós-release v2.2.0)
+
+Sessão `92996300-00e0-48e9-8eca-b8dd99a26d86` rodou o ciclo V2.2 inteiro, publicou `v2.2.0` no GitHub (tag `f6ca6a8`, 5 assets). Timeline do estrago:
+
+- **19:08:21 BRT** — commit `e6c0e29` criado (`docs: 2 sprints colaterais pós-release v2.2.0`, 2 arquivos novos, 112 insertions). Working tree limpo após commit.
+- **~19:10:08 BRT (+107s)** — 25 arquivos tocados em batch (mtime idêntico até milésimos de segundo — operação atômica de script). 82 glyph strips totais (U+25CF, U+25CB, U+25AE, U+25AF, U+25D0 → espaço).
+- **~19:16 BRT** — sessão crashou sem detectar/reverter o estrago.
+
+### Arquivos afetados (25)
+
+Código (6):
+- `src/hefesto/app/actions/daemon_actions.py` (6 strips)
+- `src/hefesto/app/actions/emulation_actions.py` (1)
+- `src/hefesto/app/actions/mouse_actions.py` (1)
+- `src/hefesto/app/actions/status_actions.py` (11)
+- `src/hefesto/integrations/uinput_mouse.py` (1)
+- `src/hefesto/tui/widgets/__init__.py` (5)
+
+Testes "adaptados" para aceitar strings vazias (esconde regressão — viola meta-regras 9.2+9.6) (4):
+- `tests/unit/test_daemon_status_initial.py` (5)
+- `tests/unit/test_daemon_status_matrix.py` (1)
+- `tests/unit/test_status_actions_reconnect.py` (3)
+- `tests/unit/test_tui_widgets.py` (5)
+
+Docs (15): `CHANGELOG.md`, `README.md`, `docs/adr/012-gui-reconnect-state-machine.md`, `docs/process/CHECKLIST_HARDWARE_V2.md`, 11 specs em `docs/process/sprints/` incluindo o próprio `BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-01.md` (recursividade: spec corrompeu a própria evidência em code-blocks).
+
+### Dado bruto preservado
+
+`git diff HEAD` salvo em `docs/history/glyph-strip-regression-2026-04-23.diff` (711 linhas) para análise forense da sprint-filha.
+
+### Hipótese refinada
+
+Timeline aperta o disparo: entre `Write` dos 2 specs (19:07–19:08) e batch strip (19:10:08), o assistant da sessão anterior rodou `Bash: "Testar novamente o script"` (confirmado no session log `92996300.jsonl`). Candidatos para o script:
+
+1. `scripts/validar-acentuacao.py --fix` (primeira hipótese, não reproduz isolada)
+2. `pre-commit run --all-files` com algum hook que chama validar-acentuacao
+3. Hook `.git/hooks/pre-commit` (8 hooks custom instalados)
+4. Wrapper de subagent que aplica normalização Unicode antes de commitar
+
+Fator comum entre as 2 reproduções: ambas ocorreram em contexto de execução **paralela/orquestrada** (primeira em SMOKE-DEB+SMOKE-FLATPAK; segunda pós-release com 2 specs criados em sequência). Nenhuma reproduziu em `--all --fix` isolado.
+
+### Fix proposto (spec-filha, fora desta sprint)
+
+- Blindar `scripts/validar-acentuacao.py` contra caracteres do bloco Geometric Shapes / Block Elements / Arrows conforme ADR-011 (whitelist explícita U+2190–U+21FF, U+2500–U+257F, U+2580–U+259F, U+25A0–U+25FF).
+- Teste de regressão: arquivo fixture com glyphs canônicos → `--fix` deve deixar igual.
+- Logging: `--fix` deve imprimir em `--verbose` cada caractere removido com código Unicode, para facilitar debugging futuro.
 
 ---
 
