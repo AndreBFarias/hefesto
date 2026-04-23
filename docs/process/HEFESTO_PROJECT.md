@@ -70,7 +70,7 @@ grep -rniE "claude|anthropic|openai|gpt-[0-9]|chatgpt" src/ tests/ docs/ \
 4. SO ENTAO continue
 ```
 
-**O codigo pertence a quem o executa. Nao a quem o escreve.**
+**O código pertence a quem o executa. Não a quem o escreve.**
 
 ---
 
@@ -123,7 +123,7 @@ gh pr merge --squash --delete-branch
 1. Fala HID com o controle DualSense (VID 054c, PID 0ce6).
 2. Aplica efeitos de gatilho adaptativo em background (19 modos).
 3. Expoe protocolo UDP local (porta 6969 no Win) pra jogos/mods mudarem estado em tempo real.
-4. Emula Xbox360/DS4 via ViGEmBus (pra jogos que nao reconhecem DualSense).
+4. Emula Xbox360/DS4 via ViGEmBus (pra jogos que não reconhecem DualSense).
 5. UI pra testar/configurar efeitos, LEDs, rumble.
 
 ## O que Hefesto vai fazer (Linux):
@@ -139,10 +139,10 @@ gh pr merge --squash --delete-branch
 | Auto-start            | `systemd --user` unit                              | W4     |
 | LEDs/Rumble           | Via pydualsense                                    | W2     |
 
-**Nao faremos:**
+**Não faremos:**
 
 - Suporte Windows (fora de escopo).
-- macOS (HID da Sony nao documenta bem).
+- macOS (HID da Sony não documenta bem).
 - Wayland nativo na v0.x (X11-first; Wayland via ADR-007).
 - Bluetooth Audio (protocolo fechado da Sony, DSX-Steam pago faz isso).
 
@@ -167,7 +167,7 @@ ruff + mypy
 
 **Justificativas:**
 
-- `pydualsense` > implementacao do zero: 115 commits, protocolo HID completo, LICENSE MIT. Reimplementar seria 2 sprints perdidas.
+- `pydualsense` > implementação do zero: 115 commits, protocolo HID completo, LICENSE MIT. Reimplementar seria 2 sprints perdidas.
 - `textual` > curses: mesma stack do Luna, tema Dracula ja resolvido.
 - `typer` > argparse: decorators sao mais limpos, bom pra CLI com subcomandos.
 - `python-xlib` > `xdotool` via subprocess: menos overhead, sem shell-out.
@@ -335,7 +335,7 @@ Mods existentes pra Cyberpunk/Forza/Assetto Corsa escrevem em UDP localhost quan
 - `RGBUpdate(controller_idx, r, g, b)` — cor da lightbar
 - `PlayerLED(idx, bitmask)` — 5 LEDs inferiores
 - `MicLED(state)` — LED do microfone
-- `TriggerThreshold(side, value)` — threshold de ativacao
+- `TriggerThreshold(side, value)` — threshold de ativação
 - `ResetToUserSettings()` — volta pro perfil do Hefesto
 
 ## Porta
@@ -427,7 +427,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ## WAVE 1 — HID Core (3 sprints)
 
 ### Sprint 1.1: Backend abstraction + pydualsense
-- [ ] Interface `IController` (ABC) com metodos: `connect`, `disconnect`, `read_state`, `set_trigger`, `set_led`, `set_rumble`, `get_battery`, `is_connected`.
+- [ ] Interface `IController` (ABC) com métodos: `connect`, `disconnect`, `read_state`, `set_trigger`, `set_led`, `set_rumble`, `get_battery`, `is_connected`.
 - [ ] `backend_pydualsense.py` implementa `IController`.
 - [ ] Teste unitario com mock do `pydualsense`.
 
@@ -435,13 +435,13 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 - [ ] `events.py`: pubsub com asyncio.Queue pra: `button_down`, `button_up`, `battery_change`, `connected`, `disconnected`.
 - [ ] `daemon/state_store.py`: thread-safe dict com estado atual (bateria, trigger modes ativos, perfil).
 
-### Sprint 1.3: Daemon loop basico
+### Sprint 1.3: Daemon loop básico
 - [ ] `daemon/main.py`: asyncio event loop.
 - [ ] Conecta no controle, poll 60Hz, publica events.
 - [ ] `hefesto daemon start` liga, `Ctrl+C` desliga limpo.
 - [ ] Logging estruturado com structlog.
 
-**DoD:** `hefesto daemon start` conecta no DualSense fisico, mostra bateria e input do stick.
+**DoD:** `hefesto daemon start` conecta no DualSense físico, mostra bateria e input do stick.
 
 ---
 
@@ -450,7 +450,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 2.1: 19 modos mapeados
 - [ ] `trigger_effects.py`: `TriggerMode` enum + `TriggerEffect` dataclass.
 - [ ] Factories: `rigid()`, `pulse()`, `galloping(freq, start, end, strength)`, `machine(...)`, etc.
-- [ ] Validacao de params (ranges do README do DSX).
+- [ ] Validação de params (ranges do README do DSX).
 - [ ] Tabela de compatibilidade documentada em `docs/protocol/trigger-modes.md`.
 
 ### Sprint 2.2: LEDs e rumble
@@ -488,14 +488,14 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 
 ### Sprint 4.2: IPC Unix socket (JSON-RPC 2.0)
 - [ ] `daemon/ipc_server.py`: asyncio Unix socket server.
-- [ ] 8 metodos v1: `profile.switch`, `profile.list`, `trigger.set`, `trigger.reset`, `led.set`, `daemon.status`, `controller.list`, `daemon.reload`.
+- [ ] 8 métodos v1: `profile.switch`, `profile.list`, `trigger.set`, `trigger.reset`, `led.set`, `daemon.status`, `controller.list`, `daemon.reload`.
 - [ ] Cliente em `cli/` usa mesmo protocolo.
 
 ### Sprint 4.3: UDP server compat DSX
 - [ ] `daemon/udp_server.py`: escuta `127.0.0.1:6969`.
 - [ ] Parser do schema DSX JSON.
 - [ ] Rate limit: 1000 pacotes/s por cliente.
-- [ ] Teste integracao: roda mod de exemplo e confirma efeito aplicado.
+- [ ] Teste integração: roda mod de exemplo e confirma efeito aplicado.
 
 **DoD:** `systemctl --user status hefesto` mostra ativo. `python examples/mod_integration_udp.py` aplica efeito.
 
@@ -511,7 +511,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 5.2: Preview widgets
 - [ ] `trigger_preview.py`: barra visual animada do estado L2/R2 (0-255).
 - [ ] `battery_meter.py`: com cor que muda (verde → vermelho).
-- [ ] Atualizacao via event bus do daemon (via IPC).
+- [ ] Atualização via event bus do daemon (via IPC).
 
 ### Sprint 5.3: CLI completo (typer)
 - [ ] `hefesto status` — tabela com info do daemon.
@@ -526,7 +526,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 - [ ] Tray GTK3 com AppIndicator3 (opcional, extra dep).
 - [ ] Menu: perfis, status, open TUI, quit.
 
-**DoD:** Usuario configura tudo sem abrir editor de texto.
+**DoD:** Usuário configura tudo sem abrir editor de texto.
 
 ---
 
@@ -535,7 +535,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 6.1: Window detection X11
 - [ ] `integrations/xlib_window.py`: poll 2Hz da janela ativa.
 - [ ] Retorna: `{wm_class, wm_name, pid, exe_name}`.
-- [ ] Teste em varios apps (Steam, Firefox, terminais).
+- [ ] Teste em vários apps (Steam, Firefox, terminais).
 
 ### Sprint 6.2: Autoswitch
 - [ ] `profiles/autoswitch.py`: escuta mudanca de janela → escolhe perfil.
@@ -849,7 +849,7 @@ gh issue create --title "W2.2: LED control + rumble com throttle" \
 
 ## ADR-001: Escolha de pydualsense como backend HID
 
-**Decisao:** Usar `pydualsense` (flok, MIT) como backend ao inves de implementar o protocolo HID do zero ou portar C++ do `trigger-control`.
+**Decisão:** Usar `pydualsense` (flok, MIT) como backend ao inves de implementar o protocolo HID do zero ou portar C++ do `trigger-control`.
 
 **Contexto:**
 - pydualsense tem 115 commits, mantido, MIT, Python puro com hidapi.
@@ -859,24 +859,24 @@ gh issue create --title "W2.2: LED control + rumble com throttle" \
 **Consequencias:**
 - (+) Velocidade de desenvolvimento.
 - (+) Upstream pra contribuir bugfixes.
-- (-) Dependencia externa: se flok arquivar, forkamos (MIT permite).
+- (-) Dependência externa: se flok arquivar, forkamos (MIT permite).
 - (-) Performance: Python loop a 60Hz de HID poll e OK; 1000Hz talvez nao.
 
 **Mitigacao:** Interface `IController` abstrai backend. Se precisar, troca-se por impl em C via cffi sem mexer no resto.
 
 ## ADR-003: UDP na porta 6969 pra compat com DSX
 
-**Decisao:** Escutar UDP em `127.0.0.1:6969`, mesmo schema JSON do DSX.
+**Decisão:** Escutar UDP em `127.0.0.1:6969`, mesmo schema JSON do DSX.
 
 **Contexto:** Mods pra Cyberpunk, Forza, Assetto Corsa ja existem e escrevem nessa porta. Rodando o jogo via Proton, o mod roda dentro da maquina virtual Win mas a rede e host-shared. Se Hefesto escuta na mesma porta, mods funcionam sem modificacao.
 
-**Validacao:** Testar com `DualSenseAT` e `DualSenseXLink` via Proton.
+**Validação:** Testar com `DualSenseAT` e `DualSenseXLink` via Proton.
 
 ## ADR-007: Deferir Wayland pra v1.x
 
-**Decisao:** v0.x so suporta X11 pra deteccao de janela ativa. Wayland retorna "unknown window" e cai no perfil fallback.
+**Decisão:** v0.x so suporta X11 pra deteccao de janela ativa. Wayland retorna "unknown window" e cai no perfil fallback.
 
-**Motivo:** Wayland nao expoe janela ativa sem portal especifico (varia entre GNOME/KDE/Sway). GNOME tem D-Bus extension, KDE tem KWin script, Sway tem IPC proprio. Implementar os 3 fura escopo.
+**Motivo:** Wayland não expoe janela ativa sem portal especifico (varia entre GNOME/KDE/Sway). GNOME tem D-Bus extension, KDE tem KWin script, Sway tem IPC proprio. Implementar os 3 fura escopo.
 
 **Workaround v0.x:** CLI + hotkey manual + autoswitch por processo via `/proc/*/comm` quando disponivel.
 
@@ -917,19 +917,19 @@ async def fetch_battery(controller: IController) -> int:
 | Label                | Uso                                       |
 |----------------------|-------------------------------------------|
 | `P0-critical`        | Bug que impede uso                        |
-| `P1-high`            | Proxima sprint                            |
+| `P1-high`            | Próxima sprint                            |
 | `P2-medium`          | Backlog curto                             |
 | `P3-low`             | Nice to have                              |
 | `type:feature`       | Novo comportamento                        |
-| `type:refactor`      | Codigo muda, comportamento nao            |
-| `type:docs`          | Documentacao                              |
+| `type:refactor`      | Código muda, comportamento não            |
+| `type:docs`          | Documentação                              |
 | `type:infra`         | CI, packaging, scripts                    |
 | `type:test`          | Testes novos                              |
 | `status:ready`       | Disponivel pra pegar                      |
-| `status:in-progress` | Em execucao                               |
+| `status:in-progress` | Em execução                               |
 | `status:blocked`     | Bloqueada (comentar motivo)               |
 | `ai-task`            | Executavel por IA autonoma                |
-| `needs-device`       | Precisa DualSense fisico pra testar       |
+| `needs-device`       | Precisa DualSense físico pra testar       |
 
 ---
 
@@ -1001,10 +1001,10 @@ gh pr merge --squash --delete-branch
 - (NAO) `time.sleep()` em corrotina.
 - (NAO) `print()` — use `logger`.
 - (NAO) Hardcode de paths — use `xdg_paths`.
-- (NAO) Dependencias Windows (pyvgamepad, win32api).
+- (NAO) Dependências Windows (pyvgamepad, win32api).
 - (NAO) UI como sudo. Daemon como user. Udev rule uma vez.
 - (NAO) Escrever "by Claude" em lugar nenhum.
-- (NAO) Commit com nome proprio: `git config user.name` pode ser impessoal no repo (`hefesto-dev`).
+- (NAO) Commit com nome próprio: `git config user.name` pode ser impessoal no repo (`hefesto-dev`).
 
 ---
 
@@ -1018,4 +1018,4 @@ gh pr merge --squash --delete-branch
 
 ---
 
-*"A forja nao revela o ferreiro. So a espada."*
+*"A forja não revela o ferreiro. So a espada."*

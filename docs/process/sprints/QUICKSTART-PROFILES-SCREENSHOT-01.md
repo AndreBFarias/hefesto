@@ -44,7 +44,7 @@ kill $GUI_PID
 
 - [ ] `docs/usage/assets/quickstart_07_perfis.png` existe, dimensões plausíveis (≥ 800×600), pelo menos 6 dos 8 perfis visíveis na treestore/listview.
 - [ ] Acentuação correta visível se `PROFILE-DISPLAY-NAME-01` já foi mergeada (opcional — pode ser rodada antes/depois; se antes, aparece `Ação`, `Navegação` acentuado; se depois, aparece `acao`, `navegacao` ASCII, o que é aceitável para esta sprint).
-- [ ] `docs/usage/quickstart.md` seção "6. Trocar de perfil" referencia a imagem com texto descritivo em PT-BR.
+- [ ] `docs/usage/quickstart.md` seção "6. Trocar de perfil" referência a imagem com texto descritivo em PT-BR.
 - [ ] Skill `validacao-visual` invocada: sha256 + descrição multimodal 3-5 linhas (elementos visíveis, contraste, ausência de traceback na console).
 - [ ] Nenhum outro arquivo modificado — mudança cirúrgica.
 
