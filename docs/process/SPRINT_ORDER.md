@@ -300,8 +300,9 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
 | 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real de protocolo DFU; **destravada pela descoberta em 2026-04-23 que nowrep/dualsensectl PR#53 já documentou e implementou o protocolo completo em main.c MIT** (reports 0x20/0xF4/0xF5, blob 950272 bytes, CDN fwupdater.dl.playstation.net); ver docs/research/firmware-dualsense-2026-04-survey.md | L→XS | opus | RESEARCH-DONE-VIA-UPSTREAM |
-| 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial; bloqueada por decisão arquitetural (4 opções: A wrapper/B porte Python/C fwupd/D não impl) | XL→? | opus | AGUARDA DECISÃO ARQUITETURAL |
-| 70.1 | [DECISION] **FEAT-FIRMWARE-UPDATE-PHASE3-DECISION-01** (proposta) — escolher entre A/B/C/D antes de reescrever PHASE3 | XS | humano+opus | PROPOSTA |
+| 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial; SUPERSEDED por 70.2 (decisão: opção A+UI, wrapper subprocess + aba GUI) | XL→— | — | SUPERSEDED |
+| 70.1 | [DECISION] **FEAT-FIRMWARE-UPDATE-PHASE3-DECISION-01** — escolher entre A/B/C/D; DECIDIDO em 2026-04-23 opção A+UI | XS | humano+opus | DECIDIDO |
+| 70.2 | [FEAT] **FEAT-FIRMWARE-UPDATE-GUI-01** — aba Firmware na GUI via wrapper dualsensectl; backend `src/hefesto/integrations/firmware_updater.py` + mixin `src/hefesto/app/actions/firmware_actions.py` + page glade + 17 tests unit | M | opus | MERGED |
 
 ### Bloco H — visibilidade / open source (pós-CI funcionar)
 

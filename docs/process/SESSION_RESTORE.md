@@ -6,15 +6,16 @@
 
 ---
 
-## Última atualização: 2026-04-23 (pós-restauração v2.2.0 + decisão v2.2.1)
+## Última atualização: 2026-04-23 (sessão pós-restore; aba Firmware implementada)
 
 ## Onde paramos
 
 1. **v2.2.0 publicada** no GitHub com 5 assets (whl, tar.gz, AppImage, deb, flatpak). Tag `f6ca6a8` no remote.
-2. **Sessão anterior (`92996300`) crashou** após commit `e6c0e29` (2 sprints colaterais documentando bugs do release). Regressão de glyph strip em 25 arquivos corrigida nesta sessão (`d244106`).
-3. **Estado git:** HEAD = `d244106` em `origin/main` (sincronizado). Working tree limpo pós-restore.
-4. **Próximo alvo:** **release v2.2.1 (patch)** com 6 sprints escolhidas pelo usuário (ver § Roadmap).
-5. **Keyboard (59.2/59.3)** adiado para v2.3.0. **Firmware 69/70** research iniciado nesta sessão (survey web); captura PHASE2 real aguarda hardware.
+2. **Sessão anterior (`92996300`) crashou** após commit `e6c0e29`. Regressão de glyph strip em 25 arquivos corrigida nesta sessão (`d244106`).
+3. **Estado git:** HEAD = `a41ce85` em `origin/main` (sincronizado). Working tree limpo.
+4. **Firmware 69/70 resolvido via upstream + implementação nesta sessão:** descoberto que `dualsensectl` PR#53 mergeou protocolo DFU funcional em 2026-02-19. Opção A+UI implementada (aba Firmware na GUI, wrapper subprocess, 17 testes).
+5. **Próximo alvo:** **release v2.2.1 (patch)** com 6 sprints pendentes (ver § Roadmap). Firmware (70.2) MERGED fica incluída na v2.2.1.
+6. **Keyboard (59.2/59.3)** adiado para v2.3.0.
 
 ---
 
@@ -41,7 +42,20 @@ Escolha do usuário em 2026-04-23: v2.2.0 encerrada, seguir para v2.2.1 com 4 pr
 
 ---
 
-## Firmware 69/70 — research CONCLUÍDA com achado crítico (2026-04-23)
+## Firmware 70.2 MERGED — aba Firmware implementada (2026-04-23)
+
+Sprint `FEAT-FIRMWARE-UPDATE-GUI-01` (ordem 70.2) materializou a opção A+UI da decisão arquitetural:
+
+- **Backend** `src/hefesto/integrations/firmware_updater.py` (230 linhas): wrapper subprocess de `dualsensectl` (check/info/apply). 5 exceções tipadas. Parser tolerante. Timeouts controlados.
+- **Mixin** `src/hefesto/app/actions/firmware_actions.py` (300 linhas): FirmwareActionsMixin com thread worker via `_get_executor()` + callbacks `GLib.idle_add`. Tradução de erros em PT-BR. Confirmação modal antes de aplicar.
+- **UI** nova page em `main.glade`: banner de risco MAIÚSCULO, frame versão atual, frame aplicar (entry + browse + apply + progress), status label.
+- **Wire-up** `src/hefesto/app/app.py`: herança + `install_firmware_tab()` no bootstrap.
+- **Testes** `tests/unit/test_firmware_updater.py`: 17 testes (is_available, parse, get_info, apply validation, apply fluxo com progress_callback).
+- Gates: mypy zero em 107 arquivos (+2), ruff limpo, pytest 1046/1046.
+
+Requer `dualsensectl` instalado no sistema do usuário — se ausente, aba mostra mensagem guiada e desabilita botões.
+
+## Firmware 69 — research CONCLUÍDA com achado crítico (2026-04-23)
 
 ### Achado game-changer durante pesquisa desta sessão
 
