@@ -299,7 +299,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real do protocolo DFU (requer hardware + VM Win) | L | opus | BLOCKED-ON-HARDWARE |
+| 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real do protocolo DFU (requer hardware + VM Win); survey web 2026-04-23 em docs/research/firmware-dualsense-2026-04-survey.md | L | opus | RESEARCH-PARTIAL / BLOCKED-ON-HARDWARE |
 | 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial | XL | opus | BLOCKED-ON-PHASE-2 |
 
 ### Bloco H — visibilidade / open source (pós-CI funcionar)
@@ -308,11 +308,30 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 |---|---|---|---|---|
 | 71 | [FEAT] **FEAT-GITHUB-PROJECT-VISIBILITY-01** — governança + social-preview PNG + badges; gh CLI em docs/history/ aguarda execução humana | S | opus | PROTOCOL_READY |
 
-### Fase — Marco
+### Fase — Marco v2.2.0
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 72 | [RELEASE] **Release v2.2.0** — tag a publicar pós-V2.2 | — | PENDING |
+| 72 | [RELEASE] **Release v2.2.0** — publicada 2026-04-23 22:07 UTC, tag f6ca6a8 remote, 5 assets no GitHub | — | MERGED |
+
+### Bloco I — patch release v2.2.1 (pós-v2.2.0)
+
+Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de seguir com patch antes de keyboard (v2.3).
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 73 | [BUG] **BUG-APPIMAGE-VERSION-NAME-01** — AppImage gerado com nome 1.0.0 em vez da tag; ler versão de pyproject.toml como build_deb.sh | XS | sonnet | PENDING |
+| 74 | [BUG] **BUG-DEB-PYDANTIC-V2-UBUNTU-22-01** — python3-pydantic em Ubuntu 22.04 é v1.9 mas código usa ConfigDict (v2); control declara (>=2.0) + smoke job ubuntu-24.04 | S | sonnet | PENDING |
+| 75 | [INFRA] **INFRA-VENV-PYGOBJECT-01** — dev-setup.sh valida/instala PyGObject (A-12); desbloqueia test_status_actions_reconnect e valid visual local | XS | sonnet | PENDING |
+| 76 | [BUG] **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02** — blindar validar-acentuacao.py com whitelist ADR-011 + fix dry-run default + logging verbose (previne 3ª reprodução do strip) | XS | sonnet | PENDING |
+| 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — radio "Aplica a:" redesign (H1 do UI-PROFILES-LAYOUT-POLISH-01) | S | opus | PENDING |
+| 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — rebalancear coluna direita (H5) | S | sonnet | PENDING |
+
+### Fase — Marco v2.2.1
+
+| Ordem | Sprint | Porte | Status |
+|---|---|---|---|
+| 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1, CHANGELOG, tag, `gh workflow run release.yml -f tag=v2.2.1` | — | PENDING |
 
 ---
 
