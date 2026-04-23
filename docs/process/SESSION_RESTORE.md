@@ -41,12 +41,29 @@ Escolha do usuário em 2026-04-23: v2.2.0 encerrada, seguir para v2.2.1 com 4 pr
 
 ---
 
-## Firmware 69/70 — research iniciado 2026-04-23
+## Firmware 69/70 — research CONCLUÍDA com achado crítico (2026-04-23)
 
-- **Research bibliográfico prévio:** `docs/research/firmware-update-protocol.md` (304 linhas, fase PHASE1).
-- **Survey atualizado (em progresso ou concluído):** `docs/research/firmware-dualsense-2026-04-survey.md` — disparado nesta sessão via agente de web search.
-- **Captura real (PHASE2):** BLOCKED-ON-HARDWARE. Aguarda PC + VM Win + DualSense + cabo USB-C + conta PSN.
-- **Implementação CLI (PHASE3):** BLOCKED-ON-PHASE-2.
+### Achado game-changer durante pesquisa desta sessão
+
+**`nowrep/dualsensectl` merged firmware update em 2026-02-19** (PR #53 de `deadYokai`). O comando `dualsensectl update firmware.bin` funciona hoje em Linux puro, sem Wine. Protocolo completo (feature reports `0x20` + `0xF4` + `0xF5`, blob `950272 bytes`, CDN Sony `fwupdater.dl.playstation.net`) documentado em `docs/research/firmware-dualsense-2026-04-survey.md` §0.
+
+### Impacto nos specs 69/70
+
+- **PHASE2 (69):** de **BLOCKED-ON-HARDWARE** → **RESEARCH-DONE-VIA-UPSTREAM**. Reescopar para 0.5 iteração documental (consolidar survey + código upstream em doc final); ou marcar diretamente como MERGED.
+- **PHASE3 (70):** de **BLOCKED-ON-PHASE-2** → **AGUARDA DECISÃO ARQUITETURAL**. 4 opções listadas no survey §0.5:
+  - **A (recomendação provisória):** wrapper subprocess Hefesto → dualsensectl. 1-2 iterações.
+  - **B:** porte Python nativo (`src/hefesto/firmware/`). 3-5 iterações.
+  - **C:** fwupd/LVFS. Dependente de Sony publicar no LVFS — sem prazo.
+  - **D:** não implementar; README aponta dualsensectl.
+
+### Decisão pendente do dono
+
+Antes de reescrever PHASE3, sugerido sprint nova `FEAT-FIRMWARE-UPDATE-PHASE3-DECISION-01` para formalizar escolha entre A/B/C/D.
+
+### Documentação completa da pesquisa
+
+- `docs/research/firmware-update-protocol.md` — PHASE1 original (304 linhas, 2026-04-23).
+- `docs/research/firmware-dualsense-2026-04-survey.md` — survey 2026-04-23 com achado upstream (492 linhas).
 
 ---
 

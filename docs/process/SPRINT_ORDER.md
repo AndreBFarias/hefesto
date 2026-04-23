@@ -295,12 +295,13 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 67 | [CHORE] **CHORE-VENV-BOOTSTRAP-CHECK-01** — script `dev-setup.sh` + regra de sessão viva | XS | sonnet | MERGED |
 | 68 | [DOCS] **DOCS-STATUS-PROTOCOL-READY-01** — status `PROTOCOL_READY` para sprints sem execução humana | XS | sonnet | MERGED |
 
-### Bloco G — firmware experimental (requer hardware)
+### Bloco G — firmware (destravada por upstream em 2026-02-19)
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real do protocolo DFU (requer hardware + VM Win); survey web 2026-04-23 em docs/research/firmware-dualsense-2026-04-survey.md | L | opus | RESEARCH-PARTIAL / BLOCKED-ON-HARDWARE |
-| 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial | XL | opus | BLOCKED-ON-PHASE-2 |
+| 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real de protocolo DFU; **destravada pela descoberta em 2026-04-23 que nowrep/dualsensectl PR#53 já documentou e implementou o protocolo completo em main.c MIT** (reports 0x20/0xF4/0xF5, blob 950272 bytes, CDN fwupdater.dl.playstation.net); ver docs/research/firmware-dualsense-2026-04-survey.md | L→XS | opus | RESEARCH-DONE-VIA-UPSTREAM |
+| 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial; bloqueada por decisão arquitetural (4 opções: A wrapper/B porte Python/C fwupd/D não impl) | XL→? | opus | AGUARDA DECISÃO ARQUITETURAL |
+| 70.1 | [DECISION] **FEAT-FIRMWARE-UPDATE-PHASE3-DECISION-01** (proposta) — escolher entre A/B/C/D antes de reescrever PHASE3 | XS | humano+opus | PROPOSTA |
 
 ### Bloco H — visibilidade / open source (pós-CI funcionar)
 
