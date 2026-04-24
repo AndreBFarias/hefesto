@@ -48,6 +48,15 @@ def apply_rumble_policy(daemon: Any, weak: int, strong: int) -> tuple[int, int]:
         getattr(rumble_engine, "_last_auto_change_at", 0.0) if rumble_engine else 0.0
     )
 
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: consulta override do perfil ativo.
+    profile_override = None
+    profile_manager = getattr(daemon, "_profile_manager", None)
+    if profile_manager is not None:
+        try:
+            profile_override = profile_manager.get_active_rumble_config()
+        except Exception:
+            logger.debug("rumble_policy_override_read_fallback", exc_info=True)
+
     mult, new_last_auto_mult, new_last_auto_change_at = _effective_mult(
         config=daemon_cfg,
         battery_pct=battery_pct,
@@ -55,6 +64,7 @@ def apply_rumble_policy(daemon: Any, weak: int, strong: int) -> tuple[int, int]:
         last_auto_mult=last_auto_mult,
         last_auto_change_at=last_auto_change_at,
         auto_debounce_sec=AUTO_DEBOUNCE_SEC,
+        profile_override=profile_override,
     )
 
     # Propaga debounce de volta ao engine via método público (encapsulamento).

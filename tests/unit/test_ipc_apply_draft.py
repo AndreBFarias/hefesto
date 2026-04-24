@@ -73,6 +73,9 @@ async def server_and_controller(
     # que comparam set_rumble contra o payload declarado.
     fake_daemon.config.rumble_policy = "max"  # type: ignore[assignment]
     fake_daemon._rumble_engine = None
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: sem override de perfil nesses testes;
+    # MagicMock default retornaria sub-mock e corromperia policy lookup.
+    fake_daemon._profile_manager = None
 
     server = IpcServer(
         controller=fc,

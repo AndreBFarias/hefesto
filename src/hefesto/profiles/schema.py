@@ -9,7 +9,9 @@ import os
 import re
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from hefesto.core.rumble_policy import RumblePolicy
 
 
 class MatchCriteria(BaseModel):
@@ -142,9 +144,36 @@ class LedsConfig(BaseModel):
 
 
 class RumbleConfig(BaseModel):
+    """Configuração de rumble por perfil.
+
+    - `passthrough`: quando `True`, rumble do jogo/UDP passa direto ao hardware.
+    - `policy`: override opcional da política global de rumble
+      (FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01). `None` (default) herda
+      `DaemonConfig.rumble_policy`.
+    - `policy_custom_mult`: multiplicador específico quando `policy == "custom"`;
+      obrigatório nesse caso, ignorado para outras policies.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     passthrough: bool = True
+    policy: RumblePolicy | None = None
+    policy_custom_mult: float | None = None
+
+    @model_validator(mode="after")
+    def _validate_custom_mult(self) -> RumbleConfig:
+        if self.policy == "custom" and self.policy_custom_mult is None:
+            raise ValueError(
+                "rumble.policy='custom' exige policy_custom_mult definido"
+            )
+        if self.policy_custom_mult is not None and not (
+            0.0 <= self.policy_custom_mult <= 2.0
+        ):
+            raise ValueError(
+                "policy_custom_mult fora do intervalo [0.0, 2.0]: "
+                f"{self.policy_custom_mult}"
+            )
+        return self
 
 
 # Regex para tokens aceitos em `Profile.key_bindings` values (FEAT-KEYBOARD-PERSISTENCE-01).

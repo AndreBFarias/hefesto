@@ -35,6 +35,11 @@ class IpcSubsystem:
             store=ctx.store,
             keyboard_device=getattr(daemon, "_keyboard_device", None),
         )
+        # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: expoe o manager no daemon para
+        # que reassert_rumble e apply_rumble_policy consigam consultar o
+        # override de policy via `getattr(daemon, "_profile_manager", None)`.
+        if daemon is not None:
+            daemon._profile_manager = manager
         self._server = IpcServer(
             controller=ctx.controller,
             store=ctx.store,
@@ -66,6 +71,8 @@ async def start_ipc(daemon: Any) -> None:
     from hefesto.profiles.manager import ProfileManager
 
     manager = ProfileManager(controller=daemon.controller, store=daemon.store)
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: wire-up do override de policy.
+    daemon._profile_manager = manager
     daemon._ipc_server = IpcServer(
         controller=daemon.controller,
         store=daemon.store,

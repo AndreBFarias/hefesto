@@ -74,6 +74,11 @@ class TestReassertRumble:
         daemon.config.rumble_policy_custom_mult = 0.7
         daemon._last_auto_mult = 0.7
         daemon._last_auto_change_at = 0.0
+        # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: sem override neste cenario;
+        # MagicMock default retornaria sub-mock (MagicMock.policy != None),
+        # caindo no ramo "policy desconhecida". Fixar em None preserva o
+        # comportamento testado (usa config global).
+        daemon._profile_manager = None
 
         snap = MagicMock()
         snap.controller = MagicMock()

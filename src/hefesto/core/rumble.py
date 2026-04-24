@@ -31,6 +31,8 @@ from hefesto.utils.logging_config import get_logger
 
 if TYPE_CHECKING:
     from hefesto.daemon.lifecycle import DaemonConfig
+    from hefesto.profiles.manager import ProfileManager
+    from hefesto.profiles.schema import RumbleConfig
 
 logger = get_logger(__name__)
 
@@ -55,6 +57,8 @@ def _effective_mult(
     last_auto_mult: float,
     last_auto_change_at: float,
     auto_debounce_sec: float = 5.0,
+    *,
+    profile_override: RumbleConfig | None = None,
 ) -> tuple[float, float, float]:
     """Calcula multiplicador efetivo conforme política do config.
 
@@ -67,13 +71,31 @@ def _effective_mult(
       - bateria 20-50% -> mult 0.7 (Balanceado)
       - bateria <20% -> mult 0.3 (Economia)
       Com debounce de `auto_debounce_sec` para evitar oscilação.
+
+    FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: quando `profile_override` é fornecido
+    e seu `policy` não é None, sobrescreve `config.rumble_policy`. Para
+    policy="custom", o `policy_custom_mult` lido vem do próprio perfil. Para
+    policies fixas (economia/balanceado/max/auto), apenas o nome é lido do
+    perfil; `policy_custom_mult` do perfil é ignorado nesse caso.
     """
     from hefesto.daemon.lifecycle import RUMBLE_POLICY_MULT
 
-    policy = config.rumble_policy
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: override por perfil tem precedência
+    # sobre config global quando presente. Quando perfil não define policy,
+    # herdamos o global (comportamento pré-sprint preservado).
+    if profile_override is not None and profile_override.policy is not None:
+        policy = profile_override.policy
+        if policy == "custom":
+            # Para custom, mult do perfil; validator já garante que não é None.
+            custom_mult_source = profile_override.policy_custom_mult
+        else:
+            custom_mult_source = config.rumble_policy_custom_mult
+    else:
+        policy = config.rumble_policy
+        custom_mult_source = config.rumble_policy_custom_mult
 
     if policy == "custom":
-        mult = float(config.rumble_policy_custom_mult)
+        mult = float(custom_mult_source) if custom_mult_source is not None else 0.7
         return mult, last_auto_mult, last_auto_change_at
 
     if policy in RUMBLE_POLICY_MULT:
@@ -138,21 +160,36 @@ class RumbleEngine:
         # Referências injetadas via link() para aplicar política.
         self._config: Any | None = None
         self._state_ref: Any | None = None
+        # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: referência opcional ao
+        # ProfileManager para leitura O(1) do override de policy por perfil.
+        self._profile_manager: Any | None = None
         # Debounce do modo "auto".
         self._last_auto_mult: float = 0.7
         self._last_auto_change_at: float = 0.0
         # Último mult efetivo para exposição via IPC (daemon.state_full).
         self._last_mult_applied: float = 1.0
 
-    def link(self, config: DaemonConfig, state_ref: Any) -> None:
+    def link(
+        self,
+        config: DaemonConfig,
+        state_ref: Any,
+        *,
+        profile_manager: ProfileManager | None = None,
+    ) -> None:
         """Injeta referência ao DaemonConfig e ao estado do controle.
 
         `state_ref` deve ter atributo `battery_pct: int`; pode ser o objeto
         ControllerState mais recente guardado pelo poll loop, ou qualquer
         objeto com duck-typing compatível.
+
+        FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: `profile_manager` opcional
+        permite ao engine consultar `get_active_rumble_config()` a cada tick
+        para aplicar override de policy por perfil. Quando None (caminho
+        atual em produção sem wire-up), comportamento pré-sprint preservado.
         """
         self._config = config
         self._state_ref = state_ref
+        self._profile_manager = profile_manager
 
     def set(self, weak: int, strong: int) -> None:
         weak = _clamp(weak)
@@ -234,12 +271,20 @@ class RumbleEngine:
             with contextlib.suppress(AttributeError, TypeError, ValueError):
                 battery_pct = int(self._state_ref.battery_pct)
 
+        # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: lê override do perfil ativo (se
+        # ProfileManager foi linkado). Consulta O(1), sem hit de disco.
+        profile_override: RumbleConfig | None = None
+        if self._profile_manager is not None:
+            with contextlib.suppress(AttributeError):
+                profile_override = self._profile_manager.get_active_rumble_config()
+
         mult, self._last_auto_mult, self._last_auto_change_at = _effective_mult(
             config=self._config,
             battery_pct=battery_pct,
             now=now,
             last_auto_mult=self._last_auto_mult,
             last_auto_change_at=self._last_auto_change_at,
+            profile_override=profile_override,
         )
         return mult
 

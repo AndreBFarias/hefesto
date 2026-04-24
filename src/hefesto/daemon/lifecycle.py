@@ -25,6 +25,7 @@ from typing import Any, Literal
 
 from hefesto.core.controller import IController
 from hefesto.core.events import EventBus, EventTopic
+from hefesto.core.rumble_policy import RumblePolicy
 from hefesto.daemon.state_store import StateStore
 
 # ---------------------------------------------------------------------------
@@ -75,8 +76,9 @@ class DaemonConfig:
     ps_button_command: list[str] = field(default_factory=list)
     # BUG-RUMBLE-APPLY-IGNORED-01
     rumble_active: tuple[int, int] | None = None
-    # FEAT-RUMBLE-POLICY-01
-    rumble_policy: Literal["economia", "balanceado", "max", "auto", "custom"] = "balanceado"
+    # FEAT-RUMBLE-POLICY-01 — alias `RumblePolicy` extraído em
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 (reusado pelo schema de perfil).
+    rumble_policy: RumblePolicy = "balanceado"
     rumble_policy_custom_mult: float = 0.7
     # FEAT-HOTKEY-MIC-01
     mic_button_toggles_system: bool = True
@@ -117,6 +119,10 @@ class Daemon:
     _hotkey_manager: Any = None
     _audio: Any = None
     _plugins_subsystem: Any = None
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: referencia ao ProfileManager
+    # ativo, setado por subsystems/ipc.py ao iniciar o IpcServer. Consultado
+    # por reassert_rumble e apply_rumble_policy via `getattr` com fallback.
+    _profile_manager: Any = None
     _last_auto_mult: float = field(default=0.7)
     _last_auto_change_at: float = field(default=0.0)
 

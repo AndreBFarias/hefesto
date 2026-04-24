@@ -14,6 +14,7 @@ from hefesto.profiles.schema import (
     MatchAny,
     MatchCriteria,
     Profile,
+    RumbleConfig,
     TriggerConfig,
     TriggersConfig,
 )
@@ -295,3 +296,133 @@ def test_activate_propaga_player_leds(isolated_profiles_dir: Path):
     manager = ProfileManager(controller=fc, store=store)
     manager.activate("p2_canonico")
     assert fc.last_player_leds == (False, True, False, True, False)
+
+
+# ---------------------------------------------------------------------------
+# FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 — cache do perfil ativo para rumble policy
+# ---------------------------------------------------------------------------
+
+
+class TestActiveRumbleConfig:
+    """Cache `active_profile_object` + `get_active_rumble_config()`.
+
+    Testes da Decisão 4 do spec: override de policy lido O(1) pelos três
+    consumidores de `_effective_mult` sem hit de disco.
+    """
+
+    def test_activate_cacheia_profile_object(self, isolated_profiles_dir: Path):
+        save_profile(
+            _mk_profile(
+                "fps_max",
+                rumble=RumbleConfig(policy="max"),
+            )
+        )
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        assert manager.active_profile_object is None
+        applied = manager.activate("fps_max")
+        assert manager.active_profile_object is not None
+        assert manager.active_profile_object.name == applied.name
+        assert manager.active_profile_object.rumble.policy == "max"
+
+    def test_get_active_rumble_config_sem_perfil_ativo(
+        self, isolated_profiles_dir: Path
+    ):
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        assert manager.get_active_rumble_config() is None
+
+    def test_get_active_rumble_config_com_override(
+        self, isolated_profiles_dir: Path
+    ):
+        save_profile(
+            _mk_profile(
+                "navegacao_econ",
+                rumble=RumbleConfig(policy="economia"),
+            )
+        )
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        manager.activate("navegacao_econ")
+        rumble = manager.get_active_rumble_config()
+        assert rumble is not None
+        assert rumble.policy == "economia"
+        assert rumble.policy_custom_mult is None
+
+    def test_delete_perfil_ativo_limpa_cache(self, isolated_profiles_dir: Path):
+        save_profile(
+            _mk_profile(
+                "temporario",
+                rumble=RumbleConfig(policy="max"),
+            )
+        )
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        manager.activate("temporario")
+        assert manager.active_profile_object is not None
+
+        manager.delete("temporario")
+        assert manager.active_profile_object is None
+        assert manager.get_active_rumble_config() is None
+
+    def test_switch_entre_overrides_muda_config(
+        self, isolated_profiles_dir: Path
+    ):
+        save_profile(
+            _mk_profile(
+                "perfil_a",
+                rumble=RumbleConfig(policy="max"),
+            )
+        )
+        save_profile(
+            _mk_profile(
+                "perfil_b",
+                rumble=RumbleConfig(policy="economia"),
+            )
+        )
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        manager.activate("perfil_a")
+        rumble_a = manager.get_active_rumble_config()
+        assert rumble_a is not None and rumble_a.policy == "max"
+
+        manager.activate("perfil_b")
+        rumble_b = manager.get_active_rumble_config()
+        assert rumble_b is not None and rumble_b.policy == "economia"
+
+    def test_switch_de_override_para_none_volta_a_herdar(
+        self, isolated_profiles_dir: Path
+    ):
+        save_profile(
+            _mk_profile(
+                "com_override",
+                rumble=RumbleConfig(policy="max"),
+            )
+        )
+        save_profile(
+            _mk_profile(
+                "sem_override",
+                rumble=RumbleConfig(),  # policy=None default
+            )
+        )
+        fc = FakeController()
+        fc.connect()
+        manager = ProfileManager(controller=fc, store=StateStore())
+
+        manager.activate("com_override")
+        assert manager.get_active_rumble_config().policy == "max"  # type: ignore[union-attr]
+
+        manager.activate("sem_override")
+        rumble = manager.get_active_rumble_config()
+        assert rumble is not None
+        assert rumble.policy is None

@@ -156,3 +156,37 @@ class TestProfile:
         dumped = original.model_dump(mode="json")
         restored = Profile.model_validate(dumped)
         assert restored == original
+
+
+class TestRumbleConfigPolicy:
+    """FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 — campo `policy` em RumbleConfig."""
+
+    def test_rumble_config_policy_none_default(self):
+        cfg = RumbleConfig()
+        assert cfg.policy is None
+        assert cfg.policy_custom_mult is None
+        assert cfg.passthrough is True
+
+    def test_rumble_config_policy_custom_sem_mult_rejeita(self):
+        with pytest.raises(ValidationError):
+            RumbleConfig(policy="custom")
+
+    def test_rumble_config_policy_custom_mult_fora_intervalo_rejeita(self):
+        with pytest.raises(ValidationError):
+            RumbleConfig(policy="custom", policy_custom_mult=3.0)
+        with pytest.raises(ValidationError):
+            RumbleConfig(policy="custom", policy_custom_mult=-0.1)
+
+    def test_rumble_config_policy_economia_sem_mult_ok(self):
+        cfg = RumbleConfig(policy="economia")
+        assert cfg.policy == "economia"
+        assert cfg.policy_custom_mult is None
+
+    def test_rumble_config_policy_custom_valido(self):
+        cfg = RumbleConfig(policy="custom", policy_custom_mult=1.5)
+        assert cfg.policy == "custom"
+        assert cfg.policy_custom_mult == pytest.approx(1.5)
+
+    def test_rumble_config_policy_invalida_rejeita(self):
+        with pytest.raises(ValidationError):
+            RumbleConfig(policy="inexistente")  # type: ignore[arg-type]
