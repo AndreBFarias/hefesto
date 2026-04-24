@@ -2,7 +2,9 @@
 # ruff: noqa: E402
 from __future__ import annotations
 
-from typing import Any
+import json
+from pathlib import Path
+from typing import Any, cast
 
 import gi
 
@@ -17,12 +19,20 @@ from hefesto.app.actions.trigger_specs import (
     preset_to_factory_args,
 )
 from hefesto.app.ipc_bridge import trigger_set
+from hefesto.profiles.schema import TriggerConfig
+from hefesto.profiles.trigger_preset_io import (
+    export_trigger_preset,
+    import_trigger_preset,
+)
 from hefesto.profiles.trigger_presets import (
     FEEDBACK_POSITION_LABELS,
     VIBRATION_POSITION_LABELS,
     resolve_feedback_preset,
     resolve_vibration_preset,
 )
+from hefesto.utils.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class TriggersActionsMixin(WidgetAccessMixin):
@@ -109,6 +119,20 @@ class TriggersActionsMixin(WidgetAccessMixin):
 
     def on_trigger_right_reset(self, _btn: Gtk.Button) -> None:
         self._reset_trigger("right")
+
+    # --- preset IO (FEAT-TRIGGER-PRESETS-IMPORT-EXPORT-01) ---
+
+    def on_trigger_left_preset_export(self, _btn: Gtk.Button) -> None:
+        self._handle_preset_export("left")
+
+    def on_trigger_right_preset_export(self, _btn: Gtk.Button) -> None:
+        self._handle_preset_export("right")
+
+    def on_trigger_left_preset_import(self, _btn: Gtk.Button) -> None:
+        self._handle_preset_import("left")
+
+    def on_trigger_right_preset_import(self, _btn: Gtk.Button) -> None:
+        self._handle_preset_import("right")
 
     # --- helpers ---
 
@@ -339,3 +363,277 @@ class TriggersActionsMixin(WidgetAccessMixin):
             else f"{side.upper()} -> {preset_id} falhou (daemon offline?)"
         )
         bar.push(ctx_id, msg)
+
+    # --- preset IO helpers ---
+
+    def _toast_preset_io(self, side: str, msg: str) -> None:
+        """Empurra mensagem para a status_bar (canal dedicado a preset IO)."""
+        bar: Any = self._get("status_bar")
+        if bar is None:
+            return
+        ctx_id = bar.get_context_id("trigger_preset_io")
+        bar.push(ctx_id, f"{side.upper()} -> {msg}")
+
+    def _build_trigger_config_for_export(self, side: str) -> TriggerConfig | None:
+        """Coleta o estado atual do editor (modo + sliders) como ``TriggerConfig``.
+
+        Reusa ``preset_to_factory_args`` para reconverter ``dict[str, int]``
+        em ``list[int]`` (modos simples) ou ``list[list[int]]`` (modos
+        ``MultiPosition*``). Para ``Custom``, achata em ``[mode, *forces]``.
+        Retorna ``None`` se modo é desconhecido ou ``Off`` (nada a exportar).
+        """
+        combo: Gtk.ComboBoxText | None = self._get(f"trigger_{side}_mode")
+        if combo is None:
+            return None
+        preset_id = combo.get_active_id()
+        if preset_id is None:
+            return None
+        spec = get_spec(preset_id)
+        if spec is None:
+            return None
+
+        values = self._collect_values(side)
+        args = preset_to_factory_args(spec, values)
+
+        params: list[int] | list[list[int]]
+        if isinstance(args, list):
+            params = list(args)
+        elif preset_id == "MultiPositionFeedback":
+            strengths_obj = args.get("strengths", []) if isinstance(args, dict) else []
+            strengths = (
+                list(strengths_obj)
+                if isinstance(strengths_obj, (list, tuple))
+                else []
+            )
+            params = [list(strengths)]
+        elif preset_id == "MultiPositionVibration":
+            if isinstance(args, dict):
+                freq = int(cast(Any, args.get("frequency", 0)) or 0)
+                strengths_obj = args.get("strengths", [])
+            else:
+                freq = 0
+                strengths_obj = []
+            strengths = (
+                list(strengths_obj)
+                if isinstance(strengths_obj, (list, tuple))
+                else []
+            )
+            params = [[freq], list(strengths)]
+        elif preset_id == "Custom":
+            if isinstance(args, dict):
+                mode_val = int(cast(Any, args.get("mode", 0)) or 0)
+                forces_obj = args.get("forces", ())
+            else:
+                mode_val = 0
+                forces_obj = ()
+            forces = (
+                list(forces_obj)
+                if isinstance(forces_obj, (list, tuple))
+                else []
+            )
+            params = [mode_val, *forces]
+        else:
+            params = []
+
+        return TriggerConfig(mode=preset_id, params=params)
+
+    def _handle_preset_export(self, side: str) -> None:
+        """Exporta o estado do editor ``side`` para arquivo JSON via FileChooser.
+
+        Não toca o daemon nem o draft. Usuário escolhe nome legível
+        (default ``trigger_<side>``) e caminho. Erros são reportados via
+        toast PT-BR.
+        """
+        cfg = self._build_trigger_config_for_export(side)
+        if cfg is None:
+            self._toast_preset_io(side, "exportar: nenhum modo válido selecionado")
+            return
+
+        from hefesto.app import gui_dialogs
+
+        window = self._get("main_window")
+        nome = gui_dialogs.prompt_profile_name(
+            parent=window, default_name=f"trigger_{side}"
+        )
+        if not nome:
+            self._toast_preset_io(side, "exportar cancelado")
+            return
+
+        chooser = Gtk.FileChooserDialog(
+            title="Exportar preset de gatilho",
+            parent=window,
+            action=Gtk.FileChooserAction.SAVE,
+        )
+        chooser.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        chooser.add_button("Salvar", Gtk.ResponseType.OK)
+        chooser.set_default_response(Gtk.ResponseType.OK)
+        chooser.set_do_overwrite_confirmation(True)
+        chooser.set_current_name(f"{nome}.json")
+
+        filtro = Gtk.FileFilter()
+        filtro.set_name("Presets JSON (*.json)")
+        filtro.add_pattern("*.json")
+        chooser.add_filter(filtro)
+
+        response = chooser.run()
+        filename = chooser.get_filename()
+        chooser.destroy()
+
+        if response != Gtk.ResponseType.OK or not filename:
+            self._toast_preset_io(side, "exportar cancelado")
+            return
+
+        try:
+            final_path = export_trigger_preset(
+                Path(filename), name=nome, trigger=cfg
+            )
+        except OSError as exc:
+            self._toast_preset_io(side, f"falha ao gravar: {exc}")
+            logger.warning(
+                "trigger_preset_export_falhou",
+                side=side,
+                arquivo=filename,
+                erro=str(exc),
+            )
+            return
+
+        self._toast_preset_io(side, f"preset exportado em {final_path}")
+        logger.info(
+            "trigger_preset_export_ok",
+            side=side,
+            arquivo=str(final_path),
+            nome=nome,
+            modo=cfg.mode,
+        )
+
+    def _handle_preset_import(self, side: str) -> None:
+        """Importa preset JSON e popula o editor de ``side`` sem aplicar via IPC.
+
+        Usuário precisa pressionar "Aplicar em <SIDE>" para enviar o estado
+        ao daemon. Outro lado (L2/R2) permanece intocado.
+        """
+        window = self._get("main_window")
+
+        chooser = Gtk.FileChooserDialog(
+            title="Importar preset de gatilho",
+            parent=window,
+            action=Gtk.FileChooserAction.OPEN,
+        )
+        chooser.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        chooser.add_button("Abrir", Gtk.ResponseType.OK)
+        chooser.set_default_response(Gtk.ResponseType.OK)
+
+        filtro = Gtk.FileFilter()
+        filtro.set_name("Presets JSON (*.json)")
+        filtro.add_pattern("*.json")
+        chooser.add_filter(filtro)
+
+        response = chooser.run()
+        filename = chooser.get_filename()
+        chooser.destroy()
+
+        if response != Gtk.ResponseType.OK or not filename:
+            self._toast_preset_io(side, "importar cancelado")
+            return
+
+        try:
+            preset = import_trigger_preset(Path(filename))
+        except FileNotFoundError as exc:
+            self._toast_preset_io(side, f"arquivo não encontrado: {exc}")
+            logger.warning(
+                "trigger_preset_import_inexistente",
+                side=side,
+                arquivo=filename,
+                erro=str(exc),
+            )
+            return
+        except json.JSONDecodeError as exc:
+            self._toast_preset_io(side, f"arquivo inválido: {exc}")
+            logger.warning(
+                "trigger_preset_import_json_invalido",
+                side=side,
+                arquivo=filename,
+                erro=str(exc),
+            )
+            return
+        except Exception as exc:
+            # Validation error e demais — preservar comportamento "não altera widgets".
+            self._toast_preset_io(side, f"arquivo inválido: {exc}")
+            logger.warning(
+                "trigger_preset_import_validacao_falhou",  # log key ASCII por convenção structlog
+                side=side,
+                arquivo=filename,
+                erro=str(exc),
+            )
+            return
+
+        # Popular widgets sem disparar IPC.
+        self._apply_imported_preset_to_editor(side, preset.trigger)
+        self._toast_preset_io(
+            side,
+            f"preset '{preset.name}' importado. Pressione 'Aplicar em "
+            f"{side.upper()}' para enviar.",
+        )
+        logger.info(
+            "trigger_preset_import_ok",
+            side=side,
+            arquivo=filename,
+            nome=preset.name,
+            modo=preset.trigger.mode,
+        )
+
+    def _apply_imported_preset_to_editor(
+        self, side: str, trigger: TriggerConfig
+    ) -> None:
+        """Repopula combo de modo + sliders + draft a partir de ``TriggerConfig``.
+
+        NÃO chama ``trigger_set`` (IPC). Usuário ainda precisa pressionar
+        "Aplicar em L2/R2" para enviar ao daemon. Apenas o lado ``side`` é
+        afetado; o outro permanece intocado em ``self.draft``.
+        """
+        from hefesto.app.draft_config import TriggerDraft
+
+        combo: Gtk.ComboBoxText | None = self._get(f"trigger_{side}_mode")
+        if combo is None:
+            return
+
+        # Reconstrói widgets dinâmicos do modo importado (com guard para não
+        # disparar handlers de signal recursivamente).
+        self._guard_refresh = True
+        try:
+            combo.set_active_id(trigger.mode)
+            self._rebuild_params(side, trigger.mode)
+            self._update_preset_row_visibility(side, trigger.mode)
+
+            # Achatar params para a sequência ordenada de sliders.
+            flat: list[int] = []
+            if trigger.is_nested:
+                for sub in trigger.params:
+                    if isinstance(sub, list):
+                        flat.extend(int(x) for x in sub)
+            else:
+                flat = [int(cast(Any, x)) for x in trigger.params]
+
+            widgets = self._trigger_param_widgets.get(side, {})
+            for idx, name in enumerate(widgets):
+                if idx < len(flat):
+                    widgets[name].set_value(flat[idx])
+        finally:
+            self._guard_refresh = False
+
+        # Atualiza draft do lado importado preservando o outro.
+        draft = getattr(self, "draft", None)
+        if draft is not None:
+            params_tuple: tuple[int, ...]
+            if trigger.is_nested:
+                acc: list[int] = []
+                for sub in trigger.params:
+                    if isinstance(sub, list):
+                        acc.extend(int(x) for x in sub)
+                params_tuple = tuple(acc)
+            else:
+                params_tuple = tuple(int(cast(Any, x)) for x in trigger.params)
+
+            new_trigger = TriggerDraft(mode=trigger.mode, params=params_tuple)
+            new_triggers = draft.triggers.model_copy(update={side: new_trigger})
+            self.draft = draft.model_copy(update={"triggers": new_triggers})

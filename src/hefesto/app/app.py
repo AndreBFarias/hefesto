@@ -157,6 +157,10 @@ class HefestoApp(
             "on_trigger_right_apply": self.on_trigger_right_apply,
             "on_trigger_left_reset": self.on_trigger_left_reset,
             "on_trigger_right_reset": self.on_trigger_right_reset,
+            "on_trigger_left_preset_export": self.on_trigger_left_preset_export,
+            "on_trigger_right_preset_export": self.on_trigger_right_preset_export,
+            "on_trigger_left_preset_import": self.on_trigger_left_preset_import,
+            "on_trigger_right_preset_import": self.on_trigger_right_preset_import,
             # Lightbar + Player LEDs
             "on_lightbar_color_set": self.on_lightbar_color_set,
             "on_lightbar_apply": self.on_lightbar_apply,
