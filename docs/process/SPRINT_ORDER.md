@@ -422,6 +422,12 @@ Indicadores agregados V2.4 (vs v2.3.0):
 - 1 classe paralela deletada (`KeyboardSubsystem`) + dead code `profiles/autoswitch::start_autoswitch` + `_noop`.
 - Backend Wayland em COSMIC: de 0% funcional → 2 caminhos (wlrctl + XWayland) com instalação automatizada.
 
+### Wave V2.5 — em execução
+
+| Sprint | Status | Commit | Notas |
+|---|---|---|---|
+| **FEAT-FLATPAK-WLRCTL-BUNDLED-01** | MERGED 2026-04-24 | `cf54454` (PR #98) | Módulo `wlrctl` v0.2.2 bundlado no manifesto Flatpak (meson + archive). Footprint +48.8 KiB (teto 300). Probe runtime confirmou `/app/bin/wlrctl` + `WlrctlBackend()._available=True`. Teste regressão +1 (`test_wlrctl_aceita_path_em_app_bin_flatpak`). Suite 1308 passed / 8 skipped. |
+
 ### Wave V2.5 — sugestões para próxima sessão (PENDING 2026-04-24)
 
 Opções priorizadas do backlog aberto V2.x+. Nenhuma tem spec escrito ainda — nova sessão deve usar `/planejar-sprint <tema>` para gerar spec + critérios de aceite antes de executar.
@@ -430,14 +436,13 @@ Opções priorizadas do backlog aberto V2.x+. Nenhuma tem spec escrito ainda —
 |---|---|---|---|
 | 1 | **Validar manualmente o release v2.4.1 em Pop!_OS COSMIC real** — reinstalar via `sudo apt install ./hefesto_2.4.1_amd64.deb` (ou `./install.sh --yes --force-xwayland`), confirmar que `wlrctl` é instalado pelo Recommends, verificar log do daemon para `wayland_backend_fallback_wlrctl` e testar troca de perfil ao abrir Steam. | S | Release aberto ainda não validado em compositor real; riscos conhecidos (wlrctl pode não estar em repos do Pop!_OS 22.04 → fallback XWayland deve funcionar). |
 | 2 | **FEAT-WLR-TOPLEVEL-PYWAYLAND-01** — reimplementar `WlrctlBackend` usando lib Python `pywayland` + `wayland-protocols` em vez de subprocess. Elimina dependência externa (`wlrctl`), funciona no Flatpak sandbox sem precisar wrapper. | L | `wlrctl` não está em repo padrão Ubuntu 22.04, e não está no flatpak sandbox. `pywayland` + protocolo wlr-foreign-toplevel reimplementa nativamente em ~200 LOC. |
-| 3 | **FEAT-FLATPAK-WLRCTL-BUNDLED-01** — incluir `wlrctl` como módulo do manifesto flatpak (build via meson+ninja). Alternativa mais simples que 2 se for aceitável aumentar o bundle em ~200 KiB. | S | Flatpak em COSMIC só funciona via XWayland hoje. Bundling resolve. |
 | 4 | **CHORE-TOUCHPAD-COSMIC-VALIDATION-01** — validar `TouchpadReader` em COSMIC alpha: o device evdev separado (`Touchpad` no nome) pode não existir no kernel + compositor COSMIC. Empírico: capturar `evtest` no device do DualSense + testar se `touchpad_{left,middle,right}_press` dispara no dispatch. | XS | `TouchpadReader` foi testado em X11; em COSMIC nativo pode haver divergência. |
 | 5 | **ADR-010 / ONBOARDING-WIZARD-01** — diálogo first-run GTK que pergunta perfil padrão + explica udev/systemd/wlrctl. Roda uma vez após `./install.sh` ou primeira execução de `hefesto-gui`. | M | Usuário novo instala pelo `.deb`/AppImage/flatpak e não sabe que precisa configurar perfil. Reduz atrito. |
 | 6 | **FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01** — `RumbleConfig` ganha campo opcional `policy: Literal["inherit", "economia", ...]` que sobrescreve a política global para aquele perfil específico. | S | Extensão natural de FEAT-RUMBLE-POLICY-01 (V2.1). Perfil "fps" quer max, "navegacao" quer economia — sem setar global cada vez. |
 | 7 | **FEAT-I18N-01** — estrutura `src/hefesto/i18n/` com `_()` wrapper + `babel` ou equivalente. Começar pelo inglês como segundo locale (espelho do PT-BR). | L | Usuário internacional aparece quando o release atingir Flathub oficial. PT-BR hoje é 100% hardcoded. |
 | 8 | **FEAT-TRIGGER-PRESETS-IMPORT-EXPORT-01** — GUI ganha botões "Exportar preset" / "Importar preset" na aba Gatilhos que salvam/lêem JSON de um preset individual. Facilita compartilhamento de configs entre usuários. | S | Usuários pedem (issue hipotética) — hoje só dá pra compartilhar perfil inteiro. |
 
-Ordem recomendada para primeira sessão: **1** (validação em campo, sem código) → **3** (flatpak wlrctl) ou **2** (pywayland) dependendo do retorno do usuário sobre ambiente.
+Ordem recomendada para próxima sessão: **1** (validação em campo, sem código) → **2** (pywayland) se desejar eliminar dependência externa, ou seguir para itens 4-8 conforme prioridade. Item 3 (FEAT-FLATPAK-WLRCTL-BUNDLED-01) já MERGED em 2026-04-24 — ver "Wave V2.5 — em execução" acima.
 
 ---
 
