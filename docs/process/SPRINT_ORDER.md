@@ -366,31 +366,38 @@ Objetivo: revisão externa sem viés do que a V2.3 acumulou em velocidade, mais 
 | 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 4 testes de `test_poll_loop_evdev_cache.py` falham em dev local com /dev/uinput (startup >60ms > budget). CI passa. Fix: `keyboard_emulation_enabled=False` nos DaemonConfig dos 5 testes do arquivo. | XS | opus | ready |
 | 86 | [AUDIT] **AUDIT-V23-FORENSIC-01** — auditoria externa arquivo-por-arquivo do pós-v2.3.0 sem viés do autor da implementação. Relatório entregue em `docs/process/audits/2026-04-24-audit-v23-forensic.md` (26 achados em 6 categorias: 6 altos, 9 médios, 7 baixos, 4 cosméticos). 14 sprints-filhas geradas — ver Wave V2.4 abaixo. | L | opus | MERGED 2026-04-24 |
 
-### Wave V2.4 — follow-up de auditoria V2.3 (PENDING 2026-04-24)
+### Wave V2.4 — follow-up de auditoria V2.3 (MERGED 2026-04-24)
 
-Objetivo: endereçar os 26 achados da AUDIT-V23-FORENSIC-01 em ordem de severidade. 14 sprints-filhas geradas; altos primeiro, médios depois, baixos em checklist agrupado.
+Objetivo: endereçar os 26 achados da AUDIT-V23-FORENSIC-01 em ordem de severidade. **14 sprints-filhas executadas em serie** em ~2h30 corridas (execução assistida com executor-sprint + validação por spot-check do diff e proof-of-work runtime).
 
-| Ordem | Sprint | Porte | Severidade | Modelo | Status |
+**Agregado:**
+- Pytest: 1143 → **1286 passed** (+143 testes novos), 5 skipped → 8 skipped (3 GTK opt-in).
+- Coverage total: 63% → **71%** (meta 70% atingida).
+- Ruff + mypy: sempre verdes (11 iterações consecutivas sem regressão).
+- Smoke USB+BT: verdes em toda sprint.
+- 14 commits publicados em `origin/main` entre `582e47e` (88) e `825df3c` (100).
+
+| Ordem | Sprint | Porte | Severidade | Commit | Impacto mensurável |
 |---|---|---|---|---|---|
-| 87 | [BUG] **AUDIT-FINDING-UDP-PLACEHOLDER-HANDLERS-01** — UDP PlayerLED/MicLED no-op + clamp RGB ausente. | S | alto | opus | ready |
-| 88 | [BUG] **AUDIT-FINDING-IPC-DRAFT-RUMBLE-POLICY-01** — `profile.apply_draft` bypassa política de rumble. | XS | alto | opus | ready |
-| 89 | [BUG] **AUDIT-FINDING-PROFILE-MIC-LED-RESET-01** — `apply_led_settings` reseta mic_led em cada profile switch. A-06 variante. | M | alto | opus | ready |
-| 90 | [SECURITY] **AUDIT-FINDING-PROFILE-PATH-TRAVERSAL-01** — sanitizar identifier em `load_profile` contra path traversal (defesa em profundidade; CODE_INTERNAL leak). | S | alto | opus | ready |
-| 91 | [REFACTOR] **AUDIT-FINDING-RUMBLE-POLICY-DEDUP-01** — unificar 3 cópias de `_effective_mult` + encapsular `RumbleEngine._last_auto_*`. | M | alto | opus | ready |
-| 92 | [CLEANUP] **AUDIT-FINDING-KEYBOARD-SUBSYSTEM-DEAD-01** — deletar `KeyboardSubsystem` classe paralela nunca cabeada. | XS | alto | sonnet | ready |
-| 93 | [CLEANUP] **AUDIT-FINDING-DEAD-CODE-01** — deletar `profiles/autoswitch.py::start_autoswitch` + `_noop` + sentinels em validar-acentuacao. | XS | médio | sonnet | ready |
-| 94 | [REFACTOR] **AUDIT-FINDING-EVDEV-READER-BASE-CLASS-01** — extrair `_EvdevReconnectLoop` base para eliminar ~100 LOC duplicados. | M | médio | opus | ready |
-| 95 | [REFACTOR] **AUDIT-FINDING-IPC-BRIDGE-BARE-EXCEPT-01** — extrair `_safe_call` helper em `ipc_bridge.py` (13 wrappers idênticos). | S | médio | opus | ready |
-| 96 | [SECURITY] **AUDIT-FINDING-SINGLE-INSTANCE-PID-RECYCLE-01** — verificar `/proc/<pid>/comm` antes de SIGTERM no predecessor. | S | médio | opus | ready |
-| 97 | [PERF] **AUDIT-FINDING-WAYLAND-PORTAL-PERF-01** — migrar `WaylandPortalBackend` para thread de longa vida ou jeepney síncrono direto. | S | médio | opus | ready |
-| 98 | [TEST] **AUDIT-FINDING-COVERAGE-ACTIONS-ZERO-01** — cobrir rumble/triggers/firmware actions + GTK real opt-in. Meta cov total 63% → 70%. | L | médio | opus | ready |
-| 99 | [REFACTOR] **AUDIT-FINDING-IPC-SERVER-SPLIT-01** — split `ipc_server.py` (843 LOC) em ≤500. Dep: executar DEP 91 antes. | L | médio | opus | ready |
-| 100 | [OBS] **AUDIT-FINDING-LOG-EXC-INFO-01** — checklist de 10 must-do + edits pontuais dos achados 17, 19, 20, 21, 22, 23, 26. | M | baixo | sonnet | ready |
+| 87 | [BUG] **AUDIT-FINDING-UDP-PLACEHOLDER-HANDLERS-01** — UDP PlayerLED/MicLED propagam ao hardware + clamp RGB. | S | alto | `21fb2b9` | cov udp_server 78%→83%, +3 testes |
+| 88 | [BUG] **AUDIT-FINDING-IPC-DRAFT-RUMBLE-POLICY-01** — `profile.apply_draft` aplica política de rumble. | XS | alto | `582e47e` | +1 teste; fixture corrigida no caminho |
+| 89 | [BUG] **AUDIT-FINDING-PROFILE-MIC-LED-RESET-01** — mic_led não reseta em profile switch; A-06 ampliada. | M | alto | `da14e48` | 2 testes anti-feature removidos + 2 novos; BRIEF A-06 atualizada |
+| 90 | [SECURITY] **AUDIT-FINDING-PROFILE-PATH-TRAVERSAL-01** — sanitiza identifier em `load_profile` + normaliza CODE_INTERNAL. | S | alto | `eef6160` | +8 testes; resolve().is_relative_to + type(exc).__name__ |
+| 91 | [REFACTOR] **AUDIT-FINDING-RUMBLE-POLICY-DEDUP-01** — unificado `_effective_mult` + `RumbleEngine.update_auto_state` encapsulado. | M | alto | `d14871c` | subsystems/rumble 153→103 LOC; +3 testes |
+| 92 | [CLEANUP] **AUDIT-FINDING-KEYBOARD-SUBSYSTEM-DEAD-01** — `KeyboardSubsystem` classe paralela deletada. | XS | alto | `7ee87a4` | keyboard.py 287→242 LOC; cov 60%→68% |
+| 93 | [CLEANUP] **AUDIT-FINDING-DEAD-CODE-01** — `profiles/autoswitch` dead + sentinels em validar-acentuacao. | XS | médio | `d251b08` | cov profiles/autoswitch 85%→96% |
+| 94 | [REFACTOR] **AUDIT-FINDING-EVDEV-READER-BASE-CLASS-01** — `_EvdevReconnectLoop` base elimina duplicação. | M | médio | `e39fedf` | evdev_reader 479→424 LOC; cov 67%→82% |
+| 95 | [REFACTOR] **AUDIT-FINDING-IPC-BRIDGE-BARE-EXCEPT-01** — `_safe_call` helper + logs debug. | S | médio | `69428ff` | cov ipc_bridge 29%→92%; +49 testes; except Exception 12→2 |
+| 96 | [SECURITY] **AUDIT-FINDING-SINGLE-INSTANCE-PID-RECYCLE-01** — `/proc/<pid>/comm` antes de SIGTERM. | S | médio | `0aab374` | cov single_instance 55%→72%; +15 testes |
+| 97 | [PERF] **AUDIT-FINDING-WAYLAND-PORTAL-PERF-01** — remover ThreadPoolExecutor por chamada; jeepney com timeout nativo. | S | médio | `ad2a0dc` | cov wayland_portal 21%→97%; +16 testes; `_try_dbus_fast` removido |
+| 98 | [TEST] **AUDIT-FINDING-COVERAGE-ACTIONS-ZERO-01** — actions rumble/triggers/firmware + GTK opt-in. | L | médio | `5056f6c` | +38 testes efetivos + 3 GTK opt-in; cov actions 0%→68-86% |
+| 99 | [REFACTOR] **AUDIT-FINDING-IPC-SERVER-SPLIT-01** — split em IpcServer + ipc_handlers + DraftApplier + ipc_rumble_policy. | L | médio | `f94a089` | ipc_server 843→316 LOC; 3 arquivos novos ≤500 cada |
+| 100 | [OBS] **AUDIT-FINDING-LOG-EXC-INFO-01** — 10/10 must-do + backoff exponencial + defaults conservadores. | M | baixo | `825df3c` | +13 `exc_info=True`; +9 testes; is_connected default False |
 
-Execução recomendada em 3 tranches:
-1. **Altos (87-92):** sequencial ou em worktrees separadas. 88, 92 são XS — começar por eles (quick wins).
-2. **Médios (93-99):** 93, 95, 97 paralelizáveis; 91 pré-req de 99.
-3. **Baixo/checklist (100):** após 91 mergeado para aplicar edits restantes em passagem única.
+Padrão recorrente observado durante execução:
+- Coverage gains pronunciados onde a sprint tocou módulo sub-testado (ipc_bridge 29%→92%, wayland_portal 21%→97%, actions 0%→80%).
+- Dois testes foram explicitamente removidos (89) porque validavam o comportamento agora considerado bug — listagem explícita no reporte.
+- Quatro sprints detectaram divergências entre nomes citados no spec e nomes reais no código (98 em especial — `on_rumble_test_left_pressed` não existe, real é `on_rumble_test_500ms`). Aplicação de L-21-3: ler código antes de seguir narrativa da spec.
 
 ---
 
