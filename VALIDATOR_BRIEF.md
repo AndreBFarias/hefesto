@@ -194,6 +194,25 @@ Origem: HARDWARE-VALIDATION-PROTOCOL-01, FEAT-FIRMWARE-UPDATE-PHASE1-01 (V2.1). 
 ### L-21-7: Premissa "distro X tem lib Y versão N" exige `apt-cache policy` empírico
 Origem: BUG-DEB-PYDANTIC-V2-UBUNTU-22-01 (74, V2.2.1). Sprint 74 assumiu sem validar que Ubuntu 24.04 Noble tinha `python3-pydantic 2.x`; na prática Noble entrega `1.10.17-1build1`. Fix declarou `python3-pydantic (>= 2.0)` no control e migrou smoke CI para `ubuntu-24.04` — mas smoke falhou por impossível resolver dep. Custou 1 release quebrado (v2.2.1 precisou upload manual; 2º consecutivo com esse padrão) e gerou BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01 (79.1). **Regra:** antes de escrever spec de packaging que assume versão de pacote do sistema (apt/dnf/pacman), rodar `apt-cache policy <pacote>` em cada release-alvo concreta (imagem GitHub Actions ou container docker do runner). Se versão declarada não está disponível em ≥1 release-alvo, ou (a) ajustar a release-alvo, ou (b) instalar via pip/venv em vez de depender do apt. Aplicação geral: validar empiricamente **toda premissa sobre ambiente externo** (runner OS, versão de glibc, disponibilidade de binário no PATH) antes de a premissa virar código.
 
+#### Sub-checklist L-21-7 (reforçada 2026-04-24 — 4 disparos em um ciclo)
+
+Durante v2.2.2 a lição disparou 4× consecutivas: pydantic v1/v2 → `structlog.typing` ausente → tentei `>= 21.5` sem validar Jammy → Jammy tem 20.1 (nem `.types` nem `.typing`). Virou checklist acionável para qualquer toque em `packaging/debian/control` ou import de submódulo de lib com pacote apt:
+
+1. **Para cada `Depends:` do `control`** — rodar em container-runner concreto:
+   ```bash
+   docker run --rm ubuntu:22.04 bash -c "apt-get update -qq && apt-get install -y -qq python3-<pkg> && python3 -c 'import <pkg>; print(<pkg>.__version__)'"
+   docker run --rm ubuntu:24.04 bash -c "..."   # repetir para cada release-alvo
+   ```
+2. **Se código importa submódulo** (`from <pkg>.<sub> import X`) — confirmar no mesmo container:
+   ```bash
+   python3 -c "import <pkg>.<sub>"
+   ```
+3. **Se submódulo não existe** — escrever **compat layer com cascata `try/except`** antes do release, terminando em alias local (ex: `Processor = Callable[..., Any]`).
+4. **NÃO adicionar constraint `(>= X)` no control sem `apt-cache policy`** — a constraint rejeita releases onde o pacote é menor que X, possivelmente incluindo o próprio runner do CI.
+5. **Validar a compat layer em container-runner REAL antes do `git push --tags`**, não depois.
+
+Antipadrão a evitar: "ajustei o fix por dedução da doc do pacote". O que parece óbvio (structlog.types veio em 21 → Jammy tem 21 → fix OK) pode estar errado porque distros congelam versões (Jammy 22.04 empacotou structlog 20.1, pré-`.types`).
+
 ---
 
 ## [CORE] Padrões de código
