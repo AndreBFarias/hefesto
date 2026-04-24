@@ -6,17 +6,20 @@
 
 ---
 
-## Última atualização: 2026-04-24 (v2.2.1 PUBLICADA no GitHub)
+## Última atualização: 2026-04-24 (v2.2.2 PUBLICADA — primeiro release AUTOMÁTICO desde v0.1.0)
 
 ## Onde paramos
 
-1. **v2.2.1 publicada no GitHub** em 2026-04-24 00:05 UTC com 5 assets (whl, tar.gz, AppImage, deb, flatpak). Tag local = remota. Release manual via `gh release create` a partir dos artifacts do workflow run `24864996747` — smoke falhou mas build foi OK.
-2. **Estado git:** HEAD = `b17b81b` em `origin/main` (sincronizado) + tag `v2.2.1` pushada.
-3. **9 commits na v2.2.1** desde v2.2.0 (`f6ca6a8`): 6 sprints principais + 3 colaterais MERGED, zero regressão.
-4. **Pendências conhecidas:**
-   - **79.1 BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01** (PENDING): Noble tem pydantic 1.x (não 2.x como assumi na 74). Smoke CI segue instável; release tem que ser manual até fix. Spec escrita.
-   - **73.1 CHORE-VERSION-SYNC-GATE-01** (PENDING): gate CI que detecta drift entre fallback `__init__.py` e `pyproject.toml`.
-5. **Adiado V2.3.0:** Keyboard (59.2 FEAT-KEYBOARD-PERSISTENCE-01, 59.3 FEAT-KEYBOARD-UI-01).
+1. **v2.2.2 publicada no GitHub** em 2026-04-24 via workflow run `24867530741` (auto, sem `gh release create` manual — marco histórico). Tag = commit `9afac40`. 5 assets uploaded com `isDraft: false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`.
+2. **Estado git:** HEAD = `9afac40` em `origin/main` (sincronizado) + tag `v2.2.2` pushada.
+3. **11 commits desde v2.2.1** (`b913ed2`): CHORE-VERSION-SYNC-GATE-01 (`ca030a2`), bump (`628341a`), docs + spec BUG-CI-ACENTUACAO (`5ce7347`), spec 82 + spec INFRA-TOUCHPAD (`e25a62b`), fix structlog compat (`ad80d6c`), INFRA-EVDEV-TOUCHPAD-01 MERGED (`43f76d8`), 3 fix iterativos (`b48bfee`, `1c476f8`, `22fad85`), L-21-7 sub-checklist (`144b5f1`), Noble migration (`b03ad48`), typer>=0.12 + subcomando (`9afac40`).
+4. **7 iterações de tag v2.2.2** antes de publicar — L-21-7 disparou 6× em cascata. Lição: Jammy apt inviável (typer 0.4, structlog 20.1, platformdirs 2.5). Migração `deb-install-smoke` para `ubuntu-24.04` + `pip install --user 'pydantic>=2.0' 'typer>=0.12'` foi a solução final. VALIDATOR_BRIEF.md ganhou sub-checklist acionável L-21-7 (docker run antes de tocar control).
+5. **INFRA-EVDEV-TOUCHPAD-01 MERGED adiantado** na v2.2.2 (aditivo, hardware-validated com DualSense USB 054c:0ce6). Destrava 59.3 para V2.3.0.
+6. **Pendências da próxima sessão (V2.3.0):**
+   - **59.2 FEAT-KEYBOARD-PERSISTENCE-01** (M): `Profile.key_bindings` + mapper A-06 + daemon hook + 9 perfis default + 5 testes. Validator regex decidido: `^(KEY_[A-Z0-9_]+|__[A-Z_]+__)$` + lookup evdev.ecodes para KEY_*.
+   - **59.3 FEAT-KEYBOARD-UI-01** (L): rename `mouse_actions`→`input_actions`, aba "Mouse e Teclado" + TreeView CRUD + L3/R3 OSK (onboard/wvkbd) + inversão R2/L2 + touchpad regions (B0 pronto).
+   - **80 BUG-CI-ACENTUACAO-REGRESSION-01** (XS, ready): 10 violações pré-existentes travando job `acentuacao` no ci.yml. Ortogonal a release.yml.
+   - **82 BUG-DEB-SMOKE-STRUCTLOG-TYPING-02**: resolvido por caminho diferente (Noble migration + pip typer). Marcar como SUPERSEDED_BY_V2_2_2.
 
 ---
 
