@@ -338,6 +338,14 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1 em pyproject.toml + `__init__.py` fallback + README; CHANGELOG promovido de [Unreleased] para [2.2.1] 2026-04-23; tag v2.2.1 pushada; build workflow run 24864996747 OK em 4/5 jobs (smoke falhou); release publicado manualmente com 5 assets via `gh release create v2.2.1 <artifacts>` | — | MERGED |
 | 79.1 | [BUG] **BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01** — validação empírica 2026-04-24 (L-21-7) confirmou Jammy 1.8.2, Noble 1.10.14, Plucky 2.10.6; `control` sem `(>= 2.0)`; smoke em 22.04 + `pip install --user 'pydantic>=2.0'` antes do apt + `PYTHONPATH` user-site no validate; warning runtime via `warnings.warn(ImportWarning)` se pydantic<2; README documenta `pip install --user` como caminho oficial. Valor-chave: L-21-7 consolidada no BRIEF | S | opus | MERGED |
 
+### Fase — Marco v2.2.2
+
+| Ordem | Sprint | Porte | Status |
+|---|---|---|---|
+| 73.1 | [CI] **CHORE-VERSION-SYNC-GATE-01** — novo job `version-sync` em `.github/workflows/ci.yml` que falha se fallback `__version__` de `src/hefesto/__init__.py` divergir de `pyproject.toml [project].version`. Regex inline `tomllib` + `re.search` (YAGNI parser AST). Motivação: BUG-APPIMAGE-VERSION-NAME-01 revelou que fallback ficou hardcoded em 1.0.0 por 3 releases. Baseline 2.2.2==2.2.2 passa; drift simulado 9.9.9!=2.2.2 detectado. | XS | opus | MERGED |
+| 80 | [BUG] **BUG-CI-ACENTUACAO-REGRESSION-01** — CI acentuacao vermelho em main desde pelo menos v2.2.1 por 10 violações pré-existentes: 6 em comentários de `release.yml` (l.116-136), 3 em string literals de `tests/unit/test_firmware_updater.py` (l.66,119), 2 em identifier Python `conteudo` de `tests/unit/test_validar_acentuacao_glyphs.py` (l.145-146). Descoberto durante A2b da v2.2.2. Fix em 2 camadas: adicionar acentuação em texto + renomear `conteudo`→`texto_final` (evitar falso positivo em identifiers). Não afeta release.yml (ortogonal). | XS | opus | ready |
+| 81 | [RELEASE] **Release v2.2.2** — bump 2.2.1→2.2.2 em pyproject.toml + `__init__.py` fallback + README; CHANGELOG promovido de [Unreleased] para [2.2.2] 2026-04-24; tag v2.2.2 pushada; **teste de integração do fix 79.1** — objetivo: primeiro release totalmente automático desde v0.1.0 (sem upload manual). | — | — | IN_PROGRESS |
+
 ---
 
 ## Execução recomendada
