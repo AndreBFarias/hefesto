@@ -74,7 +74,33 @@ modules:
           "jeepney>=0.8"
     sources: []
 
-  # Módulo 2: Hefesto — instalação do wheel local com --no-deps
+  # Módulo 2: wlrctl — CLI wayland wlroots usado por WlrctlBackend
+  # (BUG-COSMIC-WLR-BACKEND-01). No fluxo .deb vem via Recommends do apt;
+  # no sandbox do Flatpak precisa ser bundlado para que
+  # shutil.which("wlrctl") retorne /app/bin/wlrctl dentro da sandbox.
+  #
+  # Upstream: https://git.sr.ht/~brocellous/wlrctl (tag v0.2.2).
+  # Deps (probadas empiricamente em org.gnome.Sdk//47): xkbcommon,
+  # wayland-client, wayland-scanner. Os XMLs de wayland-protocols ficam
+  # bundlados no próprio repositório do wlrctl, então não depende de
+  # wayland-protocols do sistema.
+  #
+  # -Dwerror=false defensivo: wlrctl compila com -Werror por padrão;
+  # uma versão de compilador mais nova no SDK pode introduzir warnings
+  # e quebrar o build. Desligar o werror blinda o bundling.
+  - name: wlrctl
+    buildsystem: meson
+    config-opts:
+      - --buildtype=release
+      - -Dwerror=false
+    sources:
+      - type: archive
+        url: https://git.sr.ht/~brocellous/wlrctl/archive/v0.2.2.tar.gz
+        sha256: b5b3836091c41de09a832df1e5eb4747841d7ae670367e413487d5be7a5f2849
+    cleanup:
+      - /share/man
+
+  # Módulo 3: Hefesto — instalação do wheel local com --no-deps
   - name: hefesto
     buildsystem: simple
     build-commands:

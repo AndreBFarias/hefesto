@@ -202,3 +202,31 @@ def test_wlrctl_chama_wlrctl_com_args_corretos(
     assert kwargs.get("timeout") == 1.0
     assert kwargs.get("check") is False
     assert kwargs.get("text") is True
+
+
+def test_wlrctl_aceita_path_em_app_bin_flatpak(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Backend aceita wlrctl em /app/bin (PATH do sandbox Flatpak).
+
+    Sprint FEAT-FLATPAK-WLRCTL-BUNDLED-01 bundla o binário dentro do
+    Flatpak; a sandbox inclui /app/bin no PATH e `shutil.which` passa a
+    resolver para esse caminho. O backend não faz qualquer hardcode de
+    /usr/bin — este teste documenta que a mudança de packaging não
+    quebra a detecção de disponibilidade.
+    """
+    monkeypatch.setattr(
+        wlr_toplevel.shutil,
+        "which",
+        lambda binary: "/app/bin/wlrctl",
+    )
+    _patch_run(
+        monkeypatch,
+        stdout='[{"app_id": "steam", "title": "Steam"}]',
+    )
+    backend = wlr_toplevel.WlrctlBackend()
+    assert backend._available is True
+    info = backend.get_active_window_info()
+    assert info is not None
+    assert info.app_id == "steam"
+    assert info.wm_class == "steam"
