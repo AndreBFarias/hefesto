@@ -1,5 +1,16 @@
 # BUG-DEB-SMOKE-STRUCTLOG-TYPING-02 — Smoke do .deb falha no Jammy por `structlog.typing` ausente
 
+> **STATUS: SUPERSEDED_BY_V2_2_2** (2026-04-24). Esta spec propôs compat
+> layer no `logging_config.py` + constraint `python3-structlog (>= 21.5)`.
+> Aplicação parcial foi insuficiente porque Jammy apt tem toda a dep-stack
+> Python muito antiga (typer 0.4, platformdirs 2.5, etc.). Resolução final
+> veio pela migração do runner `deb-install-smoke` para `ubuntu-24.04`
+> (commit `b03ad48`) + `pip install --user 'pydantic>=2.0' 'typer>=0.12'`
+> (commit `9afac40`). Constraint no control **removida**. Compat layer em
+> `logging_config.py` **mantida** como rede de segurança para usuários que
+> instalem .deb em Jammy sem pip. Ver `project_sessao_2026_04_24_v222.md`
+> na memória auto para histórico das 7 iterações.
+
 **Tipo:** bug (packaging/CI).
 **Wave:** V2.2.2 — patch bloqueador de release.
 **Estimativa:** XS (0.10 iteração).
