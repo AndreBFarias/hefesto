@@ -58,6 +58,17 @@ def reassert_rumble(daemon: Any, now: float) -> None:
     except Exception:
         logger.debug("rumble_state_read_fallback", exc_info=True)
 
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: consulta override do perfil ativo
+    # via `_profile_manager` se disponível. Fallback None preserva semântica
+    # pré-sprint quando wire-up não foi feito.
+    profile_override = None
+    profile_manager = getattr(daemon, "_profile_manager", None)
+    if profile_manager is not None:
+        try:
+            profile_override = profile_manager.get_active_rumble_config()
+        except Exception:
+            logger.debug("rumble_override_read_fallback", exc_info=True)
+
     mult, daemon._last_auto_mult, daemon._last_auto_change_at = _effective_mult(
         config=cfg,
         battery_pct=battery_pct,
@@ -65,6 +76,7 @@ def reassert_rumble(daemon: Any, now: float) -> None:
         last_auto_mult=daemon._last_auto_mult,
         last_auto_change_at=daemon._last_auto_change_at,
         auto_debounce_sec=AUTO_DEBOUNCE_SEC,
+        profile_override=profile_override,
     )
     weak = max(0, min(255, round(weak_raw * mult)))
     strong = max(0, min(255, round(strong_raw * mult)))

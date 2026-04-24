@@ -23,7 +23,7 @@ from hefesto.profiles.loader import (
     load_profile,
     save_profile,
 )
-from hefesto.profiles.schema import LedsConfig, Profile
+from hefesto.profiles.schema import LedsConfig, Profile, RumbleConfig
 from hefesto.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -37,6 +37,12 @@ class ProfileManager:
     # Quando presente, `activate()` propaga o `key_bindings` resolvido para
     # o device. Typing "Any" para evitar ciclo de import com integrations.
     keyboard_device: object | None = None
+    # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: cache do Profile resolvido ativo.
+    # Consumidores de `_effective_mult` leem `get_active_rumble_config()` em
+    # cada chamada para aplicar o override de policy por perfil. Cache é
+    # natural aqui porque `ProfileManager` já é o único a chamar `load_profile`
+    # no caminho de ativação — evita hit de disco a 5Hz/50Hz no hot path.
+    active_profile_object: Profile | None = None
 
     def list_profiles(self) -> list[Profile]:
         return load_all_profiles()
@@ -53,6 +59,9 @@ class ProfileManager:
         active = self.store.active_profile
         if active == name:
             self.store.set_active_profile(None)
+            # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: limpa cache quando perfil
+            # ativo é removido; override cai em herdar global automaticamente.
+            self.active_profile_object = None
         logger.info("profile_deleted", name=name)
 
     def activate(self, name: str) -> Profile:
@@ -61,11 +70,26 @@ class ProfileManager:
         self.apply(profile)
         self.apply_keyboard(profile)
         self.store.set_active_profile(profile.name)
+        # FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01: cache do Profile resolvido para
+        # consulta O(1) do override de rumble policy pelos consumidores do
+        # `_effective_mult` (engine tick, reassert_rumble, apply_rumble_policy).
+        self.active_profile_object = profile
         self.store.bump("profile.activated")
         logger.info("profile_activated", name=profile.name, priority=profile.priority)
         from hefesto.utils.session import save_last_profile
         save_last_profile(profile.name)
         return profile
+
+    def get_active_rumble_config(self) -> RumbleConfig | None:
+        """Retorna o `RumbleConfig` do perfil ativo ou None se nenhum.
+
+        Usado pelos três consumidores de `_effective_mult` para obter o
+        override de policy por perfil (FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01).
+        Operação O(1): só lê atributo cacheado, sem hit de disco.
+        """
+        if self.active_profile_object is None:
+            return None
+        return self.active_profile_object.rumble
 
     def apply(self, profile: Profile) -> None:
         """Aplica triggers e LEDs do perfil no controle (sem marcar como ativo)."""

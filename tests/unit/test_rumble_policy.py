@@ -384,3 +384,285 @@ class TestUpdateAutoState:
         assert engine_a._last_auto_mult == engine_b._last_auto_mult
         assert engine_a._last_auto_change_at == engine_b._last_auto_change_at
         assert engine_a.last_mult_applied == engine_b.last_mult_applied
+
+
+# ---------------------------------------------------------------------------
+# FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 — override de policy por perfil
+# ---------------------------------------------------------------------------
+
+
+class TestProfileOverride:
+    """`_effective_mult` aceita `profile_override` keyword-only opcional.
+
+    Override tem precedência sobre config global quando presente e não-None.
+    """
+
+    def test_override_none_usa_global(self) -> None:
+        """Perfil sem policy definido -> herda `config.rumble_policy`."""
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("max")
+        override = RumbleConfig()  # policy=None default
+        mult, _, _ = _effective_mult(
+            cfg, 100, 1.0, 0.7, 0.0, profile_override=override
+        )
+        assert mult == pytest.approx(1.0)  # lido do global "max"
+
+    def test_override_economia_sobrescreve_global_max(self) -> None:
+        """`config="max"` + `override.policy="economia"` -> mult 0.3."""
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("max")
+        override = RumbleConfig(policy="economia")
+        mult, _, _ = _effective_mult(
+            cfg, 100, 1.0, 0.7, 0.0, profile_override=override
+        )
+        assert mult == pytest.approx(0.3)
+
+    def test_override_custom_usa_policy_custom_mult_do_perfil(self) -> None:
+        """`override.policy='custom'` + `policy_custom_mult=1.5` -> mult 1.5.
+
+        NÃO lê `config.rumble_policy_custom_mult` (0.7) — custom do perfil
+        ganha. Se lesse do config, mult seria 0.7.
+        """
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("balanceado", custom_mult=0.7)
+        override = RumbleConfig(policy="custom", policy_custom_mult=1.5)
+        mult, _, _ = _effective_mult(
+            cfg, 100, 1.0, 0.7, 0.0, profile_override=override
+        )
+        assert mult == pytest.approx(1.5)
+
+    def test_override_auto_preserva_debounce_state(self) -> None:
+        """`override.policy='auto'` + battery 10% -> mult 0.3; debounce ok."""
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("max")
+        override = RumbleConfig(policy="auto")
+        mult, new_last, new_at = _effective_mult(
+            cfg, 10, 100.0, 0.7, 0.0, profile_override=override
+        )
+        assert mult == pytest.approx(0.3)
+        assert new_last == pytest.approx(0.3)
+        assert new_at == pytest.approx(100.0)
+
+    def test_override_policy_fixa_ignora_custom_mult_do_perfil(self) -> None:
+        """Para policy!=custom, `policy_custom_mult` do perfil é ignorado.
+
+        Guarda contra regressão semântica: usuário configurando perfil com
+        `policy='economia'` + `policy_custom_mult=1.99` (sem sentido) não
+        corrompe o mult — 'economia' ainda retorna 0.3 da tabela fixa.
+        """
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("max")
+        override = RumbleConfig(policy="economia", policy_custom_mult=1.99)
+        mult, _, _ = _effective_mult(
+            cfg, 100, 1.0, 0.7, 0.0, profile_override=override
+        )
+        assert mult == pytest.approx(0.3)
+
+
+class TestEngineProfileOverride:
+    """`RumbleEngine._compute_mult` le override via ProfileManager linkado."""
+
+    def test_engine_compute_mult_le_override_do_profile_manager(self) -> None:
+        """`link(config, state, profile_manager=pm)` com override economia.
+
+        `config.rumble_policy='max'`, perfil ativo com `policy='economia'`:
+        engine deve retornar 0.3 (override ganha do global).
+        """
+        from unittest.mock import MagicMock
+
+        from hefesto.profiles.schema import RumbleConfig
+
+        controller = MagicMock()
+        engine = RumbleEngine(controller, time_fn=lambda: 1.0)
+        cfg = _config("max")
+
+        # Mock de ProfileManager com get_active_rumble_config retornando override.
+        pm = MagicMock()
+        pm.get_active_rumble_config.return_value = RumbleConfig(policy="economia")
+
+        engine.link(cfg, None, profile_manager=pm)
+        engine.set(100, 200)
+        engine.tick()
+
+        # Hardware deve ter recebido mult 0.3 aplicado: weak=30, strong=60.
+        controller.set_rumble.assert_called_once_with(weak=30, strong=60)
+        assert engine.last_mult_applied == pytest.approx(0.3)
+
+    def test_engine_sem_profile_manager_mantem_comportamento(self) -> None:
+        """`link(config, state)` sem `profile_manager` preserva semantica pré-sprint.
+
+        Compatibilidade: testes existentes que chamam `link(cfg, None)` sem o
+        kwarg novo continuam lendo de `config.rumble_policy` normalmente.
+        """
+        from unittest.mock import MagicMock
+
+        controller = MagicMock()
+        engine = RumbleEngine(controller, time_fn=lambda: 1.0)
+        cfg = _config("economia")
+
+        engine.link(cfg, None)  # sem profile_manager (default None)
+        engine.set(100, 200)
+        engine.tick()
+
+        # Mult 0.3 lido do global "economia": weak=30, strong=60.
+        controller.set_rumble.assert_called_once_with(weak=30, strong=60)
+
+    def test_engine_override_none_no_manager_usa_global(self) -> None:
+        """`profile_manager.get_active_rumble_config()` retorna None -> usa global."""
+        from unittest.mock import MagicMock
+
+        controller = MagicMock()
+        engine = RumbleEngine(controller, time_fn=lambda: 1.0)
+        cfg = _config("max")
+
+        pm = MagicMock()
+        pm.get_active_rumble_config.return_value = None
+
+        engine.link(cfg, None, profile_manager=pm)
+        engine.set(100, 200)
+        engine.tick()
+
+        # Mult 1.0 do global "max": weak=100, strong=200.
+        controller.set_rumble.assert_called_once_with(weak=100, strong=200)
+
+
+class TestReassertRumbleOverride:
+    """`reassert_rumble` propaga override do perfil ativo via daemon._profile_manager."""
+
+    def test_reassert_rumble_usa_override_do_perfil(self) -> None:
+        """`daemon._profile_manager.get_active_rumble_config` retorna override economia.
+
+        `config.rumble_policy='max'`, override='economia':
+        `set_rumble` recebe valores multiplicados por 0.3 (não 1.0).
+        """
+        from unittest.mock import MagicMock
+
+        from hefesto.daemon.subsystems.rumble import reassert_rumble
+        from hefesto.profiles.schema import RumbleConfig
+
+        controller = MagicMock()
+        store = MagicMock()
+        snap = MagicMock()
+        snap.controller = MagicMock(battery_pct=80)
+        store.snapshot.return_value = snap
+
+        cfg = _config("max")
+        cfg.rumble_active = (100, 200)
+
+        pm = MagicMock()
+        pm.get_active_rumble_config.return_value = RumbleConfig(policy="economia")
+
+        daemon = MagicMock()
+        daemon.config = cfg
+        daemon.store = store
+        daemon.controller = controller
+        daemon._profile_manager = pm
+        daemon._last_auto_mult = 0.7
+        daemon._last_auto_change_at = 0.0
+
+        reassert_rumble(daemon, now=1.0)
+
+        # Mult 0.3 aplicado -> 100*0.3=30, 200*0.3=60.
+        controller.set_rumble.assert_called_once_with(weak=30, strong=60)
+
+    def test_reassert_rumble_sem_profile_manager_usa_global(self) -> None:
+        """Sem `_profile_manager` no daemon, comportamento pré-sprint preservado."""
+        from unittest.mock import MagicMock
+
+        from hefesto.daemon.subsystems.rumble import reassert_rumble
+
+        controller = MagicMock()
+        store = MagicMock()
+        snap = MagicMock()
+        snap.controller = MagicMock(battery_pct=80)
+        store.snapshot.return_value = snap
+
+        cfg = _config("economia")
+        cfg.rumble_active = (100, 200)
+
+        daemon = MagicMock(spec=["config", "store", "controller",
+                                  "_last_auto_mult", "_last_auto_change_at"])
+        daemon.config = cfg
+        daemon.store = store
+        daemon.controller = controller
+        daemon._last_auto_mult = 0.7
+        daemon._last_auto_change_at = 0.0
+
+        reassert_rumble(daemon, now=1.0)
+
+        # Mult 0.3 do global "economia" -> 100*0.3=30, 200*0.3=60.
+        controller.set_rumble.assert_called_once_with(weak=30, strong=60)
+
+    def test_apply_rumble_policy_usa_override_do_perfil(self) -> None:
+        """`apply_rumble_policy` (IPC rumble.set) tambem respeita override."""
+        from unittest.mock import MagicMock
+
+        from hefesto.daemon.ipc_rumble_policy import apply_rumble_policy
+        from hefesto.profiles.schema import RumbleConfig
+
+        cfg = _config("max")
+
+        pm = MagicMock()
+        pm.get_active_rumble_config.return_value = RumbleConfig(
+            policy="custom", policy_custom_mult=0.5
+        )
+
+        store = MagicMock()
+        snap = MagicMock()
+        snap.controller = MagicMock(battery_pct=80)
+        store.snapshot.return_value = snap
+
+        daemon = MagicMock()
+        daemon.config = cfg
+        daemon.store = store
+        daemon._profile_manager = pm
+        daemon._rumble_engine = None
+
+        eff_weak, eff_strong = apply_rumble_policy(daemon, 100, 200)
+
+        # Mult 0.5 do perfil custom -> 50, 100.
+        assert eff_weak == 50
+        assert eff_strong == 100
+
+
+# ---------------------------------------------------------------------------
+# FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 — JSONs default não definem override
+# ---------------------------------------------------------------------------
+
+
+def test_profiles_default_nao_definem_policy_override() -> None:
+    """Todos os JSONs em assets/profiles_default/ mantêm `policy` None.
+
+    Sprint não modifica arquivos default; teste garante que nenhum foi
+    tocado por acidente (critério #11 do spec).
+    """
+    import json
+    from pathlib import Path
+
+    defaults_dir = (
+        Path(__file__).resolve().parent.parent.parent
+        / "assets"
+        / "profiles_default"
+    )
+    assert defaults_dir.is_dir(), f"diretório não encontrado: {defaults_dir}"
+
+    json_files = sorted(defaults_dir.glob("*.json"))
+    assert len(json_files) > 0, "esperava ao menos 1 perfil default"
+
+    for json_path in json_files:
+        with json_path.open(encoding="utf-8") as f:
+            data = json.load(f)
+        rumble = data.get("rumble", {})
+        assert rumble.get("policy") is None, (
+            f"{json_path.name}: rumble.policy deveria ser None/ausente, "
+            f"encontrou {rumble.get('policy')!r}"
+        )
+        assert rumble.get("policy_custom_mult") is None, (
+            f"{json_path.name}: rumble.policy_custom_mult deveria ser None/ausente, "
+            f"encontrou {rumble.get('policy_custom_mult')!r}"
+        )
