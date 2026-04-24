@@ -363,7 +363,7 @@ Objetivo: revisão externa sem viés do que a V2.3 acumulou em velocidade, mais 
 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
-| 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 4 testes de `test_poll_loop_evdev_cache.py` falham em dev local com /dev/uinput (startup >60ms > budget). CI passa. Fix: `keyboard_emulation_enabled=False` nos DaemonConfig dos 5 testes do arquivo. | XS | opus | ready |
+| 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 5 testes de `test_poll_loop_evdev_cache.py` flaky em CI loaded (poll 200Hz entregava <N ticks em `sleep(0.04)`). Fix aplicado na v2.4.1 (`d9c11de`): sleeps 0.04→0.10 e 0.06→0.15 dando margem 2x + `keyboard_emulation_enabled=False` nos 2 DaemonConfig faltantes. 5/5 pass local rodado 3x. | XS | opus | MERGED (`d9c11de`) |
 | 86 | [AUDIT] **AUDIT-V23-FORENSIC-01** — auditoria externa arquivo-por-arquivo do pós-v2.3.0 sem viés do autor da implementação. Relatório entregue em `docs/process/audits/2026-04-24-audit-v23-forensic.md` (26 achados em 6 categorias: 6 altos, 9 médios, 7 baixos, 4 cosméticos). 14 sprints-filhas geradas — ver Wave V2.4 abaixo. | L | opus | MERGED 2026-04-24 |
 
 ### Wave V2.4 — follow-up de auditoria V2.3 (MERGED 2026-04-24)
@@ -398,6 +398,46 @@ Padrão recorrente observado durante execução:
 - Coverage gains pronunciados onde a sprint tocou módulo sub-testado (ipc_bridge 29%→92%, wayland_portal 21%→97%, actions 0%→80%).
 - Dois testes foram explicitamente removidos (89) porque validavam o comportamento agora considerado bug — listagem explícita no reporte.
 - Quatro sprints detectaram divergências entre nomes citados no spec e nomes reais no código (98 em especial — `on_rumble_test_left_pressed` não existe, real é `on_rumble_test_500ms`). Aplicação de L-21-3: ler código antes de seguir narrativa da spec.
+
+### Complementares V2.4 (fixes colaterais de packaging/ambiente) — MERGED 2026-04-24
+
+Sprints sem spec formal — identificadas diretamente pelo usuário ou pelo pipeline de release. Documentadas aqui para rastreabilidade.
+
+| ID | Título | Commit | Motivo |
+|---|---|---|---|
+| `BUG-FLATPAK-DEPS-01` | deps Python completas + runtime GNOME 47 no manifesto flatpak | `e937b1e` | Bundle antigo só declarava 2/10 deps; `pip install --no-deps` do wheel quebrava GUI no primeiro `import gi` ou `pydantic`. Consolidado módulo `hefesto-deps` com as 12 deps + bump runtime //45→//47. |
+| `BUG-COSMIC-PORTAL-UNSUPPORTED-01` | `WaylandPortalBackend` graceful quando portal não existe | `e05f305` | Pop!_OS COSMIC alpha não implementa `GetActiveWindow`. Após 3 falhas consecutivas, backend loga warning único com hint (`HEFESTO_NO_WINDOW_DETECT=1` ou XWayland) e para de consultar. Recovery automático se compositor voltar a responder. |
+| `BUG-SINGLE-INSTANCE-EBADF-01` | double close fd + mock `_is_hefesto_process` em testes fork | `a6419ec` | CI `release v2.4.0` expôs dois bugs: (a) path de erro do `fcntl.flock` fechava fd duas vezes (EBADF); (b) testes de fork herdavam cmdline do pytest sem marker "hefesto" — guard da sprint 96 rejeitava, teste falhava. Fix: `contextlib.suppress(OSError)` no `except Exception` + `monkeypatch.setattr(..., _is_hefesto_process, True)` nos testes legados. |
+| `BUG-COSMIC-WLR-BACKEND-01` | `WlrctlBackend` + cascade portal→wlrctl + install.sh auto | `9cc31e6` + `41bc4b5` + `d9c11de` | Alternativa real para COSMIC sem depender do portal: protocolo `wlr-foreign-toplevel-management-unstable-v1` via CLI `wlrctl`. Cobre COSMIC, Sway, Hyprland, niri, river. `install.sh` detecta COSMIC e oferece instalar wlrctl + ativar `GDK_BACKEND=x11` (auto sob `--yes`). `packaging/debian/control` ganha `wlrctl` em `Recommends`. |
+
+Release v2.4.0 publicada em `6bb777c` (run `24874197415`, 3m26s, 6 jobs verdes — relataria o run anterior `24873936826` como falha por duplo close + flaky, corrigidos em `a6419ec`).
+
+Release v2.4.1 publicada em `d9c11de` (run `24874826763`, 3m24s, 6 jobs verdes — run anterior `24874567437` falhou no flaky do test_poll_loop_evdev_cache, corrigido nesse mesmo commit).
+
+Indicadores agregados V2.4 (vs v2.3.0):
+- Pytest: 1143 → **1307 passed** (+164 testes novos).
+- Coverage total: 63% → **71%**.
+- Ruff + mypy sempre verdes em toda sprint.
+- 3 módulos novos (`ipc_handlers.py`, `ipc_draft_applier.py`, `ipc_rumble_policy.py`, `wlr_toplevel.py`) — total 111 → 112 arquivos auditados.
+- 1 classe paralela deletada (`KeyboardSubsystem`) + dead code `profiles/autoswitch::start_autoswitch` + `_noop`.
+- Backend Wayland em COSMIC: de 0% funcional → 2 caminhos (wlrctl + XWayland) com instalação automatizada.
+
+### Wave V2.5 — sugestões para próxima sessão (PENDING 2026-04-24)
+
+Opções priorizadas do backlog aberto V2.x+. Nenhuma tem spec escrito ainda — nova sessão deve usar `/planejar-sprint <tema>` para gerar spec + critérios de aceite antes de executar.
+
+| Ordem | Tema | Porte | Justificativa |
+|---|---|---|---|
+| 1 | **Validar manualmente o release v2.4.1 em Pop!_OS COSMIC real** — reinstalar via `sudo apt install ./hefesto_2.4.1_amd64.deb` (ou `./install.sh --yes --force-xwayland`), confirmar que `wlrctl` é instalado pelo Recommends, verificar log do daemon para `wayland_backend_fallback_wlrctl` e testar troca de perfil ao abrir Steam. | S | Release aberto ainda não validado em compositor real; riscos conhecidos (wlrctl pode não estar em repos do Pop!_OS 22.04 → fallback XWayland deve funcionar). |
+| 2 | **FEAT-WLR-TOPLEVEL-PYWAYLAND-01** — reimplementar `WlrctlBackend` usando lib Python `pywayland` + `wayland-protocols` em vez de subprocess. Elimina dependência externa (`wlrctl`), funciona no Flatpak sandbox sem precisar wrapper. | L | `wlrctl` não está em repo padrão Ubuntu 22.04, e não está no flatpak sandbox. `pywayland` + protocolo wlr-foreign-toplevel reimplementa nativamente em ~200 LOC. |
+| 3 | **FEAT-FLATPAK-WLRCTL-BUNDLED-01** — incluir `wlrctl` como módulo do manifesto flatpak (build via meson+ninja). Alternativa mais simples que 2 se for aceitável aumentar o bundle em ~200 KiB. | S | Flatpak em COSMIC só funciona via XWayland hoje. Bundling resolve. |
+| 4 | **CHORE-TOUCHPAD-COSMIC-VALIDATION-01** — validar `TouchpadReader` em COSMIC alpha: o device evdev separado (`Touchpad` no nome) pode não existir no kernel + compositor COSMIC. Empírico: capturar `evtest` no device do DualSense + testar se `touchpad_{left,middle,right}_press` dispara no dispatch. | XS | `TouchpadReader` foi testado em X11; em COSMIC nativo pode haver divergência. |
+| 5 | **ADR-010 / ONBOARDING-WIZARD-01** — diálogo first-run GTK que pergunta perfil padrão + explica udev/systemd/wlrctl. Roda uma vez após `./install.sh` ou primeira execução de `hefesto-gui`. | M | Usuário novo instala pelo `.deb`/AppImage/flatpak e não sabe que precisa configurar perfil. Reduz atrito. |
+| 6 | **FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01** — `RumbleConfig` ganha campo opcional `policy: Literal["inherit", "economia", ...]` que sobrescreve a política global para aquele perfil específico. | S | Extensão natural de FEAT-RUMBLE-POLICY-01 (V2.1). Perfil "fps" quer max, "navegacao" quer economia — sem setar global cada vez. |
+| 7 | **FEAT-I18N-01** — estrutura `src/hefesto/i18n/` com `_()` wrapper + `babel` ou equivalente. Começar pelo inglês como segundo locale (espelho do PT-BR). | L | Usuário internacional aparece quando o release atingir Flathub oficial. PT-BR hoje é 100% hardcoded. |
+| 8 | **FEAT-TRIGGER-PRESETS-IMPORT-EXPORT-01** — GUI ganha botões "Exportar preset" / "Importar preset" na aba Gatilhos que salvam/lêem JSON de um preset individual. Facilita compartilhamento de configs entre usuários. | S | Usuários pedem (issue hipotética) — hoje só dá pra compartilhar perfil inteiro. |
+
+Ordem recomendada para primeira sessão: **1** (validação em campo, sem código) → **3** (flatpak wlrctl) ou **2** (pywayland) dependendo do retorno do usuário sobre ambiente.
 
 ---
 

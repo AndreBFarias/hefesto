@@ -6,25 +6,29 @@
 
 ---
 
-## Última atualização: 2026-04-24 (v2.3.0 PUBLICADA — keyboard feature completa, 2º release 100% automático)
+## Última atualização: 2026-04-24 (v2.4.1 PUBLICADA — auditoria V2.3 + fixes COSMIC/Flatpak)
 
 ## Onde paramos
 
-1. **v2.3.0 publicada no GitHub** em 2026-04-24 via workflow run `24869314981` (automático). Tag = commit `e5384ab`. 5 assets com `isDraft: false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`. **Segundo release 100% automático consecutivo** — pipeline `release.yml` passou em todos os jobs de primeira (build/deb/appimage/flatpak/deb-install-smoke Noble/github-release).
-2. **Estado git:** HEAD = `e5384ab` em `origin/main` (sincronizado) + tag `v2.3.0` pushada. Working tree limpo.
-3. **5 commits desde v2.2.2** (`b12e28e`):
-   - `7e49648` sprint **80 BUG-CI-ACENTUACAO-REGRESSION-01** — 6 violações reais (spec dizia 10, a v2.2.2 reescreveu release.yml baixando a contagem)
-   - `6e90f05` sprint **59.2 FEAT-KEYBOARD-PERSISTENCE-01** — `Profile.key_bindings` + mapper A-06 + 9 JSONs + 10 testes
-   - `517a59e` sprint **59.3 Fase B+D** — tokens virtuais `__OPEN_OSK__`/`__CLOSE_OSK__` + `_OSKController` (onboard/wvkbd) + `TouchpadReader` mesclado em dispatch → KEY_BACKSPACE/ENTER/DELETE + 17 testes + conftest autouse HEFESTO_FAKE=1
-   - `ba104f9` sprint **59.3 Fase E** — `InputActionsMixin` (subclasse de MouseActionsMixin) + aba "Mouse e Teclado" + TreeView CRUD + DraftConfig.key_bindings round-trip + 10 testes + validação visual
-   - `e5384ab` release v2.3.0 bump
-4. **Marco keyboard feature completo:** tripé planejado desde v2.2.0 entregue (persistência + UI + integrações OSK/touchpad). Aba "Mouse e Teclado" navegável em `/tmp/hefesto_gui_kbd_*.png`; screenshot canônico em `docs/process/screenshots/FEAT-KEYBOARD-UI-01-depois.png` (sha256 `eb0feb060284c510cf1fb1b33b0dafd9286633896eccb9006439383a13b7a9d9`).
-5. **Gates finais:** pytest 1138 passed + 5 skipped, ruff clean, mypy zero em 108 files, validar-acentuacao exit 0, smoke USB/BT verdes.
-6. **Pendências da próxima sessão (escolhas do usuário):**
-   - **AUDIT-V23-FORENSIC-01** (L, ready) — auditoria externa arquivo-por-arquivo sem viés de quem implementou, buscando bugs/órfãos/lógica frágil/otimizações. Deve **gerar sprints novas** (não fix direto). Próxima sessão prioritária por pedido do usuário em 2026-04-24.
-   - **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** (XS, ready) — 4 testes flaky em dev local com /dev/uinput (CI passa). Fix conhecido: `keyboard_emulation_enabled=False` nos 5 DaemonConfig de `test_poll_loop_evdev_cache.py`.
-   - **CHORE-CI-REPUBLISH-TAGS-01** (PROTOCOL_READY) — aguarda ação humana para re-publicar v2.0.0/v2.1.0.
-   - **FEAT-GITHUB-PROJECT-VISIBILITY-01** (PROTOCOL_READY) — governança GitHub aguarda humano.
+1. **v2.4.1 publicada** em 2026-04-24 via workflow run `24874826763` (3m24s, todos os 6 jobs verdes). Tag = commit `d9c11de`. 5 assets `isDraft:false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`. URL: <https://github.com/AndreBFarias/releases/tag/v2.4.1>.
+2. **v2.4.0 também publicada** (`6bb777c`, run `24874197415`, 3m26s) — release anterior que precisou de um commit de fix (`a6419ec`) para passar o CI antes da cadeia completa funcionar. Assets antigos ainda disponíveis.
+3. **Estado git:** HEAD = `d9c11de` em `origin/main` (sincronizado). Tags `v2.4.0` e `v2.4.1` publicadas. Working tree limpo.
+4. **26 commits desde v2.3.0** (`e5384ab`) distribuídos em 2 waves:
+   - **Wave V2.3 follow-up (sprints 85-86):** `AUDIT-V23-FORENSIC-01` (86) gerou relatório em `docs/process/audits/2026-04-24-audit-v23-forensic.md` com 26 achados + 14 sprints-filhas. `BUG-TEST-POLL-LOOP-UINPUT-TIMING-01` (85) fix inline na v2.4.1 (flaky em CI loaded).
+   - **Wave V2.4 (sprints 87-100):** 14 `AUDIT-FINDING-*` executadas em sequência em ~2h30 com executor-sprint. Destaques: security (path traversal, PID recycling), bugs funcionais (UDP PlayerLED/MicLED, apply_draft rumble, mic_led reset), refactors (ipc_server 843→316 LOC split em 4 módulos, evdev_reader -55 LOC, ipc_bridge cov 29%→92%), cobertura (63%→71% total).
+   - **Wave V2.4 complementar (fixes colaterais):** `BUG-FLATPAK-DEPS-01` (deps Python completas + GNOME Platform 47), `BUG-COSMIC-PORTAL-UNSUPPORTED-01` (graceful degradation), `BUG-SINGLE-INSTANCE-EBADF-01` (double close fd + mock testes fork), `BUG-COSMIC-WLR-BACKEND-01` (WlrctlBackend + install.sh auto).
+5. **Indicadores:** pytest **1307 passed + 8 skipped** (era 1143+5 na v2.3.0, +164 testes), coverage **71%** (era 63%), ruff clean, mypy zero em **112 files** (era 108), smoke USB/BT verdes. 3 módulos novos (`ipc_handlers.py`, `ipc_draft_applier.py`, `ipc_rumble_policy.py`, `wlr_toplevel.py`).
+6. **Automação COSMIC entregue:**
+   - `src/hefesto/integrations/window_backends/wlr_toplevel.py`: `WlrctlBackend` via protocolo `wlr-foreign-toplevel-management-unstable-v1`. Cobre COSMIC, Sway, Hyprland, niri, river.
+   - `src/hefesto/integrations/window_detect.py`: `_WaylandCascadeBackend` (portal → wlrctl → None).
+   - `install.sh`: detecta `XDG_CURRENT_DESKTOP=*COSMIC*`, oferece `apt install wlrctl` + `GDK_BACKEND=x11` (auto sob `--yes` ou `--force-xwayland`).
+   - `packaging/debian/control`: `Recommends: python3-uinput, wlrctl`.
+7. **Pendências para próxima sessão (prioridades, sem spec ainda):**
+   - **Validar v2.4.1 em Pop!_OS COSMIC real** (S) — reinstalar via `sudo apt install ./hefesto_2.4.1_amd64.deb` ou `./install.sh --yes --force-xwayland`, confirmar comportamento real do autoswitch, log do daemon. Resultado dessa validação define se segue para opção (2) ou (3) abaixo.
+   - **FEAT-WLR-TOPLEVEL-PYWAYLAND-01** (L) — reimplementar WlrctlBackend usando `pywayland` + `wayland-protocols` em vez de subprocess. Elimina dep externa, funciona no flatpak sandbox.
+   - **FEAT-FLATPAK-WLRCTL-BUNDLED-01** (S) — incluir `wlrctl` como módulo do manifesto flatpak (build meson+ninja). Alternativa mais simples se (2) for overkill.
+   - **CHORE-TOUCHPAD-COSMIC-VALIDATION-01** (XS) — validar `TouchpadReader` em COSMIC nativo via `evtest`.
+   - Outras (backlog V2.x+): onboarding wizard, rumble-per-profile override, i18n, presets import/export. Ver `docs/process/SPRINT_ORDER.md` seção "Wave V2.5" para a lista completa com justificativas.
 
 ---
 
@@ -108,8 +112,11 @@ Antes de reescrever PHASE3, sugerido sprint nova `FEAT-FIRMWARE-UPDATE-PHASE3-DE
 
 ## Armadilhas ativas nesta época
 
-- **A-12 (PyGObject ausente no `.venv`):** `test_status_actions_reconnect.py` e `./run.sh --gui` falham sem intervenção. Workaround: `bash scripts/dev-setup.sh` recria venv com PyGObject. Fix canônico em INFRA-VENV-PYGOBJECT-01 (roadmap #3).
-- **Glyph strip bug (GLYPHS-01):** reproduzido 2x (V2.1 e V2.2 pós-release). Causa raiz não isolada; disparo em contexto de execução paralela/orquestrada. Fix canônico em GLYPHS-02 (roadmap #4). Blindagem recomendada: **nunca rodar `scripts/validar-acentuacao.py --fix` sem review manual do diff** até GLYPHS-02 MERGED.
+- **A-12 PARCIALMENTE RESOLVIDA (PyGObject ausente no `.venv`):** `dev-setup.sh` valida e imprime instrução acionável; instalação ainda é manual via `--with-tray`. OK conhecido.
+- **A-06 ampliada na V2.4 (mic_led):** agora cobre também "campo ausente em *Config mas aplicado pelo apply com default regride estado runtime". Registrado no BRIEF.
+- **Pop!_OS COSMIC alpha sem portal `GetActiveWindow`:** fix em camadas entregue na v2.4.1 — WaylandPortalBackend degrada graceful após 3 falhas; WlrctlBackend cobre via wlr-foreign-toplevel; install.sh automatiza wlrctl+XWayland. **Validação em ambiente COSMIC real ainda pendente** (item #1 da próxima sessão).
+- **`wlrctl` não está em todos os repos apt:** Ubuntu 24.04+ sim (universe); Pop!_OS 22.04 provavelmente não. Fallback XWayland cobre o caso.
+- **Flatpak sandbox não enxerga `wlrctl` do host:** `WlrctlBackend` retorna None dentro do sandbox, cai no fallback XWayland se `GDK_BACKEND=x11` estiver no atalho. Fix definitivo = sprint FEAT-WLR-TOPLEVEL-PYWAYLAND-01 ou FEAT-FLATPAK-WLRCTL-BUNDLED-01.
 
 ---
 
@@ -117,14 +124,14 @@ Antes de reescrever PHASE3, sugerido sprint nova `FEAT-FIRMWARE-UPDATE-PHASE3-DE
 
 Se você é a assistente entrando agora, faça nesta ordem:
 
-1. `git status` — confirmar working tree limpo.
-2. `git log --oneline origin/main..HEAD` — confirmar zero commits locais não-pushed.
+1. `git status` — confirmar working tree limpo; HEAD deve ser `d9c11de` ou mais novo.
+2. `git log --oneline v2.4.1..HEAD` — deve ser vazio (nenhum commit pós-release) OU ser só novos que a sessão anterior fez.
 3. Ler este arquivo (você está lendo).
-4. Ler o **topo** de `docs/process/SPRINT_ORDER.md` para confirmar que a ordem canônica ainda bate com esta.
-5. Ler `VALIDATOR_BRIEF.md` seção [PROCESS] Lições L-21-* e [CORE] Armadilhas A-01..A-12.
-6. `ls -lat ~/.claude/projects/-home-andrefarias-Desenvolvimento-Hefesto-DualSense-Unix/*.jsonl | head -3` — identificar session anterior se precisar ler últimos eventos.
-7. Rodar `bash scripts/dev-setup.sh` se `.venv/bin/pytest` não funciona.
-8. Perguntar ao usuário antes de começar qualquer sprint do roadmap (confirma se a ordem ainda vale).
+4. Ler `docs/process/SPRINT_ORDER.md` seção **"Wave V2.5 — sugestões para próxima sessão"** (linha ~430) para ver as 8 sugestões priorizadas.
+5. Ler `VALIDATOR_BRIEF.md` seção [PROCESS] Lições L-21-1 a L-21-7 + sub-checklist, e [CORE] Armadilhas A-01..A-12 (A-06 foi ampliada na V2.4 para incluir "campo ausente no schema mas aplicado pelo apply").
+6. `bash scripts/dev-setup.sh` se `.venv/bin/pytest` não funcionar.
+7. **Perguntar ao usuário qual sprint V2.5 ele quer**. Default recomendado: começar pela validação manual do release v2.4.1 em COSMIC (item #1) se ele tiver ambiente COSMIC, ou por `FEAT-FLATPAK-WLRCTL-BUNDLED-01` / `FEAT-WLR-TOPLEVEL-PYWAYLAND-01` se ele preferir fechar essa lacuna primeiro.
+8. Usar `/planejar-sprint <tema>` para gerar spec formal antes de executar — nenhuma das 8 sugestões V2.5 tem spec escrito ainda.
 
 ---
 
