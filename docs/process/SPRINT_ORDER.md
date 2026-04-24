@@ -364,8 +364,33 @@ Objetivo: revisão externa sem viés do que a V2.3 acumulou em velocidade, mais 
 | Ordem | Sprint | Porte | Modelo | Status |
 |---|---|---|---|---|
 | 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 4 testes de `test_poll_loop_evdev_cache.py` falham em dev local com /dev/uinput (startup >60ms > budget). CI passa. Fix: `keyboard_emulation_enabled=False` nos DaemonConfig dos 5 testes do arquivo. | XS | opus | ready |
-| 86 | [AUDIT] **AUDIT-V23-FORENSIC-01** — auditoria externa arquivo-por-arquivo do pós-v2.3.0 sem viés do autor da implementação. Gera relatório em `docs/process/audits/2026-04-24-audit-v23-forensic.md` e N sprints-filhas `AUDIT-FINDING-*-01` com severidade classificada (bloqueante/alto/médio/baixo/cosmético). Fixes NÃO são aplicados — a sprint só diagnostica. | L | opus | ready |
-| 87+ | [AUDIT-FINDING] sprints-filhas geradas pela 86 | varia | varia | PENDING (depende de 86) |
+| 86 | [AUDIT] **AUDIT-V23-FORENSIC-01** — auditoria externa arquivo-por-arquivo do pós-v2.3.0 sem viés do autor da implementação. Relatório entregue em `docs/process/audits/2026-04-24-audit-v23-forensic.md` (26 achados em 6 categorias: 6 altos, 9 médios, 7 baixos, 4 cosméticos). 14 sprints-filhas geradas — ver Wave V2.4 abaixo. | L | opus | MERGED 2026-04-24 |
+
+### Wave V2.4 — follow-up de auditoria V2.3 (PENDING 2026-04-24)
+
+Objetivo: endereçar os 26 achados da AUDIT-V23-FORENSIC-01 em ordem de severidade. 14 sprints-filhas geradas; altos primeiro, médios depois, baixos em checklist agrupado.
+
+| Ordem | Sprint | Porte | Severidade | Modelo | Status |
+|---|---|---|---|---|---|
+| 87 | [BUG] **AUDIT-FINDING-UDP-PLACEHOLDER-HANDLERS-01** — UDP PlayerLED/MicLED no-op + clamp RGB ausente. | S | alto | opus | ready |
+| 88 | [BUG] **AUDIT-FINDING-IPC-DRAFT-RUMBLE-POLICY-01** — `profile.apply_draft` bypassa política de rumble. | XS | alto | opus | ready |
+| 89 | [BUG] **AUDIT-FINDING-PROFILE-MIC-LED-RESET-01** — `apply_led_settings` reseta mic_led em cada profile switch. A-06 variante. | M | alto | opus | ready |
+| 90 | [SECURITY] **AUDIT-FINDING-PROFILE-PATH-TRAVERSAL-01** — sanitizar identifier em `load_profile` contra path traversal (defesa em profundidade; CODE_INTERNAL leak). | S | alto | opus | ready |
+| 91 | [REFACTOR] **AUDIT-FINDING-RUMBLE-POLICY-DEDUP-01** — unificar 3 cópias de `_effective_mult` + encapsular `RumbleEngine._last_auto_*`. | M | alto | opus | ready |
+| 92 | [CLEANUP] **AUDIT-FINDING-KEYBOARD-SUBSYSTEM-DEAD-01** — deletar `KeyboardSubsystem` classe paralela nunca cabeada. | XS | alto | sonnet | ready |
+| 93 | [CLEANUP] **AUDIT-FINDING-DEAD-CODE-01** — deletar `profiles/autoswitch.py::start_autoswitch` + `_noop` + sentinels em validar-acentuacao. | XS | médio | sonnet | ready |
+| 94 | [REFACTOR] **AUDIT-FINDING-EVDEV-READER-BASE-CLASS-01** — extrair `_EvdevReconnectLoop` base para eliminar ~100 LOC duplicados. | M | médio | opus | ready |
+| 95 | [REFACTOR] **AUDIT-FINDING-IPC-BRIDGE-BARE-EXCEPT-01** — extrair `_safe_call` helper em `ipc_bridge.py` (13 wrappers idênticos). | S | médio | opus | ready |
+| 96 | [SECURITY] **AUDIT-FINDING-SINGLE-INSTANCE-PID-RECYCLE-01** — verificar `/proc/<pid>/comm` antes de SIGTERM no predecessor. | S | médio | opus | ready |
+| 97 | [PERF] **AUDIT-FINDING-WAYLAND-PORTAL-PERF-01** — migrar `WaylandPortalBackend` para thread de longa vida ou jeepney síncrono direto. | S | médio | opus | ready |
+| 98 | [TEST] **AUDIT-FINDING-COVERAGE-ACTIONS-ZERO-01** — cobrir rumble/triggers/firmware actions + GTK real opt-in. Meta cov total 63% → 70%. | L | médio | opus | ready |
+| 99 | [REFACTOR] **AUDIT-FINDING-IPC-SERVER-SPLIT-01** — split `ipc_server.py` (843 LOC) em ≤500. Dep: executar DEP 91 antes. | L | médio | opus | ready |
+| 100 | [OBS] **AUDIT-FINDING-LOG-EXC-INFO-01** — checklist de 10 must-do + edits pontuais dos achados 17, 19, 20, 21, 22, 23, 26. | M | baixo | sonnet | ready |
+
+Execução recomendada em 3 tranches:
+1. **Altos (87-92):** sequencial ou em worktrees separadas. 88, 92 são XS — começar por eles (quick wins).
+2. **Médios (93-99):** 93, 95, 97 paralelizáveis; 91 pré-req de 99.
+3. **Baixo/checklist (100):** após 91 mergeado para aplicar edits restantes em passagem única.
 
 ---
 
