@@ -348,15 +348,24 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 82 | [BUG] **BUG-DEB-SMOKE-STRUCTLOG-TYPING-02** — SUPERSEDED_BY_V2_2_2. Spec original propunha compat layer `try/except types/typing` + constraint `python3-structlog (>= 21.5)`. Aplicação parcial (commits `ad80d6c` + `1c476f8`) foi insuficiente: Jammy apt tem typer 0.4, platformdirs 2.5, pydantic 1.10 — tudo velho demais. Resolução final foi arquitetural: migração do runner `deb-install-smoke` de `ubuntu-22.04` para `ubuntu-24.04` (Noble) em `b03ad48`, + `pip install --user 'pydantic>=2.0' 'typer>=0.12'` em `9afac40`. Constraint no control removida (compat layer em `logging_config.py` mantida como defesa para usuários que instalem .deb em Jammy sem pip). | XS | opus | SUPERSEDED |
 | 83 | [INFRA] **INFRA-EVDEV-TOUCHPAD-01** — MERGED adiantado na v2.2.2 (commit `43f76d8`). Adiciona `find_dualsense_touchpad_evdev()` + classe `TouchpadReader` em `src/hefesto/core/evdev_reader.py`; expõe `touchpad_{left,middle,right}_press` via discriminação `ABS_X` (limites 640/1280 sobre 1920). 19 testes unit + smoke hardware-real com DualSense USB 054c:0ce6. Remove comentário "pendente" de L89. Destrava FEAT-KEYBOARD-UI-01 (59.3). | XS | opus | MERGED |
 
-### Fase — Marco V2.3.0 (keyboard)
+### Fase — Marco V2.3.0 (keyboard) — MERGED 2026-04-24
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 80 | [BUG] **BUG-CI-ACENTUACAO-REGRESSION-01** — CI job `acentuacao` vermelho em main desde ≥ v2.2.1 por 10 violações pré-existentes. 6 em comentários `release.yml` (l.116-136), 2 em strings `test_firmware_updater.py` (l.66,119), 2 em identifier Python `conteudo` `test_validar_acentuacao_glyphs.py` (l.145-146). Fix: adicionar acentuação + renomear `conteudo`→`texto_final`. Destrava ci.yml verde. | XS | opus | ready |
-| 59.2 | [FEAT] **FEAT-KEYBOARD-PERSISTENCE-01** — `Profile.key_bindings: dict[str, list[str]] \| None = None` + validator regex `^(KEY_[A-Z0-9_]+\|__[A-Z_]+__)$` (KEY_* via `evdev.ecodes`; `__*__` tokens reservados para 59.3) + mapper A-06 (`_to_key_bindings` + `ProfileManager.apply_keyboard`) + daemon hook em `lifecycle.py` + 9 perfis default `"key_bindings":null` + 5 testes incluindo teste dedicado do mapper. | M | opus | ready |
-| 59.3 | [FEAT] **FEAT-KEYBOARD-UI-01** — `InputActionsMixin` (subclass de `MouseActionsMixin`) + aba "Mouse e Teclado" + TreeView CRUD bindings + L3/R3 OSK via onboard/wvkbd + tokens virtuais `__OPEN_OSK__`/`__CLOSE_OSK__` + consumir `TouchpadReader.regions_pressed()` de 83 para touchpad→KEY_BACKSPACE/ENTER/DELETE. Decisão documentada: NÃO inverter R2/L2 (discoveries/2026-04-24). Validação visual em `docs/process/screenshots/FEAT-KEYBOARD-UI-01-depois.png`. 17 testes novos (tokens, OSK, touchpad, input_actions). | L | opus | MERGED |
-| 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 4 testes de `test_poll_loop_evdev_cache.py` falham em dev local com /dev/uinput (startup >60ms > budget), passam no CI GitHub Actions (sem uinput). Fix: `keyboard_emulation_enabled=False` nos DaemonConfig dos 5 testes do arquivo. Descoberto durante Fase B+D da 59.3. | XS | opus | ready |
-| 84 | [RELEASE] **Release v2.3.0** — bump 2.2.2→2.3.0 + CHANGELOG + tag. Pipeline automático já provado em v2.2.2. | — | — | FUTURO |
+| 80 | [BUG] **BUG-CI-ACENTUACAO-REGRESSION-01** — 6 violações reais corrigidas (spec dizia 10; a v2.2.2 reescreveu release.yml e baixou a contagem). Destravou `ci.yml` verde em `main`. | XS | opus | MERGED (`7e49648`) |
+| 59.2 | [FEAT] **FEAT-KEYBOARD-PERSISTENCE-01** — `Profile.key_bindings` + validator regex + mapper A-06 (`_to_key_bindings` + `ProfileManager.apply_keyboard`) + 9 JSONs default + 10 testes incluindo teste dedicado do mapper. | M | opus | MERGED (`6e90f05`) |
+| 59.3 | [FEAT] **FEAT-KEYBOARD-UI-01** — `InputActionsMixin` (subclasse de `MouseActionsMixin`) + aba "Mouse e Teclado" + TreeView CRUD + L3/R3 OSK via onboard/wvkbd (via tokens `__OPEN_OSK__`/`__CLOSE_OSK__`) + consumir `TouchpadReader.regions_pressed()` → KEY_BACKSPACE/ENTER/DELETE. Decisão documentada: NÃO inverter R2/L2. Validação visual em `docs/process/screenshots/FEAT-KEYBOARD-UI-01-depois.png`. 27 testes novos. Entregue em 2 commits (Fase B+D + Fase E). | L | opus | MERGED (`517a59e` + `ba104f9`) |
+| 84 | [RELEASE] **Release v2.3.0** — bump 2.2.2→2.3.0; tag publicada 2026-04-24 via run `24869314981` com 5 assets `isDraft:false`. Segundo release 100% automático consecutivo. Commit final `e5384ab`. | — | — | MERGED |
+
+### Wave V2.3 — follow-up de auditoria (PENDING 2026-04-24)
+
+Objetivo: revisão externa sem viés do que a V2.3 acumulou em velocidade, mais 1 bug conhecido fora do caminho crítico.
+
+| Ordem | Sprint | Porte | Modelo | Status |
+|---|---|---|---|---|
+| 85 | [BUG] **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** — 4 testes de `test_poll_loop_evdev_cache.py` falham em dev local com /dev/uinput (startup >60ms > budget). CI passa. Fix: `keyboard_emulation_enabled=False` nos DaemonConfig dos 5 testes do arquivo. | XS | opus | ready |
+| 86 | [AUDIT] **AUDIT-V23-FORENSIC-01** — auditoria externa arquivo-por-arquivo do pós-v2.3.0 sem viés do autor da implementação. Gera relatório em `docs/process/audits/2026-04-24-audit-v23-forensic.md` e N sprints-filhas `AUDIT-FINDING-*-01` com severidade classificada (bloqueante/alto/médio/baixo/cosmético). Fixes NÃO são aplicados — a sprint só diagnostica. | L | opus | ready |
+| 87+ | [AUDIT-FINDING] sprints-filhas geradas pela 86 | varia | varia | PENDING (depende de 86) |
 
 ---
 

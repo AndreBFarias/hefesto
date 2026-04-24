@@ -6,20 +6,25 @@
 
 ---
 
-## Última atualização: 2026-04-24 (v2.2.2 PUBLICADA — primeiro release AUTOMÁTICO desde v0.1.0)
+## Última atualização: 2026-04-24 (v2.3.0 PUBLICADA — keyboard feature completa, 2º release 100% automático)
 
 ## Onde paramos
 
-1. **v2.2.2 publicada no GitHub** em 2026-04-24 via workflow run `24867530741` (auto, sem `gh release create` manual — marco histórico). Tag = commit `9afac40`. 5 assets uploaded com `isDraft: false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`.
-2. **Estado git:** HEAD = `9afac40` em `origin/main` (sincronizado) + tag `v2.2.2` pushada.
-3. **11 commits desde v2.2.1** (`b913ed2`): CHORE-VERSION-SYNC-GATE-01 (`ca030a2`), bump (`628341a`), docs + spec BUG-CI-ACENTUACAO (`5ce7347`), spec 82 + spec INFRA-TOUCHPAD (`e25a62b`), fix structlog compat (`ad80d6c`), INFRA-EVDEV-TOUCHPAD-01 MERGED (`43f76d8`), 3 fix iterativos (`b48bfee`, `1c476f8`, `22fad85`), L-21-7 sub-checklist (`144b5f1`), Noble migration (`b03ad48`), typer>=0.12 + subcomando (`9afac40`).
-4. **7 iterações de tag v2.2.2** antes de publicar — L-21-7 disparou 6× em cascata. Lição: Jammy apt inviável (typer 0.4, structlog 20.1, platformdirs 2.5). Migração `deb-install-smoke` para `ubuntu-24.04` + `pip install --user 'pydantic>=2.0' 'typer>=0.12'` foi a solução final. VALIDATOR_BRIEF.md ganhou sub-checklist acionável L-21-7 (docker run antes de tocar control).
-5. **INFRA-EVDEV-TOUCHPAD-01 MERGED adiantado** na v2.2.2 (aditivo, hardware-validated com DualSense USB 054c:0ce6). Destrava 59.3 para V2.3.0.
-6. **Pendências da próxima sessão (V2.3.0):**
-   - **59.2 FEAT-KEYBOARD-PERSISTENCE-01** (M): `Profile.key_bindings` + mapper A-06 + daemon hook + 9 perfis default + 5 testes. Validator regex decidido: `^(KEY_[A-Z0-9_]+|__[A-Z_]+__)$` + lookup evdev.ecodes para KEY_*.
-   - **59.3 FEAT-KEYBOARD-UI-01** (L): rename `mouse_actions`→`input_actions`, aba "Mouse e Teclado" + TreeView CRUD + L3/R3 OSK (onboard/wvkbd) + inversão R2/L2 + touchpad regions (B0 pronto).
-   - **80 BUG-CI-ACENTUACAO-REGRESSION-01** (XS, ready): 10 violações pré-existentes travando job `acentuacao` no ci.yml. Ortogonal a release.yml.
-   - **82 BUG-DEB-SMOKE-STRUCTLOG-TYPING-02**: resolvido por caminho diferente (Noble migration + pip typer). Marcar como SUPERSEDED_BY_V2_2_2.
+1. **v2.3.0 publicada no GitHub** em 2026-04-24 via workflow run `24869314981` (automático). Tag = commit `e5384ab`. 5 assets com `isDraft: false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`. **Segundo release 100% automático consecutivo** — pipeline `release.yml` passou em todos os jobs de primeira (build/deb/appimage/flatpak/deb-install-smoke Noble/github-release).
+2. **Estado git:** HEAD = `e5384ab` em `origin/main` (sincronizado) + tag `v2.3.0` pushada. Working tree limpo.
+3. **5 commits desde v2.2.2** (`b12e28e`):
+   - `7e49648` sprint **80 BUG-CI-ACENTUACAO-REGRESSION-01** — 6 violações reais (spec dizia 10, a v2.2.2 reescreveu release.yml baixando a contagem)
+   - `6e90f05` sprint **59.2 FEAT-KEYBOARD-PERSISTENCE-01** — `Profile.key_bindings` + mapper A-06 + 9 JSONs + 10 testes
+   - `517a59e` sprint **59.3 Fase B+D** — tokens virtuais `__OPEN_OSK__`/`__CLOSE_OSK__` + `_OSKController` (onboard/wvkbd) + `TouchpadReader` mesclado em dispatch → KEY_BACKSPACE/ENTER/DELETE + 17 testes + conftest autouse HEFESTO_FAKE=1
+   - `ba104f9` sprint **59.3 Fase E** — `InputActionsMixin` (subclasse de MouseActionsMixin) + aba "Mouse e Teclado" + TreeView CRUD + DraftConfig.key_bindings round-trip + 10 testes + validação visual
+   - `e5384ab` release v2.3.0 bump
+4. **Marco keyboard feature completo:** tripé planejado desde v2.2.0 entregue (persistência + UI + integrações OSK/touchpad). Aba "Mouse e Teclado" navegável em `/tmp/hefesto_gui_kbd_*.png`; screenshot canônico em `docs/process/screenshots/FEAT-KEYBOARD-UI-01-depois.png` (sha256 `eb0feb060284c510cf1fb1b33b0dafd9286633896eccb9006439383a13b7a9d9`).
+5. **Gates finais:** pytest 1138 passed + 5 skipped, ruff clean, mypy zero em 108 files, validar-acentuacao exit 0, smoke USB/BT verdes.
+6. **Pendências da próxima sessão (escolhas do usuário):**
+   - **AUDIT-V23-FORENSIC-01** (L, ready) — auditoria externa arquivo-por-arquivo sem viés de quem implementou, buscando bugs/órfãos/lógica frágil/otimizações. Deve **gerar sprints novas** (não fix direto). Próxima sessão prioritária por pedido do usuário em 2026-04-24.
+   - **BUG-TEST-POLL-LOOP-UINPUT-TIMING-01** (XS, ready) — 4 testes flaky em dev local com /dev/uinput (CI passa). Fix conhecido: `keyboard_emulation_enabled=False` nos 5 DaemonConfig de `test_poll_loop_evdev_cache.py`.
+   - **CHORE-CI-REPUBLISH-TAGS-01** (PROTOCOL_READY) — aguarda ação humana para re-publicar v2.0.0/v2.1.0.
+   - **FEAT-GITHUB-PROJECT-VISIBILITY-01** (PROTOCOL_READY) — governança GitHub aguarda humano.
 
 ---
 
