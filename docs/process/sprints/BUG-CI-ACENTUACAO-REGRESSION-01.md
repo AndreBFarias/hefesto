@@ -11,7 +11,9 @@
 
 ## Contexto
 
-Durante a Fase A2b da release v2.2.2 (2026-04-24), `python3 scripts/validar-acentuacao.py --all` retornou **exit=1 com 10 violações** pré-existentes em `main` (HEAD `b913ed2`), fazendo o job `acentuacao` do `.github/workflows/ci.yml` falhar nos últimos 3 commits:
+Durante a Fase A2b da release v2.2.2 (2026-04-24), `python3 scripts/validar-acentuacao.py --all` retornou **exit=1 com 10 violações** pré-existentes em `main` (HEAD `b913ed2`), fazendo o job `acentuacao` do `.github/workflows/ci.yml` falhar nos últimos 3 commits.
+
+**Atualização 2026-04-24 pós-v2.2.2 publicada:** re-rodando o validator em `HEAD=b12e28e`, a contagem real caiu para **6 violações** — os fixes iterativos da v2.2.2 tocaram `release.yml` e o vocabulário mudou. Lista real abaixo (ignore a tabela histórica de 10 mais abaixo).
 
 - `b913ed2 fix: BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01 + L-21-7 no BRIEF` → CI failure
 - `01b39bb docs: v2.2.1 publicada ...` → CI failure
@@ -19,9 +21,18 @@ Durante a Fase A2b da release v2.2.2 (2026-04-24), `python3 scripts/validar-acen
 
 O job `acentuacao` roda em `ci.yml` (push main + PR) mas **não bloqueia** `release.yml` (push tag), então v2.2.1 saiu mesmo com ci.yml vermelho — ruído que deveria ter sido detectado pelo validator-sprint em algum commit antes.
 
-## Violações encontradas
+## Violações encontradas (estado real 2026-04-24 HEAD b12e28e — 6 violações)
 
-Todas pré-existentes em `b913ed2`:
+| Arquivo | Linha | Palavra sem acento | Sugestão |
+|---|---|---|---|
+| `.github/workflows/release.yml` | 116 | `Historico` | `Histórico` |
+| `.github/workflows/release.yml` | 116 | `iteracoes` | `iterações` |
+| `tests/unit/test_firmware_updater.py` | 66 | `tambem` (string literal) | `também` |
+| `tests/unit/test_firmware_updater.py` | 119 | `generico`, `binario` (string literal) | `genérico`, `binário` |
+| `tests/unit/test_validar_acentuacao_glyphs.py` | 145 | `conteudo` (identifier Python) | renomear para `texto_final` |
+| `tests/unit/test_validar_acentuacao_glyphs.py` | 146 | `conteudo` (mesma variável) | renomear para `texto_final` |
+
+### Tabela histórica (v2.2.2 em voo, apenas referência)
 
 | Arquivo | Linha | Palavra sem acento | Sugestão |
 |---|---|---|---|
