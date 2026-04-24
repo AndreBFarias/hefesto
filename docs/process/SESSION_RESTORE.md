@@ -6,10 +6,11 @@
 
 ---
 
-## Última atualização: 2026-04-24 (Wave V2.5 aberta — FEAT-FLATPAK-WLRCTL-BUNDLED-01 MERGED)
+## Última atualização: 2026-04-24 (Wave V2.5 — FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 MERGED)
 
 ## Onde paramos
 
+-1. **FEAT-RUMBLE-PER-PROFILE-OVERRIDE-01 MERGED** 2026-04-24 via PR #99 (squash `51dbe92`). `RumbleConfig.policy: RumblePolicy | None = None` + `policy_custom_mult` com validator pydantic. Alias `RumblePolicy` extraído para `src/hefesto/core/rumble_policy.py` (módulo puro, zero imports internos) e reusado em `profiles/schema.py` + `daemon/lifecycle.py`. `ProfileManager.active_profile_object` cacheia Profile ativo; `get_active_rumble_config()` expõe override O(1) aos 3 consumidores de `_effective_mult` (engine tick, `reassert_rumble` 5Hz, `apply_rumble_policy` IPC). `RumbleEngine.link()` aceita `profile_manager=None` opcional; `subsystems/ipc.py` seta `daemon._profile_manager` no start. Pytest 1316 → 1332 passed / 8 skipped (+24). Mypy 112 → 113 files. Pendência derivada registrada: `CHORE-RUMBLE-ENGINE-WIRE-UP-01` — `RumbleEngine` não é instanciado em produção (condição pré-existente à sprint; override chega ao hardware via `reassert_rumble`, o caminho ativo).
 0. **Wave V2.5 iniciada:** `FEAT-FLATPAK-WLRCTL-BUNDLED-01` MERGED 2026-04-24 via PR #98 (commit squash `cf54454`). Módulo `wlrctl` v0.2.2 bundlado no manifesto Flatpak (meson + archive + SHA256 cravado). Footprint +48.8 KiB (teto 300). Probe runtime OK: `/app/bin/wlrctl` resolvido na sandbox e `WlrctlBackend()._available=True`. Suite 1308 passed / 8 skipped (+1 teste de regressão). Backend `wlr_toplevel.py` intocado. Próximo passo sugerido: item #1 da tabela Wave V2.5 (validação manual em COSMIC real) ou #2 (FEAT-WLR-TOPLEVEL-PYWAYLAND-01).
 1. **v2.4.1 publicada** em 2026-04-24 via workflow run `24874826763` (3m24s, todos os 6 jobs verdes). Tag = commit `d9c11de`. 5 assets `isDraft:false`: `.whl`, `.tar.gz`, `.AppImage`, `.deb`, `.flatpak`. URL: <https://github.com/AndreBFarias/releases/tag/v2.4.1>.
 2. **v2.4.0 também publicada** (`6bb777c`, run `24874197415`, 3m26s) — release anterior que precisou de um commit de fix (`a6419ec`) para passar o CI antes da cadeia completa funcionar. Assets antigos ainda disponíveis.
