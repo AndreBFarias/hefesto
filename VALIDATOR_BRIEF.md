@@ -191,6 +191,9 @@ Origem: sessão release V2.1 (V2.1). 4 subagents em paralelo com pool ~80% usado
 ### L-21-6: "Protocolo escrito" ≠ "Executado"
 Origem: HARDWARE-VALIDATION-PROTOCOL-01, FEAT-FIRMWARE-UPDATE-PHASE1-01 (V2.1). Sprints marcadas MERGED sem execução humana dos 21 itens / metodologia. Regra: sprint cujo entregável é **apenas** documento/protocolo/checklist ganha status `PROTOCOL_READY` (não MERGED) até registro formal de ≥1 execução humana. Release notes diferenciam sprints MERGED (código executado) de PROTOCOL_READY (doc pronto).
 
+### L-21-7: Premissa "distro X tem lib Y versão N" exige `apt-cache policy` empírico
+Origem: BUG-DEB-PYDANTIC-V2-UBUNTU-22-01 (74, V2.2.1). Sprint 74 assumiu sem validar que Ubuntu 24.04 Noble tinha `python3-pydantic 2.x`; na prática Noble entrega `1.10.17-1build1`. Fix declarou `python3-pydantic (>= 2.0)` no control e migrou smoke CI para `ubuntu-24.04` — mas smoke falhou por impossível resolver dep. Custou 1 release quebrado (v2.2.1 precisou upload manual; 2º consecutivo com esse padrão) e gerou BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01 (79.1). **Regra:** antes de escrever spec de packaging que assume versão de pacote do sistema (apt/dnf/pacman), rodar `apt-cache policy <pacote>` em cada release-alvo concreta (imagem GitHub Actions ou container docker do runner). Se versão declarada não está disponível em ≥1 release-alvo, ou (a) ajustar a release-alvo, ou (b) instalar via pip/venv em vez de depender do apt. Aplicação geral: validar empiricamente **toda premissa sobre ambiente externo** (runner OS, versão de glibc, disponibilidade de binário no PATH) antes de a premissa virar código.
+
 ---
 
 ## [CORE] Padrões de código
