@@ -6,24 +6,17 @@
 
 ---
 
-## Última atualização: 2026-04-23 (v2.2.1 — 6/6 sprints MERGED, pronto pro release)
+## Última atualização: 2026-04-24 (v2.2.1 PUBLICADA no GitHub)
 
 ## Onde paramos
 
-1. **v2.2.0 publicada** no GitHub com 5 assets. Tag `f6ca6a8` no remote.
-2. **Estado git:** HEAD = `e8d6fcf` em `origin/main` (sincronizado). Working tree limpo.
-3. **v2.2.1 pronto para release:** 6 sprints planejadas + 3 colaterais descobertas durante execução — **todas MERGED**.
-   - 70.2 FEAT-FIRMWARE-UPDATE-GUI-01 (sessão anterior).
-   - 73 BUG-APPIMAGE-VERSION-NAME-01 (causa raiz: `__init__.py` hardcoded).
-   - 73.1 CHORE-VERSION-SYNC-GATE-01 (spec colateral; ainda PENDING — gate CI opcional para v2.2.2).
-   - 74 BUG-DEB-PYDANTIC-V2-UBUNTU-22-01.
-   - 75 INFRA-VENV-PYGOBJECT-01 (A-12 parcialmente resolvida).
-   - 76 BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02 (whitelist ADR-011 + 23 tests).
-   - 77 UI-PROFILES-RADIO-GROUP-REDESIGN-01 (6 radios → combo).
-   - 77.1 BUG-FIRMWARE-SIGNAL-HANDLERS-01 (colateral da validação visual da 77).
-   - 78 UI-PROFILES-RIGHT-PANEL-REBALANCE-01 (preview JSON ao vivo).
-4. **Próximo alvo:** **bump + release v2.2.1** (sprint 79 do roadmap). Só falta pyproject 2.2.0→2.2.1, CHANGELOG finalização, tag, `gh workflow run release.yml -f tag=v2.2.1`.
-5. **Keyboard (59.2/59.3)** adiado para v2.3.0.
+1. **v2.2.1 publicada no GitHub** em 2026-04-24 00:05 UTC com 5 assets (whl, tar.gz, AppImage, deb, flatpak). Tag local = remota. Release manual via `gh release create` a partir dos artifacts do workflow run `24864996747` — smoke falhou mas build foi OK.
+2. **Estado git:** HEAD = `b17b81b` em `origin/main` (sincronizado) + tag `v2.2.1` pushada.
+3. **9 commits na v2.2.1** desde v2.2.0 (`f6ca6a8`): 6 sprints principais + 3 colaterais MERGED, zero regressão.
+4. **Pendências conhecidas:**
+   - **79.1 BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01** (PENDING): Noble tem pydantic 1.x (não 2.x como assumi na 74). Smoke CI segue instável; release tem que ser manual até fix. Spec escrita.
+   - **73.1 CHORE-VERSION-SYNC-GATE-01** (PENDING): gate CI que detecta drift entre fallback `__init__.py` e `pyproject.toml`.
+5. **Adiado V2.3.0:** Keyboard (59.2 FEAT-KEYBOARD-PERSISTENCE-01, 59.3 FEAT-KEYBOARD-UI-01).
 
 ---
 

@@ -335,7 +335,8 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1 em pyproject.toml + `__init__.py` fallback + README; CHANGELOG promovido de [Unreleased] para [2.2.1] 2026-04-23; tag v2.2.1 pushada; `gh workflow run release.yml -f tag=v2.2.1` dispara build | — | MERGED |
+| 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1 em pyproject.toml + `__init__.py` fallback + README; CHANGELOG promovido de [Unreleased] para [2.2.1] 2026-04-23; tag v2.2.1 pushada; build workflow run 24864996747 OK em 4/5 jobs (smoke falhou); release publicado manualmente com 5 assets via `gh release create v2.2.1 <artifacts>` | — | MERGED |
+| 79.1 | [BUG] **BUG-DEB-SMOKE-PYDANTIC-V2-NOBLE-01** — Noble também tem pydantic v1.x; sprint 74 assumiu errado; smoke volta para 22.04 com pip install `pydantic>=2` antes do apt; control remove constraint (>=2.0); warning runtime se pydantic<2. Colateral da 79 | S | opus | PENDING |
 
 ---
 
