@@ -480,7 +480,7 @@
                         <child>
                           <object class="GtkBox">
                             <property name="orientation">horizontal</property>
-                            <property name="spacing">8</property>
+                            <property name="spacing">6</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkButton" id="trigger_left_apply">
@@ -490,30 +490,20 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="trigger_left_reset">
-                                <property name="label">Desligar (Off)</property>
+                                <property name="label">Desligar</property>
                                 <signal name="clicked" handler="on_trigger_left_reset"/>
                               </object>
                             </child>
-                          </object>
-                          <packing><property name="expand">False</property></packing>
-                        </child>
-
-                        <child>
-                          <object class="GtkBox">
-                            <property name="orientation">horizontal</property>
-                            <property name="spacing">8</property>
-                            <property name="homogeneous">True</property>
-                            <property name="margin-top">4</property>
                             <child>
                               <object class="GtkButton" id="trigger_left_preset_export">
-                                <property name="label">Exportar...</property>
+                                <property name="label">Exportar</property>
                                 <property name="tooltip-text">Salva o estado atual do editor L2 em arquivo JSON (preset standalone)</property>
                                 <signal name="clicked" handler="on_trigger_left_preset_export"/>
                               </object>
                             </child>
                             <child>
                               <object class="GtkButton" id="trigger_left_preset_import">
-                                <property name="label">Importar...</property>
+                                <property name="label">Importar</property>
                                 <property name="tooltip-text">Carrega preset JSON e popula o editor L2 (não aplica nem salva)</property>
                                 <signal name="clicked" handler="on_trigger_left_preset_import"/>
                               </object>
@@ -612,7 +602,7 @@
                         <child>
                           <object class="GtkBox">
                             <property name="orientation">horizontal</property>
-                            <property name="spacing">8</property>
+                            <property name="spacing">6</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkButton" id="trigger_right_apply">
@@ -622,30 +612,20 @@
                             </child>
                             <child>
                               <object class="GtkButton" id="trigger_right_reset">
-                                <property name="label">Desligar (Off)</property>
+                                <property name="label">Desligar</property>
                                 <signal name="clicked" handler="on_trigger_right_reset"/>
                               </object>
                             </child>
-                          </object>
-                          <packing><property name="expand">False</property></packing>
-                        </child>
-
-                        <child>
-                          <object class="GtkBox">
-                            <property name="orientation">horizontal</property>
-                            <property name="spacing">8</property>
-                            <property name="homogeneous">True</property>
-                            <property name="margin-top">4</property>
                             <child>
                               <object class="GtkButton" id="trigger_right_preset_export">
-                                <property name="label">Exportar...</property>
+                                <property name="label">Exportar</property>
                                 <property name="tooltip-text">Salva o estado atual do editor R2 em arquivo JSON (preset standalone)</property>
                                 <signal name="clicked" handler="on_trigger_right_preset_export"/>
                               </object>
                             </child>
                             <child>
                               <object class="GtkButton" id="trigger_right_preset_import">
-                                <property name="label">Importar...</property>
+                                <property name="label">Importar</property>
                                 <property name="tooltip-text">Carrega preset JSON e popula o editor R2 (não aplica nem salva)</property>
                                 <signal name="clicked" handler="on_trigger_right_preset_import"/>
                               </object>
