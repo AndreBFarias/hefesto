@@ -335,7 +335,7 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1, CHANGELOG, tag, `gh workflow run release.yml -f tag=v2.2.1` | — | PENDING |
+| 79 | [RELEASE] **Release v2.2.1** — bump 2.2.0→2.2.1 em pyproject.toml + `__init__.py` fallback + README; CHANGELOG promovido de [Unreleased] para [2.2.1] 2026-04-23; tag v2.2.1 pushada; `gh workflow run release.yml -f tag=v2.2.1` dispara build | — | MERGED |
 
 ---
 
