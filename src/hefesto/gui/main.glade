@@ -62,7 +62,9 @@
   <object class="GtkWindow" id="main_window">
     <property name="title">Hefesto - DSX para Unix</property>
     <property name="default-width">1100</property>
-    <property name="default-height">680</property>
+    <property name="default-height">600</property>
+    <property name="resizable">True</property>
+    <property name="deletable">True</property>
     <signal name="delete-event" handler="on_window_delete_event"/>
     <child>
       <object class="GtkBox" id="root_box">
@@ -125,8 +127,19 @@
           <packing><property name="expand">False</property></packing>
         </child>
 
-        <!-- Notebook com abas -->
+        <!-- Notebook com abas, embrulhado em ScrolledWindow pro min-size
+             natural dos filhos (aba Gatilhos 2-col, aba Firmware, etc.)
+             não forçar a janela inteira a 1390x1092. Com a ScrolledWindow,
+             o min propaga só o min-content-* dela. -->
         <child>
+          <object class="GtkScrolledWindow" id="main_notebook_scroll">
+            <property name="hscrollbar-policy">automatic</property>
+            <property name="vscrollbar-policy">automatic</property>
+            <property name="min-content-width">900</property>
+            <property name="min-content-height">500</property>
+            <property name="propagate-natural-width">False</property>
+            <property name="propagate-natural-height">False</property>
+            <child>
           <object class="GtkNotebook" id="main_notebook">
             <property name="scrollable">True</property>
             <property name="margin">8</property>
@@ -465,7 +478,7 @@
                           <object class="GtkScrolledWindow">
                             <property name="hscrollbar-policy">never</property>
                             <property name="vscrollbar-policy">automatic</property>
-                            <property name="min-content-height">220</property>
+                            <property name="min-content-height">140</property>
                             <property name="vexpand">True</property>
                             <child>
                               <object class="GtkBox" id="trigger_left_params_box">
@@ -587,7 +600,7 @@
                           <object class="GtkScrolledWindow">
                             <property name="hscrollbar-policy">never</property>
                             <property name="vscrollbar-policy">automatic</property>
-                            <property name="min-content-height">220</property>
+                            <property name="min-content-height">140</property>
                             <property name="vexpand">True</property>
                             <child>
                               <object class="GtkBox" id="trigger_right_params_box">
@@ -1390,7 +1403,7 @@ Transições com debounce de 5 segundos para evitar oscilação.</property>
                           <object class="GtkScrolledWindow">
                             <property name="hscrollbar-policy">automatic</property>
                             <property name="vscrollbar-policy">automatic</property>
-                            <property name="min-content-height">180</property>
+                            <property name="min-content-height">120</property>
                             <property name="propagate-natural-height">True</property>
                             <child>
                               <object class="GtkLabel" id="profile_preview_label">
@@ -1998,7 +2011,7 @@ Transições com debounce de 5 segundos para evitar oscilação.</property>
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="shadow-type">in</property>
-                    <property name="min-content-height">200</property>
+                    <property name="min-content-height">140</property>
                     <child>
                       <object class="GtkTreeView" id="key_bindings_treeview">
                         <property name="visible">True</property>
@@ -2239,6 +2252,8 @@ Transições com debounce de 5 segundos para evitar oscilação.</property>
               <object class="GtkLabel"><property name="label">Firmware</property></object>
             </child>
 
+          </object>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>

@@ -15,13 +15,15 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 from typing import Any
 
 import gi
 
 gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
 gi.require_version("GdkPixbuf", "2.0")
-from gi.repository import GdkPixbuf, Gtk
+from gi.repository import Gdk, GdkPixbuf, Gtk
 
 from hefesto.app.actions.daemon_actions import DaemonActionsMixin
 from hefesto.app.actions.emulation_actions import EmulationActionsMixin
@@ -266,10 +268,27 @@ class HefestoApp(
 
         'Sair' do menu do tray encerra tudo. 'Fechar janela' (X no header)
         continua só escondendo pro tray via `on_window_delete_event`.
+
+        Ordem importa: chamamos `Gtk.main_quit()` ANTES do cleanup. O
+        `tray.stop()` faz uma call síncrona via D-Bus que pode travar
+        indefinidamente em ambientes sem StatusNotifierWatcher (Pop Shell
+        sem extensão TopIcons, COSMIC alpha etc). Se travasse ANTES do
+        `main_quit`, o loop GTK ficava preso e a GUI não encerrava. Ao
+        quitar o loop primeiro e jogar o cleanup em thread daemon, o
+        processo sempre encerra mesmo que o cleanup nunca retorne.
         """
         self._quitting = True
-        if self.tray is not None:
-            self.tray.stop()
+        Gtk.main_quit()
+        threading.Thread(target=self._shutdown_backend, daemon=True).start()
+
+    def _shutdown_backend(self) -> None:
+        """Cleanup pós-quit (tray + daemon systemd). Pode travar sem
+        reter o processo porque a thread é daemon."""
+        try:
+            if self.tray is not None:
+                self.tray.stop()
+        except Exception as exc:
+            logger.warning("quit_app_tray_stop_falhou", erro=str(exc))
         try:
             subprocess.run(
                 ["systemctl", "--user", "stop", "hefesto.service"],
@@ -279,11 +298,60 @@ class HefestoApp(
             )
         except (FileNotFoundError, subprocess.SubprocessError) as exc:
             logger.warning("quit_app_systemctl_falhou", erro=str(exc))
-        Gtk.main_quit()
 
     def show_window(self) -> None:
         self.window.show_all()
         self.window.present()
+        # Força tamanho compacto na primeira abertura — Mutter/Pop Shell
+        # 22 às vezes ignora default-size do Glade e abre em ~1390x1092,
+        # empurrando o rodapé da janela pra cima da dock.
+        if not getattr(self, "_first_show_done", False):
+            self.window.resize(1100, 600)
+            self._first_show_done = True
+        self._grant_wm_maximize()
+
+    def _initial_window_size(self) -> bool:
+        """Desfaz auto-maximize do Mutter/Pop Shell e força tamanho
+        compacto. Chamado via GLib.timeout_add pra rodar depois do mutter
+        aplicar _NET_WM_STATE_MAXIMIZED_HORZ+VERT no show inicial.
+
+        Sobrescreve o min-size do WM_NORMAL_HINTS via
+        `set_geometry_hints(MIN_SIZE)` — sem isso o GTK propaga a soma
+        dos min-content-height + natural-sizes dos children em cada aba
+        e a janela abria travada em 1390x1092 (o que impedia resize).
+
+        Retorna False pra não repetir no idle loop.
+        """
+        try:
+            self.window.unmaximize()
+            geom = Gdk.Geometry()
+            geom.min_width = 900
+            geom.min_height = 500
+            self.window.set_geometry_hints(
+                None, geom, Gdk.WindowHints.MIN_SIZE
+            )
+            self.window.resize(1100, 600)
+        except Exception as exc:
+            logger.warning("initial_window_size_falhou", erro=str(exc))
+        return False
+
+    def _grant_wm_maximize(self) -> None:
+        """Seta _MOTIF_WM_HINTS com WMFunction.ALL para que o WM/shell
+        mostre os 3 botões canônicos (minimize, maximize, close).
+
+        Pop Shell 22/Ubuntu com `button-layout` default mostra só close;
+        o hint força o compositor a oferecer também maximize e minimize
+        independente da preferência do usuário. Idempotente."""
+        gdk_win = self.window.get_window()
+        if gdk_win is None:
+            return
+        gdk_win.set_functions(
+            Gdk.WMFunction.MOVE
+            | Gdk.WMFunction.RESIZE
+            | Gdk.WMFunction.MINIMIZE
+            | Gdk.WMFunction.MAXIMIZE
+            | Gdk.WMFunction.CLOSE
+        )
 
     # --- draft ---
 
@@ -353,6 +421,16 @@ class HefestoApp(
 
     def show(self) -> None:
         self.window.show_all()
+        # Pop Shell 22 (via gsetting `org.gnome.mutter auto-maximize=true`)
+        # maximiza janelas novas automaticamente — `default-size=1100x600` é
+        # ignorado e a janela abre com _NET_WM_STATE_MAXIMIZED_HORZ+_VERT
+        # ocupando a tela útil inteira. Como o Mutter aplica o auto-maximize
+        # DEPOIS do show_all, fazer `unmaximize()` síncrono aqui é
+        # sobrescrito. Diferimos via `GLib.timeout_add(200ms)` pra rodar
+        # depois que o Mutter assentar o estado inicial da janela.
+        from gi.repository import GLib as _GLib
+        _GLib.timeout_add(200, self._initial_window_size)
+        self._grant_wm_maximize()
         self.install_status_polling()
         self.install_triggers_tab()
         self.install_lightbar_tab()
