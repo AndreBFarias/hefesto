@@ -27,7 +27,7 @@ V2 atualizado. Pendência morta.
 O `del` + re-acesso via `defaultdict` do V2 não liberava memória. Versão corrigida:
 
 ```python
-# src/hefesto/daemon/udp_server.py
+# src/hefesto_dualsense4unix/daemon/udp_server.py
 from collections import deque
 import time
 
@@ -100,26 +100,26 @@ HOTKEY_BUFFER_MS_DEFAULT = 150
 
 ### V3-3 — Complementa Patch 11 V2 (`detect_installed_unit` defensivo)
 
-Revisada em SIMPLIFY-UNIT-01 (2026-04-21): a dualidade `hefesto.service` /
-`hefesto-headless.service` foi eliminada. Só existe `hefesto.service`. O helper
+Revisada em SIMPLIFY-UNIT-01 (2026-04-21): a dualidade `hefesto-dualsense4unix.service` /
+`hefesto-dualsense4unix-headless.service` foi eliminada. Só existe `hefesto-dualsense4unix.service`. O helper
 vira checagem simples da presença do arquivo em `~/.config/systemd/user/`.
 
 ```python
 def detect_installed_unit() -> str | None:
     """Retorna 'hefesto' ou None."""
     base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
-    target = base / "systemd" / "user" / "hefesto.service"
+    target = base / "systemd" / "user" / "hefesto-dualsense4unix.service"
     return "hefesto" if target.exists() else None
 ```
 
-Rationale da simplificação: instalador nunca criou `hefesto-headless.service`,
+Rationale da simplificação: instalador nunca criou `hefesto-dualsense4unix-headless.service`,
 o dropdown na GUI só expunha estado fantasma. Contexto do projeto (daemon
 DualSense em desktop com jogos) não justifica variante headless; casos de
 laboratório/CI já são cobertos por pytest. Decisão: unit única como padrão.
 
 ---
 
-## 3. DELTAS DE DOMÍNIO HEFESTO
+## 3. DELTAS DE DOMÍNIO HEFESTO - DUALSENSE4UNIX
 
 ### V3-4 — Semântica `docs/process/` vs `docs/history/`
 

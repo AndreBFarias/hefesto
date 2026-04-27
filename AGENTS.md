@@ -1,4 +1,4 @@
-# AGENTS.md — Protocolo do Projeto Hefesto
+# AGENTS.md — Protocolo do Projeto Hefesto - Dualsense4Unix
 
 Arquivo de contexto para agentes de IA colaborando neste repositório. Ler antes de abrir qualquer PR com label `ai-task`.
 
@@ -79,7 +79,7 @@ gh issue develop N --checkout
          ↓
 ./scripts/check_anonymity.sh    → VAZIO
 ruff check src/ tests/          → VERDE
-mypy src/hefesto                → VERDE
+mypy src/hefesto_dualsense4unix                → VERDE
 pytest tests/unit -v            → VERDE
          ↓
 git commit -m "feat: descrição técnica impessoal"
@@ -96,8 +96,8 @@ Meta-regra 9.7: zero follow-up acumulado. Cada achado colateral vira issue nova 
 Pytest sozinho não basta para sprints que tocam runtime. Sprints W1.3+ exigem smoke boot real via `FakeController`:
 
 ```bash
-HEFESTO_FAKE=1 HEFESTO_FAKE_TRANSPORT=usb ./run.sh --smoke
-HEFESTO_FAKE=1 HEFESTO_FAKE_TRANSPORT=bt  ./run.sh --smoke
+HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=usb ./run.sh --smoke
+HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=bt  ./run.sh --smoke
 ```
 
 Sprints que tocam TUI exigem proof-of-work visual (regra 13 do arquivo global do CLI):

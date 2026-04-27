@@ -6,12 +6,12 @@ Referência canônica para validador-sprint. Invariantes, contratos de runtime, 
 
 ## [CORE] Identidade do projeto
 
-- **Nome:** Hefesto — port PT-BR do DualSenseX (Paliverse) para Linux.
+- **Nome:** Hefesto - Dualsense4Unix — port PT-BR do DualSenseX (Paliverse) para Linux.
 - **Raiz:** `/home/andrefarias/Desenvolvimento/Hefesto-DualSense_Unix`.
 - **Tipo:** `daemon+cli+tui+gui` (Python 3.10+). Capacidades visuais: `gui` (GTK3) + `tui` (Textual).
 - **Branch principal:** `main`.
 - **Stack:** Python 3.10, pydualsense, textual, typer, pydantic v2, python-xlib, evdev, structlog, PyGObject (GTK3), python-uinput (extra).
-- **Entry points:** `hefesto` (CLI), `hefesto-gui` (GTK3), `python -m hefesto`.
+- **Entry points:** `hefesto` (CLI), `hefesto-dualsense4unix-gui` (GTK3), `python -m hefesto_dualsense4unix`.
 
 ---
 
@@ -37,17 +37,17 @@ Toda sprint runtime obriga execução destes comandos como proof-of-work:
 bash scripts/dev-setup.sh
 
 # Smoke USB (2s) — FakeController
-HEFESTO_FAKE=1 HEFESTO_FAKE_TRANSPORT=usb HEFESTO_SMOKE_DURATION=2.0 ./run.sh --smoke
+HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=usb HEFESTO_DUALSENSE4UNIX_SMOKE_DURATION=2.0 ./run.sh --smoke
 
 # Smoke BT (2s) — FakeController
-HEFESTO_FAKE=1 HEFESTO_FAKE_TRANSPORT=bt  HEFESTO_SMOKE_DURATION=2.0 ./run.sh --smoke --bt
+HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=bt  HEFESTO_DUALSENSE4UNIX_SMOKE_DURATION=2.0 ./run.sh --smoke --bt
 
 # Testes unitários
 .venv/bin/pytest tests/unit -v --no-header -q
 
 # Lint + types
 .venv/bin/ruff check src/ tests/
-.venv/bin/mypy src/hefesto
+.venv/bin/mypy src/hefesto_dualsense4unix
 
 # Anonimato (obrigatório pré-commit)
 ./scripts/check_anonymity.sh
@@ -59,7 +59,7 @@ Esperado no smoke: `poll.tick >= 50` em 2s a 30Hz; `battery.change.emitted >= 1`
 
 ## [CORE] Capacidades visuais aplicáveis
 
-Projeto tem **GUI (GTK3)** e **TUI (Textual)**. Sprints que tocam `src/hefesto/app/**`, `src/hefesto/tui/**`, `src/hefesto/gui/*.glade`, CSS/QSS ou templates obrigam captura visual via skill `validacao-visual`.
+Projeto tem **GUI (GTK3)** e **TUI (Textual)**. Sprints que tocam `src/hefesto_dualsense4unix/app/**`, `src/hefesto_dualsense4unix/tui/**`, `src/hefesto_dualsense4unix/gui/*.glade`, CSS/QSS ou templates obrigam captura visual via skill `validacao-visual`.
 
 Pipeline canônico (preferir nesta ordem):
 
@@ -69,9 +69,9 @@ Pipeline canônico (preferir nesta ordem):
 
 Para GUI GTK3, comando canônico:
 ```bash
-.venv/bin/python -m hefesto.app.main &
+.venv/bin/python -m hefesto_dualsense4unix.app.main &
 sleep 3
-WID=$(xdotool search --name "Hefesto v" | head -1)
+WID=$(xdotool search --name "Hefesto - Dualsense4Unix v" | head -1)
 TS=$(date +%Y%m%dT%H%M%S)
 xdotool windowactivate "$WID" && sleep 0.4
 import -window "$WID" "/tmp/hefesto_gui_<area>_${TS}.png"
@@ -84,36 +84,36 @@ Proof-of-work visual obriga: PNG absoluto + sha256 + descrição multimodal (3-5
 
 ## [CORE] Invariantes de arquitetura
 
-- **IPC socket path:** `$XDG_RUNTIME_DIR/hefesto/hefesto.sock` via `hefesto.utils.xdg_paths.ipc_socket_path()`. Cliente e servidor usam o mesmo ponto de verdade.
+- **IPC socket path:** `$XDG_RUNTIME_DIR/hefesto-dualsense4unix/hefesto-dualsense4unix.sock` via `hefesto_dualsense4unix.utils.xdg_paths.ipc_socket_path()`. Cliente e servidor usam o mesmo ponto de verdade.
 - **UDP compat DSX:** `127.0.0.1:6969`, JSON schema em `docs/protocol/udp-schema.md`.
 - **JSON-RPC 2.0** em NDJSON UTF-8 sobre Unix socket. 10 métodos canônicos: `profile.switch`, `profile.list`, `trigger.set`, `trigger.reset`, `led.set`, `rumble.set`, `daemon.status`, `daemon.state_full`, `controller.list`, `daemon.reload`.
 - **Perfil fallback** (`fallback.json`) tem `priority: -1000` e matcher universal. Autoswitch cai nele quando nenhum outro bate.
 - **PT-BR obrigatório** em código, comentários, docs, commits, logs `INFO`+. EN preservado em `errno`, flags POSIX, identificadores de protocolo.
 - **Acentuação PT-BR obrigatória** — todo arquivo tocado pela sprint passa por varredura de acentuação periférica. Não aceitar `funcao`, `validacao`, `comunicacao`, `configuracao`, `descricao`, etc.
 - **Zero emojis gráficos** (Emoji_Presentation block: U+1F000+, U+2600+ coloridos). **Glyphs Unicode de estado** (U+25CF BLACK CIRCLE, U+25CB WHITE CIRCLE, U+25AE/AF block elements, box drawing) **são permitidos e devem ser preservados** — fazem parte da UI textual funcional.
-- **Limite de request IPC:** `MAX_PAYLOAD_BYTES = 32_768` em `src/hefesto/daemon/ipc_server.py`. Requests maiores são rejeitados com erro JSON-RPC `-32600`. Ajuste defensivo (HARDEN-IPC-PAYLOAD-LIMIT-01).
+- **Limite de request IPC:** `MAX_PAYLOAD_BYTES = 32_768` em `src/hefesto_dualsense4unix/daemon/ipc_server.py`. Requests maiores são rejeitados com erro JSON-RPC `-32600`. Ajuste defensivo (HARDEN-IPC-PAYLOAD-LIMIT-01).
 
 ---
 
 ## [CORE] Armadilhas conhecidas (atualizar quando sprint descobrir nova)
 
 ### A-01: `IpcServer.start()` / `stop()` com `unlink()` cego — **RESOLVIDA**
-Local original: `src/hefesto/daemon/ipc_server.py:79-80` e `:94-95`.
+Local original: `src/hefesto_dualsense4unix/daemon/ipc_server.py:79-80` e `:94-95`.
 Risco: dois processos daemon compartilhando o mesmo socket_path se destroem mutuamente. Reproduzido 2026-04-21: daemon systemd em execução teve seu socket apagado por `./run.sh --smoke`, deixando a GUI órfã mostrando "daemon offline" apesar de `systemctl is-active = active`.
-Fix aplicado: método `_probe_socket_and_cleanup()` em `src/hefesto/daemon/ipc_server.py:126-157`. Antes de qualquer `unlink`, tenta `socket.connect` com timeout 100ms; se conexão aceita, levanta `SocketInUseError` (não apaga); só remove arquivo órfão de socket morto. Chamado em `start()` linha 116. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
+Fix aplicado: método `_probe_socket_and_cleanup()` em `src/hefesto_dualsense4unix/daemon/ipc_server.py:126-157`. Antes de qualquer `unlink`, tenta `socket.connect` com timeout 100ms; se conexão aceita, levanta `SocketInUseError` (não apaga); só remove arquivo órfão de socket morto. Chamado em `start()` linha 116. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
 ### A-02: `udp_server.py` AssertionError a cada startup — **RESOLVIDA**
-Local original: `src/hefesto/daemon/udp_server.py:106`.
+Local original: `src/hefesto_dualsense4unix/daemon/udp_server.py:106`.
 Código antigo: `assert isinstance(transport, asyncio.DatagramTransport)`. Em Python 3.10, o objeto real `_SelectorDatagramTransport` não passa o isinstance check para a classe pública `asyncio.DatagramTransport`. Traceback no journal a cada startup.
-Fix aplicado: `src/hefesto/daemon/udp_server.py:112`. Assert removido; atribuição direta com `# type: ignore[assignment]` e comentário referenciando `BUG-UDP-01 / A-02`. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
+Fix aplicado: `src/hefesto_dualsense4unix/daemon/udp_server.py:112`. Assert removido; atribuição direta com `# type: ignore[assignment]` e comentário referenciando `BUG-UDP-01 / A-02`. Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
 ### A-03: Smoke compartilha socket path com daemon de produção — **RESOLVIDA (indireto)**
-Local: `run.sh:52-78` + `src/hefesto/utils/xdg_paths.py:52-53`.
+Local: `run.sh:52-78` + `src/hefesto_dualsense4unix/utils/xdg_paths.py:52-53`.
 Risco original: decorre de A-01; smoke poderia destruir socket de daemon vivo.
-Status: risco concreto de destruição mútua está fechado pela resolução de A-01 — probe ativo impede apagar socket em uso. Isolamento via env `HEFESTO_IPC_SOCKET_NAME` não foi implementado (opcional, não mais crítico). Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
+Status: risco concreto de destruição mútua está fechado pela resolução de A-01 — probe ativo impede apagar socket em uso. Isolamento via env `HEFESTO_DUALSENSE4UNIX_IPC_SOCKET_NAME` não foi implementado (opcional, não mais crítico). Auditado em AUDIT-V2-COMPLETE-01 (2026-04-23).
 
 ### A-04: Diff working-tree 2026-04-21 removeu glyphs Unicode de estado
-Local: `src/hefesto/app/actions/{status,daemon,emulation}_actions.py`, `src/hefesto/tui/widgets/__init__.py`, `tests/unit/test_tui_widgets.py`, `docs/process/HEFESTO_PROJECT.md`, `docs/process/HEFESTO_DECISIONS_V2.md`.
+Local: `src/hefesto_dualsense4unix/app/actions/{status,daemon,emulation}_actions.py`, `src/hefesto_dualsense4unix/tui/widgets/__init__.py`, `tests/unit/test_tui_widgets.py`, `docs/process/HEFESTO_PROJECT.md`, `docs/process/HEFESTO_DECISIONS_V2.md`.
 Risco: interpretação errada de "zero emojis" strippou BLACK/WHITE CIRCLE (U+25CF/U+25CB) dos markups Pango, zerou `BatteryMeter._icon_for_level` (retorna `""` para todos os níveis) e adaptou o teste para esconder a regressão (viola meta-regras 9.2 e 9.6). Docs perderam `HEAVY CHECK MARK` / `CROSS MARK` sem substituição por texto.
 Fix canônico: reverter os `*_actions.py` e `tui/widgets/__init__.py` ao HEAD~0 pré-diff; nos docs, substituir por texto "OK" / "ERRADO". **RESOLVIDA** pela sprint UX-HEADER-01 em 2026-04-21.
 
@@ -123,7 +123,7 @@ Risco: suspende device USB inativo após ~2s. Gamepad em polling HID a 60-120 Hz
 Fix canônico: aplicar `assets/72-ps5-controller-autosuspend.rules` via `install_udev.sh`. Regra força `power/control=on` e `power/autosuspend_delay_ms=-1` para `054c:0ce6` e `054c:0df2` no subsystem=usb. Ver sprint USB-POWER-01. Trazido de projeto irmão (desbloqueador Switch) onde a gotcha foi primeiro documentada.
 
 ### A-06: Campo novo em `LedsConfig`/`TriggersConfig`/`RumbleConfig` precisa sprint-par de profile-apply
-Local: `src/hefesto/profiles/manager.py:85-93` (`_to_led_settings`) e `apply()` :62-70.
+Local: `src/hefesto_dualsense4unix/profiles/manager.py:85-93` (`_to_led_settings`) e `apply()` :62-70.
 Risco: sprint adiciona campo ao pydantic schema e aos 4 JSONs de `assets/profiles_default/`, mas `_to_led_settings()` (ou equivalente para triggers/rumble) só lê um subconjunto fixo de campos. Campo novo vira letra morta no autoswitch/profile.switch. Detectado em FEAT-LED-BRIGHTNESS-01 (2026-04-21): `lightbar_brightness` chegou ao schema, JSON e GUI, mas `_to_led_settings` não propagou ao `LedSettings` → RGB bruto foi ao hardware ignorando perfil.
 Fix canônico: toda spec que adiciona campo a `*Config` DEVE incluir na lista de critérios a alteração do mapper correspondente (`_to_led_settings`, `build_from_name`, etc.) e teste de integração `test_profile_manager.py` que valide propagação ao controller via mock. Planejador-sprint passa a considerar "profile-apply propagation" item obrigatório.
 
@@ -137,42 +137,42 @@ Regra de revisão para planejador-sprint: para cada `controller.set_*(settings.<
 **RESOLVIDA para `mic_led` (variante inversa)** (AUDIT-FINDING-PROFILE-MIC-LED-RESET-01, 2026-04-23): `apply_led_settings` não chama mais `controller.set_mic_led(...)`. `LedSettings.mic_led` documentado como no-op reservado (mantido por compat de API). Mic LED só muda via botão físico (`HotkeyManager` mic_btn), UDP MicLED ou IPC dedicado. Teste: `test_apply_led_settings_nao_toca_mic_led` em `tests/unit/test_led_and_rumble.py::TestApplyLedSettings` comprova que `fc.mic_led_history` permanece intocado após `apply_led_settings`. Dois testes antigos que validavam o comportamento bugado (`test_apply_led_settings_propagates_mic_led`, `test_apply_led_settings_mic_led_false`) foram removidos porque asseguravam a regressão (explicitado no commit).
 
 ### A-07: Wire-up de novo subsistema do Daemon precisa 3 pontos sincronizados
-Local: `src/hefesto/daemon/lifecycle.py` — `run()`, `_poll_loop()`, `_shutdown()`.
+Local: `src/hefesto_dualsense4unix/daemon/lifecycle.py` — `run()`, `_poll_loop()`, `_shutdown()`.
 Risco: sprint adiciona novo subsystem (HotkeyManager, MouseDevice, AutoSwitcher) mas esquece de um dos 3 pontos canônicos. Detectado em FEAT-HOTKEY-STEAM-01 iter.1: `_on_ps_solo` foi definido no HotkeyManager, testes do manager isolado passaram, mas `Daemon` nunca instanciou o manager nem chamou `observe()` no poll loop — hotkey morreu antes de existir em produção.
 Fix canônico: toda sprint de subsystem novo DEVE ter seção "wire-up no Daemon" nos critérios de aceite listando (1) slot no dataclass `Daemon`, (2) método `_start_<subsys>()` chamado em `run()` antes do `await self._stop_event.wait()`, (3) consumo no `_poll_loop()` se aplicável, (4) zeragem no `_shutdown()`. Teste obrigatório: `test_start_<subsys>_instancia_e_executa_callback` que construa `Daemon` com config real e dispare o callback, provando que a instância é alcançável via `daemon._<subsys>`.
 
 ### A-08: Closure em `_start_<subsys>` captura `config` por alias — reload quebra silenciosamente
-Local: `src/hefesto/daemon/lifecycle.py:269-270` (padrão) — `action = self.config.ps_button_action; command = self.config.ps_button_command`.
+Local: `src/hefesto_dualsense4unix/daemon/lifecycle.py:269-270` (padrão) — `action = self.config.ps_button_action; command = self.config.ps_button_command`.
 Risco: `daemon.reload` futuro substitui `self.config = NewConfig(...)`, mas closures já capturadas continuam apontando para os valores antigos. Bug latente: `action="steam"` no disco, mas hotkey ainda dispara o custom antigo.
 Fix canônico: capturar `cfg = self.config` no outer e ler `cfg.field` **dentro** da closure, não fora. Mesmo assim, se reload faz `self.config = novo`, ainda quebra — melhor resolver via hot-reload do HotkeyManager (`_stop_hotkey_manager() + _start_hotkey_manager()`) quando IPC `daemon.reload` existir. Registrar no planejamento de V1.2 `daemon.reload`.
 **RESOLVIDA** pela sprint REFACTOR-DAEMON-RELOAD-01 (2026-04-22): `_on_ps_solo` lê `self.config` em runtime (não em closure); método `reload_config(new_config)` implementado — substitui `self.config`, rebuilda HotkeyManager via `_stop_hotkey_manager + _start_hotkey_manager`, reage se `mouse_emulation_enabled` mudou; handler IPC `daemon.reload` implementado com validação de campos desconhecidos e retorno do novo config serializado. Testes: `tests/unit/test_daemon_reload.py` (10 cenários).
 
 ### A-09: Múltiplos consumidores de `_evdev.snapshot()` por tick — **RESOLVIDA**
-Local original: `src/hefesto/daemon/lifecycle.py:176-181` (hotkey) e `:328-332` (mouse).
+Local original: `src/hefesto_dualsense4unix/daemon/lifecycle.py:176-181` (hotkey) e `:328-332` (mouse).
 Risco: cada subsystem novo que precisa ler botões físicos via evdev snapshot duplica o custo por tick. Antes: 2 consumidores → 2 snapshots/tick (120/s a 60Hz quando ambos ativos).
 Fix aplicado (REFACTOR-HOTKEY-EVDEV-01, 2026-04-22): método `_evdev_buttons_once() -> frozenset[str]` extraído em `Daemon`. Chamado 1× em `_poll_loop` antes dos consumidores; resultado injetado via parâmetro em `_dispatch_mouse_emulation(state, buttons_pressed)` e passado diretamente a `_hotkey_manager.observe(buttons_pressed, now=tick_started)`. Teste: `tests/unit/test_poll_loop_evdev_cache.py` (5 cenários) confirma exatamente 1 snapshot/tick com 0, 1 ou 2 consumidores ativos. Novos consumidores (FEAT-HOTKEY-MIC-01 etc.) devem receber `buttons_pressed` como parâmetro — não relendo evdev internamente.
 
 ### A-12: PyGObject ausente no `.venv` sem `--with-tray` — **PARCIALMENTE RESOLVIDA**
 Local: `scripts/dev_bootstrap.sh`, `run.sh`, `scripts/dev-setup.sh`.
-Risco: `.venv/bin/python -m hefesto.app.main` falha com `ModuleNotFoundError: No module named 'gi'` quando bootstrap rodou sem `--with-tray`. O `run.sh` contorna invocando `/usr/bin/python3` que tem `python3-gi` do sistema, mas validação visual via `.venv` quebra. Detectado em BUG-GUI-DAEMON-STATUS-INITIAL-01 (2026-04-23): executor precisou injetar `PYTHONPATH` apontando para `/usr/lib/python3/dist-packages` para reproduzir o bug.
+Risco: `.venv/bin/python -m hefesto_dualsense4unix.app.main` falha com `ModuleNotFoundError: No module named 'gi'` quando bootstrap rodou sem `--with-tray`. O `run.sh` contorna invocando `/usr/bin/python3` que tem `python3-gi` do sistema, mas validação visual via `.venv` quebra. Detectado em BUG-GUI-DAEMON-STATUS-INITIAL-01 (2026-04-23): executor precisou injetar `PYTHONPATH` apontando para `/usr/lib/python3/dist-packages` para reproduzir o bug.
 Fix aplicado (INFRA-VENV-PYGOBJECT-01 MERGED 2026-04-23): `dev-setup.sh` agora valida `gi` + `Gtk.require_version('3.0')` importáveis pelo `.venv/bin/python` e, quando ausente, imprime instrução literal (`sudo apt install python3-gi libgirepository-1.0-dev gir1.2-gtk-3.0 gir1.2-ayatanaappindicator3-0.1 && bash scripts/dev_bootstrap.sh --with-tray`). README seção Instalação explicita a decisão opt-in e referencia esta armadilha. Status **PARCIAL**: o dev-setup só avisa; instalação efetiva do PyGObject continua manual via `--with-tray` (decisão de design — evita falha pesada em máquina sem `libgirepository-1.0-dev`).
 
 ### A-11: Race de udev ADD disparando unit oneshot 2x em <200ms
-Local: `assets/73-ps5-controller-hotplug.rules` + `assets/hefesto-gui-hotplug.service`.
-Risco: o plug USB do DualSense gera múltiplos eventos `ACTION=="add"` em <200ms (interface USB + filhos hidraw). Guard `pgrep -f hefesto.app.main` na unit oneshot é race-prone — dois eventos em paralelo entram antes do 1º processo ser visível. Resultado: 2 GUIs sobem; a 2ª (takeover "última vence" do single_instance) mata a 1ª → efeito visual de "tray abre e fecha". Reportado em 2026-04-22 pelo usuário após instalar v1.0.0 + BUG-MULTI-INSTANCE-01.
+Local: `assets/73-ps5-controller-hotplug.rules` + `assets/hefesto-dualsense4unix-gui-hotplug.service`.
+Risco: o plug USB do DualSense gera múltiplos eventos `ACTION=="add"` em <200ms (interface USB + filhos hidraw). Guard `pgrep -f hefesto_dualsense4unix.app.main` na unit oneshot é race-prone — dois eventos em paralelo entram antes do 1º processo ser visível. Resultado: 2 GUIs sobem; a 2ª (takeover "última vence" do single_instance) mata a 1ª → efeito visual de "tray abre e fecha". Reportado em 2026-04-22 pelo usuário após instalar v1.0.0 + BUG-MULTI-INSTANCE-01.
 Fix canônico (sprint BUG-TRAY-SINGLE-FLASH-01): remover guard `pgrep`; `HefestoApp.__init__` usa novo `acquire_or_bring_to_front("gui", ...)` (modelo "primeira vence") em vez de `acquire_or_takeover`. Predecessor vivo é trazido ao foco via `xdotool windowactivate` ou SIGUSR1 handler; nova GUI sai com rc 0. Daemon continua com `acquire_or_takeover` porque ali "última vence" é desejado.
 
 ### A-10: Múltiplas instâncias de daemon/GUI concorrendo por hardware
-Local: `src/hefesto/daemon/main.py` (run_daemon), `src/hefesto/app/app.py` (HefestoApp.__init__), `install.sh` (passos 6-7), `assets/hefesto.service` + `assets/hefesto-gui-hotplug.service` + udev rule 73.
+Local: `src/hefesto_dualsense4unix/daemon/main.py` (run_daemon), `src/hefesto_dualsense4unix/app/app.py` (HefestoApp.__init__), `install.sh` (passos 6-7), `assets/hefesto-dualsense4unix.service` + `assets/hefesto-dualsense4unix-gui-hotplug.service` + udev rule 73.
 Risco: cinco fontes independentes de spawn sem mutex (install.sh restart + hotplug unit + udev ADD + launcher GUI + ensure_daemon_running da GUI) geram 2+ daemons concorrentes. Cada daemon cria seu próprio `UinputMouseDevice` e ambos emitem REL_X/REL_Y → cursor "voando" ao ativar o toggle Mouse. Matar processo via monitor não basta — `Restart=on-failure RestartSec=2` respawna em ≤2s, dando sensação de "PID novo aparece cada vez". Reportado pelo usuário em 2026-04-22 após rodar install/uninstall.
 Fix canônico (sprint BUG-MULTI-INSTANCE-01, 2026-04-22):
-  - `src/hefesto/utils/single_instance.py`: `acquire_or_takeover(name)` via `fcntl.flock` em `$XDG_RUNTIME_DIR/hefesto/<name>.pid`. Modelo "última vence" — envia `SIGTERM` ao predecessor (grace 2s, poll 50ms), escala `SIGKILL` se necessário.
+  - `src/hefesto_dualsense4unix/utils/single_instance.py`: `acquire_or_takeover(name)` via `fcntl.flock` em `$XDG_RUNTIME_DIR/hefesto-dualsense4unix/<name>.pid`. Modelo "última vence" — envia `SIGTERM` ao predecessor (grace 2s, poll 50ms), escala `SIGKILL` se necessário.
   - `run_daemon` e `HefestoApp.__init__` chamam `acquire_or_takeover("daemon")` e `acquire_or_takeover("gui")` no topo.
-  - `assets/hefesto.service`: `SuccessExitStatus=143 SIGTERM` (takeover não dispara respawn) + `StartLimitIntervalSec=30 StartLimitBurst=3` em `[Unit]`.
+  - `assets/hefesto-dualsense4unix.service`: `SuccessExitStatus=143 SIGTERM` (takeover não dispara respawn) + `StartLimitIntervalSec=30 StartLimitBurst=3` em `[Unit]`.
   - `install.sh` passos 6-7 viram opt-in (default NÃO). Flags `--enable-autostart`, `--enable-hotplug-gui`.
-  - `HefestoApp.quit_app`: chama `systemctl --user stop hefesto.service` antes de `Gtk.main_quit()` — "Sair" do tray encerra GUI + daemon.
+  - `HefestoApp.quit_app`: chama `systemctl --user stop hefesto-dualsense4unix.service` antes de `Gtk.main_quit()` — "Sair" do tray encerra GUI + daemon.
   - `ensure_daemon_running`: antes de disparar `systemctl start`, verifica pid file via `is_alive()` para não duplicar spawn.
-  - `uninstall.sh`: após systemctl stop+disable, `pkill -TERM` em `hefesto\.app\.main` e `hefesto daemon start` com grace 2s + `pkill -KILL` residual.
+  - `uninstall.sh`: após systemctl stop+disable, `pkill -TERM` em `hefesto_dualsense4unix\.app\.main` e `hefesto-dualsense4unix daemon start` com grace 2s + `pkill -KILL` residual.
 
 ---
 
@@ -225,8 +225,8 @@ Antipadrão a evitar: "ajustei o fix por dedução da doc do pacote". O que pare
 ## [CORE] Padrões de código
 
 - `from __future__ import annotations` em arquivos novos.
-- Logging via `structlog` sempre: `from hefesto.utils.logging_config import get_logger; logger = get_logger(__name__)`. Nunca `print()`.
-- Paths via `pathlib.Path` + `hefesto.utils.xdg_paths`. Nunca hardcoded absolutos.
+- Logging via `structlog` sempre: `from hefesto_dualsense4unix.utils.logging_config import get_logger; logger = get_logger(__name__)`. Nunca `print()`.
+- Paths via `pathlib.Path` + `hefesto_dualsense4unix.utils.xdg_paths`. Nunca hardcoded absolutos.
 - Testes unitários em `tests/unit/`, um arquivo por módulo. Padrão de nome: `test_<modulo>.py`.
 - Limite: 800 linhas por arquivo (exceto configs/registries/testes).
 - Docstrings curtas em PT-BR.
