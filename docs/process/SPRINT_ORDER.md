@@ -1,4 +1,4 @@
-# SPRINT_ORDER.md — Roadmap de execução do Hefesto
+# SPRINT_ORDER.md — Roadmap de execução do Hefesto - Dualsense4Unix
 
 > Ordem recomendada de execução das sprints pendentes, agrupadas por wave/fase.
 > Cada sprint tem spec em `docs/process/sprints/<ID>.md` e issue correspondente no GitHub.
@@ -31,7 +31,7 @@ Todas as sprints marcadas MERGED abaixo foram entregues — spec original preser
 
 ## Wave V1.1 — Estabilidade + UX polido
 
-Objetivo: fechar buracos reportados pelo usuário, polir a GUI, deixar o Hefesto apresentável pra terceiros.
+Objetivo: fechar buracos reportados pelo usuário, polir a GUI, deixar o Hefesto - Dualsense4Unix apresentável pra terceiros.
 
 ### Fase 1 — Bugs críticos (concluída)
 
@@ -302,7 +302,7 @@ Objetivo: resolver as 9 demandas do usuário reportadas após instalar v2.1.0 (U
 | 69 | [RESEARCH] **FEAT-FIRMWARE-UPDATE-PHASE2-01** — captura real de protocolo DFU; **destravada pela descoberta em 2026-04-23 que nowrep/dualsensectl PR#53 já documentou e implementou o protocolo completo em main.c MIT** (reports 0x20/0xF4/0xF5, blob 950272 bytes, CDN fwupdater.dl.playstation.net); ver docs/research/firmware-dualsense-2026-04-survey.md | L→XS | opus | RESEARCH-DONE-VIA-UPSTREAM |
 | 70 | [FEAT] **FEAT-FIRMWARE-UPDATE-PHASE3-01** — tooling Linux para re-aplicar firmware oficial; SUPERSEDED por 70.2 (decisão: opção A+UI, wrapper subprocess + aba GUI) | XL→— | — | SUPERSEDED |
 | 70.1 | [DECISION] **FEAT-FIRMWARE-UPDATE-PHASE3-DECISION-01** — escolher entre A/B/C/D; DECIDIDO em 2026-04-23 opção A+UI | XS | humano+opus | DECIDIDO |
-| 70.2 | [FEAT] **FEAT-FIRMWARE-UPDATE-GUI-01** — aba Firmware na GUI via wrapper dualsensectl; backend `src/hefesto/integrations/firmware_updater.py` + mixin `src/hefesto/app/actions/firmware_actions.py` + page glade + 17 tests unit | M | opus | MERGED |
+| 70.2 | [FEAT] **FEAT-FIRMWARE-UPDATE-GUI-01** — aba Firmware na GUI via wrapper dualsensectl; backend `src/hefesto_dualsense4unix/integrations/firmware_updater.py` + mixin `src/hefesto_dualsense4unix/app/actions/firmware_actions.py` + page glade + 17 tests unit | M | opus | MERGED |
 
 ### Bloco H — visibilidade / open source (pós-CI funcionar)
 
@@ -329,7 +329,7 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 | 76 | [BUG] **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-02** — whitelist ADR-011 (`UNICODE_ALLOWED_RANGES`) em `scripts/validar-acentuacao.py` filtra substituições em `corrigir_arquivo`; warning stderr quando par malicioso é bloqueado; 23 testes regressão em `tests/unit/test_validar_acentuacao_glyphs.py` (parametrizado por codepoint, par malicioso simulado) | XS | opus | MERGED |
 | 77 | [UI] **UI-PROFILES-RADIO-GROUP-REDESIGN-01** — 6 GtkRadioButton → GtkComboBoxText (`profile_aplica_a_combo`) com 6 ids em main.glade; `_selected_simple_choice`/`_select_radio` via `get/set_active_id`; handler `_on_aplica_a_changed` esconde `profile_game_entry_box` quando id != "game"; 5 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
 | 77.1 | [BUG] **BUG-FIRMWARE-SIGNAL-HANDLERS-01** — colateral descoberto em validação visual da 77: handlers `on_firmware_*` faltavam em `_signal_handlers()` do `app.py`; botões da aba Firmware ficavam mortos; fix aplicado junto com 77 | XS | opus | MERGED |
-| 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — preview JSON ao vivo (`GtkFrame` + `GtkScrolledWindow` + `profile_preview_label` em main.glade) ocupa o espaço vazio liberado pela 77; `_refresh_preview()` reutiliza `_build_profile_from_editor`; CSS `.hefesto-profile-preview` monospace Drácula; 3 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
+| 78 | [UI] **UI-PROFILES-RIGHT-PANEL-REBALANCE-01** — preview JSON ao vivo (`GtkFrame` + `GtkScrolledWindow` + `profile_preview_label` em main.glade) ocupa o espaço vazio liberado pela 77; `_refresh_preview()` reutiliza `_build_profile_from_editor`; CSS `.hefesto-dualsense4unix-profile-preview` monospace Drácula; 3 testes unit; screenshot em `docs/process/screenshots/` | S | opus | MERGED |
 
 ### Fase — Marco v2.2.1
 
@@ -342,11 +342,11 @@ Descobertos durante release v2.2.0 + decisão do usuário em 2026-04-23 de segui
 
 | Ordem | Sprint | Porte | Status |
 |---|---|---|---|
-| 73.1 | [CI] **CHORE-VERSION-SYNC-GATE-01** — novo job `version-sync` em `.github/workflows/ci.yml` que falha se fallback `__version__` de `src/hefesto/__init__.py` divergir de `pyproject.toml [project].version`. Regex inline `tomllib` + `re.search` (YAGNI parser AST). Motivação: BUG-APPIMAGE-VERSION-NAME-01 revelou que fallback ficou hardcoded em 1.0.0 por 3 releases. Baseline 2.2.2==2.2.2 passa; drift simulado 9.9.9!=2.2.2 detectado. | XS | opus | MERGED |
+| 73.1 | [CI] **CHORE-VERSION-SYNC-GATE-01** — novo job `version-sync` em `.github/workflows/ci.yml` que falha se fallback `__version__` de `src/hefesto_dualsense4unix/__init__.py` divergir de `pyproject.toml [project].version`. Regex inline `tomllib` + `re.search` (YAGNI parser AST). Motivação: BUG-APPIMAGE-VERSION-NAME-01 revelou que fallback ficou hardcoded em 1.0.0 por 3 releases. Baseline 2.2.2==2.2.2 passa; drift simulado 9.9.9!=2.2.2 detectado. | XS | opus | MERGED |
 | 80 | [BUG] **BUG-CI-ACENTUACAO-REGRESSION-01** — CI acentuacao vermelho em main desde pelo menos v2.2.1 por 10 violações pré-existentes: 6 em comentários de `release.yml` (l.116-136), 3 em string literals de `tests/unit/test_firmware_updater.py` (l.66,119), 2 em identifier Python `conteudo` de `tests/unit/test_validar_acentuacao_glyphs.py` (l.145-146). Descoberto durante A2b da v2.2.2. Fix em 2 camadas: adicionar acentuação em texto + renomear `conteudo`→`texto_final` (evitar falso positivo em identifiers). Não afeta release.yml (ortogonal). | XS | opus | ready |
-| 81 | [RELEASE] **Release v2.2.2** — bump 2.2.1→2.2.2 + gate version-sync (73.1) + Noble migration + INFRA-EVDEV-TOUCHPAD-01 adiantado; publicada 2026-04-24 via run `24867530741` com 5 assets `isDraft:false` após 7 iterações de tag (L-21-7 disparou 6× em cascata: pydantic → structlog.typing → constraint errada → cascata tripla → typer PEP 604 → hefesto version subcomando). **Primeiro release 100% automático desde v0.1.0**. Commit final `9afac40`. | — | opus | MERGED |
+| 81 | [RELEASE] **Release v2.2.2** — bump 2.2.1→2.2.2 + gate version-sync (73.1) + Noble migration + INFRA-EVDEV-TOUCHPAD-01 adiantado; publicada 2026-04-24 via run `24867530741` com 5 assets `isDraft:false` após 7 iterações de tag (L-21-7 disparou 6× em cascata: pydantic → structlog.typing → constraint errada → cascata tripla → typer PEP 604 → hefesto-dualsense4unix version subcomando). **Primeiro release 100% automático desde v0.1.0**. Commit final `9afac40`. | — | opus | MERGED |
 | 82 | [BUG] **BUG-DEB-SMOKE-STRUCTLOG-TYPING-02** — SUPERSEDED_BY_V2_2_2. Spec original propunha compat layer `try/except types/typing` + constraint `python3-structlog (>= 21.5)`. Aplicação parcial (commits `ad80d6c` + `1c476f8`) foi insuficiente: Jammy apt tem typer 0.4, platformdirs 2.5, pydantic 1.10 — tudo velho demais. Resolução final foi arquitetural: migração do runner `deb-install-smoke` de `ubuntu-22.04` para `ubuntu-24.04` (Noble) em `b03ad48`, + `pip install --user 'pydantic>=2.0' 'typer>=0.12'` em `9afac40`. Constraint no control removida (compat layer em `logging_config.py` mantida como defesa para usuários que instalem .deb em Jammy sem pip). | XS | opus | SUPERSEDED |
-| 83 | [INFRA] **INFRA-EVDEV-TOUCHPAD-01** — MERGED adiantado na v2.2.2 (commit `43f76d8`). Adiciona `find_dualsense_touchpad_evdev()` + classe `TouchpadReader` em `src/hefesto/core/evdev_reader.py`; expõe `touchpad_{left,middle,right}_press` via discriminação `ABS_X` (limites 640/1280 sobre 1920). 19 testes unit + smoke hardware-real com DualSense USB 054c:0ce6. Remove comentário "pendente" de L89. Destrava FEAT-KEYBOARD-UI-01 (59.3). | XS | opus | MERGED |
+| 83 | [INFRA] **INFRA-EVDEV-TOUCHPAD-01** — MERGED adiantado na v2.2.2 (commit `43f76d8`). Adiciona `find_dualsense_touchpad_evdev()` + classe `TouchpadReader` em `src/hefesto_dualsense4unix/core/evdev_reader.py`; expõe `touchpad_{left,middle,right}_press` via discriminação `ABS_X` (limites 640/1280 sobre 1920). 19 testes unit + smoke hardware-real com DualSense USB 054c:0ce6. Remove comentário "pendente" de L89. Destrava FEAT-KEYBOARD-UI-01 (59.3). | XS | opus | MERGED |
 
 ### Fase — Marco V2.3.0 (keyboard) — MERGED 2026-04-24
 

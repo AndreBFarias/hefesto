@@ -11,7 +11,7 @@
 - **5/5** perguntas pendentes do V1 → respondidas.
 - **`check_anonymity.sh`** → resolve 1.2 e 1.3 da auditoria original com qualidade (whitelist por arquivo é a decisão certa).
 
-Este V3 **não é bloqueio**. São 3 bugs de implementação nos patches + 5 ajustes específicos do domínio Hefesto que não caem sob as regras globais.
+Este V3 **não é bloqueio**. São 3 bugs de implementação nos patches + 5 ajustes específicos do domínio Hefesto - Dualsense4Unix que não caem sob as regras globais.
 
 ---
 
@@ -120,8 +120,8 @@ Código atual assume `parts[1]` é o estado. Em systemd ≥ 245, o formato real 
 
 ```
 UNIT FILE                  STATE           PRESET
-hefesto.service            disabled        enabled
-hefesto-headless.service   enabled         disabled
+hefesto-dualsense4unix.service            disabled        enabled
+hefesto-dualsense4unix-headless.service   enabled         disabled
 ```
 
 `line.split()` em uma linha com 3 colunas retorna lista de 3 elementos. `parts[1] in ("enabled", ...)` funciona. **Mas**: em systemd antigo (≤ 239) só há 2 colunas (sem PRESET). `parts[1]` ainda é STATE. OK.
@@ -132,7 +132,7 @@ hefesto-headless.service   enabled         disabled
 
 ```python
 cmd = ["systemctl", "--user", "list-unit-files",
-       "hefesto.service", "hefesto-headless.service",
+       "hefesto-dualsense4unix.service", "hefesto-dualsense4unix-headless.service",
        "--no-pager", "--plain"]
 # --plain garante output sem cores/control chars, consistente entre versões.
 # list-unit-files em output vazio (nenhuma unit encontrada) retorna exit 0 com stdout vazio,
@@ -143,7 +143,7 @@ Adicionar teste: se `result.stdout.strip() == ""`, retornar `None` explícito.
 
 ---
 
-## 3. AJUSTES ESPECÍFICOS DO DOMÍNIO HEFESTO
+## 3. AJUSTES ESPECÍFICOS DO DOMÍNIO HEFESTO - DUALSENSE4UNIX
 
 ### 3.1 `docs/process/` vs `docs/history/`
 
@@ -176,9 +176,9 @@ Script inclui `:!scripts/check_anonymity.sh` na lista de excludes. Bom. Mas **se
 
 ```bash
 @test "detecta violação óbvia" {
-    echo "# claude test" > src/hefesto/_fake_.py
+    echo "# claude test" > src/hefesto_dualsense4unix/_fake_.py
     run bash scripts/check_anonymity.sh
-    rm src/hefesto/_fake_.py
+    rm src/hefesto_dualsense4unix/_fake_.py
     [ "$status" -eq 1 ]
 }
 
@@ -190,9 +190,9 @@ Script inclui `:!scripts/check_anonymity.sh` na lista de excludes. Bom. Mas **se
 }
 
 @test "não falsamente casa 'model' em contexto técnico" {
-    echo "model_name = 'ps5'" > src/hefesto/_fake_.py
+    echo "model_name = 'ps5'" > src/hefesto_dualsense4unix/_fake_.py
     run bash scripts/check_anonymity.sh
-    rm src/hefesto/_fake_.py
+    rm src/hefesto_dualsense4unix/_fake_.py
     [ "$status" -eq 0 ]
 }
 ```
