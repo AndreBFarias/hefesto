@@ -1,6 +1,6 @@
 # CHECKLIST_HARDWARE_V2 — Protocolo de validação em DualSense real
 
-Checklist reprodutível para validar em hardware físico as features entregues nas waves V1.1, V1.2 e V2.0+ do Hefesto. Criado pela sprint `HARDWARE-VALIDATION-PROTOCOL-01` em 2026-04-23.
+Checklist reprodutível para validar em hardware físico as features entregues nas waves V1.1, V1.2 e V2.0+ do Hefesto - Dualsense4Unix. Criado pela sprint `HARDWARE-VALIDATION-PROTOCOL-01` em 2026-04-23.
 
 Todas as features abaixo foram testadas via `FakeController` no CI. A validação em controle real é trilho manual — executada por quem tem hardware — **antes** de cada release (`v2.1.0` em diante). O mantenedor com DualSense preenche os checkboxes e arquiva o documento preenchido em `docs/process/validacoes/<release>/` ao final.
 
@@ -14,8 +14,8 @@ Todas as features abaixo foram testadas via `FakeController` no CI. A validaçã
   - `pactl` ou `wpctl` (teste Mic mute).
   - `xdotool`, `xev` (teste mouse emulation).
   - `jq` (opcional — parse do retorno IPC).
-- Hefesto instalado na versão alvo (via `.deb` ou `flatpak` ou `pip install -e .`).
-- Daemon rodando via `systemctl --user start hefesto.service` ou `hefesto daemon start`.
+- Hefesto - Dualsense4Unix instalado na versão alvo (via `.deb` ou `flatpak` ou `pip install -e .`).
+- Daemon rodando via `systemctl --user start hefesto-dualsense4unix.service` ou `hefesto-dualsense4unix daemon start`.
 - `udev` rules instaladas (`sudo bash scripts/install_udev.sh`) — obrigatório para evitar `CAP_A-05` (autosuspend derrubando controle).
 - **DualSense** conectado via USB-C ou pareado via Bluetooth.
 - **Bateria ≥ 30%** — itens com hotplug repetido podem esgotar bateria fraca; testes de rumble máximo puxam corrente não-trivial.
@@ -39,7 +39,7 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 - [ ] Aplicar via CLI ou GUI o bitmask `0b10101` (LEDs 1, 3, 5 acesos).
     - Pré-requisito: controle conectado, daemon rodando.
-    - Comando: `echo '{"jsonrpc":"2.0","id":1,"method":"led.set","params":{"player_mask":21}}' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/hefesto/hefesto.sock` — ou via GUI aba LEDs.
+    - Comando: `echo '{"jsonrpc":"2.0","id":1,"method":"led.set","params":{"player_mask":21}}' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/hefesto-dualsense4unix/hefesto-dualsense4unix.sock` — ou via GUI aba LEDs.
     - Observação esperada: LEDs Player 1, 3 e 5 acesos; 2 e 4 apagados.
     - Critério de falha: qualquer outro padrão aceso; nenhum LED aceso; todos apagados.
 
@@ -49,7 +49,7 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 - [ ] Selecionar política Economia na aba Rumble, aplicar rumble máximo.
     - Comando: abrir GUI, aba Rumble, clicar "Economia"; slider mantém default.
-    - Em paralelo: `echo '{"jsonrpc":"2.0","id":1,"method":"rumble.set","params":{"weak":255,"strong":255}}' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/hefesto/hefesto.sock`.
+    - Em paralelo: `echo '{"jsonrpc":"2.0","id":1,"method":"rumble.set","params":{"weak":255,"strong":255}}' | socat - UNIX-CONNECT:$XDG_RUNTIME_DIR/hefesto-dualsense4unix/hefesto-dualsense4unix.sock`.
     - Observação esperada: controle vibra **suavemente** (~30% intensidade plena).
     - Critério de falha: vibração plena (mult não aplicado); vibração zero (mult errado para 0).
 
@@ -85,8 +85,8 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 6 — Hotkey PS solo dispara Steam (FEAT-HOTKEY-STEAM-01)
 
-- [ ] Configurar `~/.config/hefesto/config.toml` com `ps_button_action = "steam"`.
-- [ ] Reiniciar daemon (`hefesto daemon reload` ou restart via systemctl).
+- [ ] Configurar `~/.config/hefesto-dualsense4unix/config.toml` com `ps_button_action = "steam"`.
+- [ ] Reiniciar daemon (`hefesto-dualsense4unix daemon reload` ou restart via systemctl).
 - [ ] Segurar o botão PS solitário (sem D-pad/combos) por 800 ms, soltar.
     - Observação esperada: Steam Big Picture abre.
     - Critério de falha: Steam não abre; daemon crasha; combo PS+D-pad segue funcionando (esse combo deve continuar válido — é o "sagrado").
@@ -160,8 +160,8 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 13 — daemon.reload hot (REFACTOR-DAEMON-RELOAD-01)
 
-- [ ] Com daemon rodando, editar `~/.config/hefesto/config.toml` — trocar `ps_button_action` de `"custom"` para `"steam"` (ou vice-versa).
-- [ ] Executar `hefesto daemon reload` (ou IPC `daemon.reload`).
+- [ ] Com daemon rodando, editar `~/.config/hefesto-dualsense4unix/config.toml` — trocar `ps_button_action` de `"custom"` para `"steam"` (ou vice-versa).
+- [ ] Executar `hefesto-dualsense4unix daemon reload` (ou IPC `daemon.reload`).
     - Observação esperada: log estruturado inclui `hotkey.manager.reloaded`; novo comportamento do PS solo reflete a mudança imediatamente **sem reiniciar o daemon**.
     - Critério de falha: daemon precisa restart; closure antiga continua ativa (regressão A-08).
 
@@ -169,8 +169,8 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 14 — Single-instance daemon takeover (BUG-MULTI-INSTANCE-01)
 
-- [ ] Iniciar daemon via `hefesto daemon start`. Confirmar PID com `pgrep -f "hefesto daemon"`.
-- [ ] Iniciar novamente: `hefesto daemon start`.
+- [ ] Iniciar daemon via `hefesto-dualsense4unix daemon start`. Confirmar PID com `pgrep -f "hefesto-dualsense4unix daemon"`.
+- [ ] Iniciar novamente: `hefesto-dualsense4unix daemon start`.
     - Observação esperada: PID antigo recebe SIGTERM e morre; PID novo assume. `pgrep` retorna **um único** PID.
     - **Crítico**: nenhum cursor errático, nenhuma vibração fantasma — se o mouse pular aleatoriamente, é regressão BUG-MULTI-INSTANCE-01 (duas instâncias concorrendo via uinput).
 
@@ -178,8 +178,8 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 15 — Single-instance GUI bring-to-front (BUG-TRAY-SINGLE-FLASH-01)
 
-- [ ] Abrir GUI via `hefesto-gui`. Janela aparece.
-- [ ] Rodar `hefesto-gui` novamente.
+- [ ] Abrir GUI via `hefesto-dualsense4unix-gui`. Janela aparece.
+- [ ] Rodar `hefesto-dualsense4unix-gui` novamente.
     - Observação esperada: **não abre segunda janela**. A primeira é trazida ao foco (X11 via `xdotool windowactivate`; Wayland via SIGUSR1 → `show_window`). Exit code do segundo launch: `0`.
     - Critério de falha: duas janelas simultâneas; primeira fecha; segunda trava sem foco.
 
@@ -187,25 +187,25 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 16 — Plugin lifecycle (FEAT-PLUGIN-01)
 
-- [ ] Listar plugins: `hefesto plugin list`.
-    - Observação esperada: lista inclui ao menos `lightbar_rainbow` (plugin de exemplo) se diretório `~/.config/hefesto/plugins/` existir com arquivos.
-- [ ] Recarregar: `hefesto plugin reload lightbar_rainbow`.
+- [ ] Listar plugins: `hefesto-dualsense4unix plugin list`.
+    - Observação esperada: lista inclui ao menos `lightbar_rainbow` (plugin de exemplo) se diretório `~/.config/hefesto-dualsense4unix/plugins/` existir com arquivos.
+- [ ] Recarregar: `hefesto-dualsense4unix plugin reload lightbar_rainbow`.
     - Observação esperada: plugin descarregado e recarregado; log `plugin.reloaded`; lightbar animação reinicia.
 
 ---
 
 ## Item 17 — Plugin watchdog (FEAT-PLUGIN-01)
 
-- [ ] Criar plugin malicioso em `~/.config/hefesto/plugins/slow.py`:
+- [ ] Criar plugin malicioso em `~/.config/hefesto-dualsense4unix/plugins/slow.py`:
     ```python
     import time
-    from hefesto.plugin_api import Plugin, PluginContext
+    from hefesto_dualsense4unix.plugin_api import Plugin, PluginContext
     
     class SlowPlugin(Plugin):
         def on_tick(self, ctx: PluginContext) -> None:
             time.sleep(0.01)  # 10ms excede budget de 5ms
     ```
-- [ ] Rodar `hefesto plugin reload slow`.
+- [ ] Rodar `hefesto-dualsense4unix plugin reload slow`.
     - Observação esperada: após 3 ticks com violação (>5 ms), daemon emite log `plugin.watchdog.disabled name=slow` e o plugin é desativado automaticamente.
     - Critério de falha: plugin continua ativo após violações; daemon trava; outros plugins afetados.
 
@@ -213,7 +213,7 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ## Item 18 — Metrics endpoint Prometheus (FEAT-METRICS-01)
 
-- [ ] Habilitar métricas: `~/.config/hefesto/config.toml` com `[metrics] enabled = true`.
+- [ ] Habilitar métricas: `~/.config/hefesto-dualsense4unix/config.toml` com `[metrics] enabled = true`.
 - [ ] Reiniciar daemon. Consultar: `curl -s localhost:9100/metrics | grep hefesto_`.
     - Observação esperada: ≥ 8 métricas canônicas, incluindo `hefesto_poll_ticks_total`, `hefesto_ipc_requests_total`, `hefesto_subsystem_up`.
     - Bind **obrigatoriamente** em `127.0.0.1` (não `0.0.0.0`) — confirmar com `ss -tnlp | grep 9100`.
@@ -249,7 +249,7 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 - [ ] Com controle plugado via USB-C e `72-ps5-controller-autosuspend.rules` instalada, deixar sistema ocioso **10 minutos** sem tocar no controle.
     - Observação esperada: após o idle, pressionar qualquer botão **responde imediatamente**; daemon não reporta reconnect.
-    - Critério de falha: `journalctl --user -u hefesto.service` mostra ciclos de reconnect durante o idle — a udev rule não foi aplicada ou não bate com o device.
+    - Critério de falha: `journalctl --user -u hefesto-dualsense4unix.service` mostra ciclos de reconnect durante o idle — a udev rule não foi aplicada ou não bate com o device.
 
 ---
 

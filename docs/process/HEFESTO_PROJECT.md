@@ -103,7 +103,7 @@ git commit -m "feat: descricao tecnica impessoal"
 ```bash
 ./scripts/check_anonymity.sh   # deve retornar vazio
 ruff check src/
-mypy src/hefesto
+mypy src/hefesto_dualsense4unix
 pytest tests/ -v
 ```
 
@@ -218,7 +218,7 @@ hefesto/
 │       └── integrating-mods.md
 ├── assets/
 │   ├── 70-ps5-controller.rules        # udev rules (do pydualsense, MIT)
-│   ├── hefesto.service                # systemd --user unit
+│   ├── hefesto-dualsense4unix.service                # systemd --user unit
 │   ├── hefesto.desktop                # entry pra tray
 │   └── profiles_default/
 │       ├── driving.json
@@ -228,7 +228,7 @@ hefesto/
 ├── src/
 │   └── hefesto/
 │       ├── __init__.py
-│       ├── __main__.py                # python -m hefesto
+│       ├── __main__.py                # python -m hefesto_dualsense4unix
 │       ├── config.py                  # paths, XDG dirs, env vars
 │       ├── core/
 │       │   ├── __init__.py
@@ -340,7 +340,7 @@ Mods existentes pra Cyberpunk/Forza/Assetto Corsa escrevem em UDP localhost quan
 
 ## Porta
 
-`127.0.0.1:6969` (mesma do DSX Windows). Configuravel via `~/.config/hefesto/daemon.toml`.
+`127.0.0.1:6969` (mesma do DSX Windows). Configuravel via `~/.config/hefesto-dualsense4unix/daemon.toml`.
 
 ---
 
@@ -348,7 +348,7 @@ Mods existentes pra Cyberpunk/Forza/Assetto Corsa escrevem em UDP localhost quan
 
 Usado pela TUI e CLI pra falar com o daemon.
 
-**Path:** `$XDG_RUNTIME_DIR/hefesto.sock`
+**Path:** `$XDG_RUNTIME_DIR/hefesto-dualsense4unix.sock`
 
 **Formato:** JSON-RPC 2.0 sobre linha-a-linha.
 
@@ -438,10 +438,10 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 1.3: Daemon loop básico
 - [ ] `daemon/main.py`: asyncio event loop.
 - [ ] Conecta no controle, poll 60Hz, publica events.
-- [ ] `hefesto daemon start` liga, `Ctrl+C` desliga limpo.
+- [ ] `hefesto-dualsense4unix daemon start` liga, `Ctrl+C` desliga limpo.
 - [ ] Logging estruturado com structlog.
 
-**DoD:** `hefesto daemon start` conecta no DualSense físico, mostra bateria e input do stick.
+**DoD:** `hefesto-dualsense4unix daemon start` conecta no DualSense físico, mostra bateria e input do stick.
 
 ---
 
@@ -456,7 +456,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 2.2: LEDs e rumble
 - [ ] `led_control.py`: lightbar RGB, player LEDs, mic LED.
 - [ ] `rumble.py`: weak + strong motor com throttle anti-spam.
-- [ ] Teste com placeholder `hefesto test trigger --mode galloping --side right`.
+- [ ] Teste com placeholder `hefesto-dualsense4unix test trigger --mode galloping --side right`.
 
 **DoD:** Todos os 19 modos testaveis via CLI, produzem vibracao correta no controle fisico.
 
@@ -467,12 +467,12 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ### Sprint 3.1: Schema + loader
 - [ ] `profiles/schema.py`: modelos pydantic v2.
 - [ ] `profiles/loader.py`: read/write JSON com `file_lock`.
-- [ ] XDG paths: `~/.config/hefesto/profiles/*.json`.
+- [ ] XDG paths: `~/.config/hefesto-dualsense4unix/profiles/*.json`.
 - [ ] 4 perfis default em `assets/profiles_default/`.
 
 ### Sprint 3.2: Manager + CLI
 - [ ] `profiles/manager.py`: listar, ativar, criar, deletar.
-- [ ] `hefesto profile list | activate <nome> | show <nome>`.
+- [ ] `hefesto-dualsense4unix profile list | activate <nome> | show <nome>`.
 - [ ] Teste: ativar perfil aplica triggers corretos no controle.
 
 **DoD:** Trocar perfil via CLI muda efeito no controle em < 100ms.
@@ -482,8 +482,8 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 ## WAVE 4 — Daemon + IPC (3 sprints)
 
 ### Sprint 4.1: systemd --user service
-- [ ] `assets/hefesto.service` com `Restart=on-failure`, `After=graphical-session.target`.
-- [ ] `hefesto daemon install-service` copia pra `~/.config/systemd/user/` e `systemctl --user enable`.
+- [ ] `assets/hefesto-dualsense4unix.service` com `Restart=on-failure`, `After=graphical-session.target`.
+- [ ] `hefesto-dualsense4unix daemon install-service` copia pra `~/.config/systemd/user/` e `systemctl --user enable`.
 - [ ] Teste: reboot → daemon sobe sozinho.
 
 ### Sprint 4.2: IPC Unix socket (JSON-RPC 2.0)
@@ -514,11 +514,11 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 - [ ] Atualização via event bus do daemon (via IPC).
 
 ### Sprint 5.3: CLI completo (typer)
-- [ ] `hefesto status` — tabela com info do daemon.
-- [ ] `hefesto profile {list,show,activate,create,delete,edit}`.
-- [ ] `hefesto test trigger --side --mode --params`.
-- [ ] `hefesto daemon {start,stop,restart,logs,status}`.
-- [ ] `hefesto led --color HEX` + `hefesto battery`.
+- [ ] `hefesto-dualsense4unix status` — tabela com info do daemon.
+- [ ] `hefesto-dualsense4unix profile {list,show,activate,create,delete,edit}`.
+- [ ] `hefesto-dualsense4unix test trigger --side --mode --params`.
+- [ ] `hefesto-dualsense4unix daemon {start,stop,restart,logs,status}`.
+- [ ] `hefesto-dualsense4unix led --color HEX` + `hefesto-dualsense4unix battery`.
 - [ ] Tab completion via `typer --install-completion`.
 
 ### Sprint 5.4: Tray opcional
@@ -544,7 +544,7 @@ Resumo (22 itens). Leia o arquivo canônico pro detalhe:
 
 ### Sprint 6.3: Gamepad virtual (uinput)
 - [ ] `integrations/uinput_gamepad.py`: cria `/dev/input/js*` Xbox360.
-- [ ] Modo toggle: `hefesto emulate xbox360 --on`.
+- [ ] Modo toggle: `hefesto-dualsense4unix emulate xbox360 --on`.
 - [ ] Esconde HID real via `HidHide`-equivalente (udev trick).
 
 **DoD:** Cyberpunk lancado via Steam troca perfil automaticamente. Jogo que so reconhece Xbox360 ve gamepad virtual.
@@ -599,12 +599,12 @@ gh repo create hefesto --public --source=. --description "Linux adaptive trigger
 ### 2. Estrutura de pastas
 
 ```bash
-mkdir -p src/hefesto/{core,daemon,profiles,cli,tui/screens,tui/widgets,integrations,utils}
+mkdir -p src/hefesto_dualsense4unix/{core,daemon,profiles,cli,tui/screens,tui/widgets,integrations,utils}
 mkdir -p tests/{unit,integration,fixtures/profiles}
 mkdir -p docs/{adr,protocol,usage}
 mkdir -p assets/profiles_default scripts examples
 mkdir -p .github/ISSUE_TEMPLATE .github/workflows
-touch src/hefesto/__init__.py
+touch src/hefesto_dualsense4unix/__init__.py
 ```
 
 ### 3. pyproject.toml
@@ -661,7 +661,7 @@ tray = [
 ]
 
 [project.scripts]
-hefesto = "hefesto.cli.app:main"
+hefesto = "hefesto_dualsense4unix.cli.app:main"
 
 [tool.ruff]
 line-length = 100
@@ -734,8 +734,8 @@ jobs:
           sudo apt-get install -y libhidapi-dev libudev-dev libxi-dev
       - run: pip install -e ".[dev]"
       - run: ruff check src/ tests/
-      - run: mypy src/hefesto
-      - run: pytest tests/unit -v --cov=hefesto
+      - run: mypy src/hefesto_dualsense4unix
+      - run: pytest tests/unit -v --cov=hefesto_dualsense4unix
 ```
 
 ### 6. assets/70-ps5-controller.rules
@@ -761,7 +761,7 @@ sudo udevadm trigger
 echo "udev rule instalada. Desconecte e reconecte o controle."
 ```
 
-### 8. assets/hefesto.service
+### 8. assets/hefesto-dualsense4unix.service
 
 ```ini
 [Unit]
@@ -771,7 +771,7 @@ PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/hefesto daemon start --foreground
+ExecStart=%h/.local/bin/hefesto-dualsense4unix daemon start --foreground
 Restart=on-failure
 RestartSec=2
 Environment=PYTHONUNBUFFERED=1
@@ -892,7 +892,7 @@ time.sleep()                          # em corotina, use await asyncio.sleep
 # by Claude / # generated              # NUNCA
 
 # OBRIGATORIO
-from hefesto.utils.logging_config import get_logger
+from hefesto_dualsense4unix.utils.logging_config import get_logger
 logger = get_logger(__name__)
 
 try:
@@ -902,7 +902,7 @@ except SpecificError as e:
     raise
 
 # paths
-from hefesto.utils.xdg_paths import config_dir
+from hefesto_dualsense4unix.utils.xdg_paths import config_dir
 path = config_dir() / "profiles" / f"{name}.json"
 
 # async
@@ -944,14 +944,14 @@ async def fetch_battery(controller: IController) -> int:
 
 # 3. Lint + types
 ruff check src/ tests/
-mypy src/hefesto
+mypy src/hefesto_dualsense4unix
 
 # 4. Testes
 pytest tests/unit -v
 pytest tests/integration -v  # se houver device
 
 # 5. Import sanity
-python -c "from hefesto.core.controller import IController; print('OK')"
+python -c "from hefesto_dualsense4unix.core.controller import IController; print('OK')"
 
 # 6. Commit impessoal
 git log -1 --format="%s"  # ver se e "feat: X" e nao "by ..."
