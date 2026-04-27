@@ -105,12 +105,41 @@ Adicionar nota em linha nova indentada (4 espaços) se o resultado exigir explic
 
 ---
 
-## Item 8 — Hotplug BT (FEAT-HOTPLUG-BT-01)
+## Item 8 — Hotplug BT (FEAT-HOTPLUG-BT-01) + Conexão BT funcional (FEAT-BLUETOOTH-CONNECTION-01)
 
-- [ ] Parear controle via Bluetooth, conectar com daemon rodando.
-- [ ] Desligar controle (pressionar PS por 10 s), aguardar 5 s, religar.
-    - Observação esperada: daemon reconecta automaticamente em ≤ 3 s; perfil ativo preservado.
+### 8.1 — Pareamento inicial
+
+- [ ] `bluetoothctl pair <MAC>` completa sem erro (resposta: `Pairing successful`).
+- [ ] `bluetoothctl trust <MAC>` retorna `trust succeeded`.
+- [ ] `bluetoothctl connect <MAC>` retorna `Connection successful`.
+- [ ] `lsusb | grep 0ce6` deve estar VAZIO (nenhuma USB ativa — garante teste BT puro).
+- [ ] `bluetoothctl devices Connected` lista o controle como `Wireless Controller`.
+
+### 8.2 — Detecção pelo daemon
+
+- [ ] `hefesto-dualsense4unix status` retorna `connected=True transport=bt battery_pct=<num>`.
+- [ ] Log do daemon (`journalctl --user -u hefesto-dualsense4unix.service --since "10 seconds ago"`) contém `controller_connected transport=bt`.
+- [ ] `udevadm info -a /dev/hidrawN | grep KERNELS` mostra `0005:054C:0CE6.*` ou `0005:054C:0DF2.*` (confirma que a regra 74 casa).
+
+### 8.3 — Output funcional via BT
+
+- [ ] `hefesto-dualsense4unix led --color "#FF00FF"` — lightbar fica magenta no controle.
+- [ ] `hefesto-dualsense4unix profile activate shooter` — gatilhos endurecem (rigid em L2/R2).
+- [ ] `hefesto-dualsense4unix profile activate aventura` — multi-position L2 + R2 com 4–5 zonas (cf. item 10).
+- [ ] Rumble curto via algum perfil que dispara — motores vibram.
+- [ ] Mic LED via botão físico (toggle) — LED do mic acende/apaga sem precisar trocar de transporte.
+
+### 8.4 — Hotplug GUI (regra udev 74)
+
+- [ ] Com daemon parado e GUI fechada: parear BT → GUI abre via regra 74. **Validação visual obrigatória** (skill `validacao-visual` + PNG + sha256). Header GUI mostra `● Conectado Via BT` em verde (U+25CF).
+- [ ] Com GUI aberta: parear BT novamente → janela existente vai ao foco, NÃO duplica (cobre A-10 + A-11 sob hidraw bus durante negociação L2CAP).
+
+### 8.5 — Resiliência
+
+- [ ] Desligar controle (segurar PS por 10 s), aguardar 5 s, religar/reconectar.
+    - Observação esperada: `reconnect_loop` detecta em ≤ 5 s; perfil ativo preservado; header GUI volta verde.
     - Critério de falha: reconexão não acontece; perfil volta para `fallback`; cursor errático (regressão BUG-MULTI-INSTANCE-01).
+- [ ] Trocar de USB para BT a quente (com daemon rodando): desplugar cabo USB, parear BT → daemon faz reconnect; `daemon.status` reflete `transport=bt` em ≤ 5 s sem precisar restart manual.
 
 ---
 
