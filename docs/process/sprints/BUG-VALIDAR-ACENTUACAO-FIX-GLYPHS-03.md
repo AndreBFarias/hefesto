@@ -10,7 +10,7 @@
 
 ## Contexto
 
-Em **2026-04-27**, durante auditoria do tray, o usuario rodou `scripts/validar-acentuacao.py --fix` em working tree com diff WIP da auditoria. O comando strippou silenciosamente **93 ocorrencias de glyphs Unicode protegidos por ADR-011** (`U+25CF ●`, `U+25CB ○`, `U+25D0 ◐`, `U+25B3 △`, `U+25A1 □`) em arquivos espalhados:
+Em **2026-04-27**, durante auditoria do tray, o usuario rodou `scripts/validar-acentuacao.py --fix` em working tree com diff WIP da auditoria. O comando strippou silenciosamente **93 ocorrencias de glyphs Unicode protegidos por ADR-011** (`U+25CF ●`, `U+25CB ○`, `U+25D0 ◐`, `U+25B3 △`, `U+25A1 □`) em arquivos espalhados: <!-- noqa: acentuacao -->
 
 - `src/hefesto_dualsense4unix/app/actions/status_actions.py` (cascata de pontos verdes/vermelhos do header — 11 ocorrencias).
 - `src/hefesto_dualsense4unix/app/actions/daemon_actions.py` (status do daemon — 6+ indicadores).
@@ -21,7 +21,7 @@ Em **2026-04-27**, durante auditoria do tray, o usuario rodou `scripts/validar-a
 - 11 sprints historicas em `docs/process/sprints/`.
 - `docs/adr/012-gui-reconnect-state-machine.md`.
 
-Especialmente revelador: o `--fix` strippou tambem o glyph **dentro do proprio comentario do filtro de protecao** em `scripts/validar-acentuacao.py:693` (`# colocasse "●" como "errada"` -> `# colocasse "" como "errada"`).
+Especialmente revelador: o `--fix` strippou tambem o glyph **dentro do proprio comentario do filtro de protecao** em `scripts/validar-acentuacao.py:693` (`# colocasse "●" como "errada"` -> `# colocasse "" como "errada"`). <!-- noqa: acentuacao -->
 
 O usuário descartou a WIP via `git stash drop`, mas o bug raiz no script persiste — esta e a 3a reproducao documentada (V2.1, V2.2 pos-release, v3.0.x).
 
@@ -35,7 +35,7 @@ O usuário descartou a WIP via `git stash drop`, mas o bug raiz no script persis
 
 ### Diagnostico preliminar
 
-A whitelist atual cobre todos os codepoints reportados. O filtro `:690-708` rejeita corretamente quando `linha[s:e]` contem glyph. Mas o filtro examina **apenas a faixa do match `re.finditer`** — **nao examina a linha inteira**. Se a linha tem `● Conectado Via {transport.upper()}`, e o regex casa `xao` em outra parte (caso hipotetico), o filtro deixa passar porque o slice nao toca o `●`. Em si isto e ortogonal: a substituicao acertaria so a palavra-alvo, preservando `●`.
+A whitelist atual cobre todos os codepoints reportados. O filtro `:690-708` rejeita corretamente quando `linha[s:e]` contem glyph. Mas o filtro examina **apenas a faixa do match `re.finditer`** — **nao examina a linha inteira**. Se a linha tem `● Conectado Via {transport.upper()}`, e o regex casa `xao` em outra parte (caso hipotetico), o filtro deixa passar porque o slice nao toca o `●`. Em si isto e ortogonal: a substituicao acertaria so a palavra-alvo, preservando `●`. <!-- noqa: acentuacao -->
 
 A 3a reproducao sugere que o strip não esta vindo do `corrigir_arquivo()` em si — ele esta vindo de outro vetor (hook git, sub-script chamado por algum wrapper, normalize Unicode aplicado por agente paralelo). Mas as 3 reproducoes tem em comum o gatilho `--fix`. **Esta sprint trata o `corrigir_arquivo()` como última linha de defesa**: mesmo que o gatilho real venha de fora, o script ao ser invocado não pode permitir que a linha perca glyph protegido por nenhum caminho.
 
@@ -62,11 +62,11 @@ A 3a reproducao sugere que o strip não esta vindo do `corrigir_arquivo()` em si
 5. **Proof empirico em arvore limpa** — `git stash && git checkout HEAD -- . && python3 scripts/validar-acentuacao.py --all --fix && git status --short` retorna **vazio**. Zero diff. Este e o gate definitivo.
 6. **Suite de testes nova passa**: `tests/unit/test_validar_acentuacao_glyphs_defense.py` com cobertura abaixo (criterio 7).
 7. **Cobertura de testes minima**, todos passando:
-   - `test_validar_acentuacao_preserva_glyph_pontuado` — linha contendo `● Online` + palavra-alvo do dicionario na mesma linha (ex: `● Conectado — verifica funcao status atual`). Sem o pre-pass, o filtro existente bloquearia a substituicao porque `linha[s:e]` da palavra-alvo nao contem glyph; com o pre-pass, a linha inteira e pulada e `funcao` permanece `funcao`. Asserta que `●` preservado E que `funcao` permanece (porque a linha esta marcada como protegida — comportamento intencional, ver "Decisao de design" abaixo).
+   - `test_validar_acentuacao_preserva_glyph_pontuado` — linha contendo `● Online` + palavra-alvo do dicionario na mesma linha (ex: `● Conectado — verifica funcao status atual`). Sem o pre-pass, o filtro existente bloquearia a substituicao porque `linha[s:e]` da palavra-alvo nao contem glyph; com o pre-pass, a linha inteira e pulada e `funcao` permanece `funcao`. Asserta que `●` preservado E que `funcao` permanece (porque a linha esta marcada como protegida — comportamento intencional, ver "Decisao de design" abaixo). <!-- noqa: acentuacao -->
    - `test_validar_acentuacao_preserva_glyph_em_par_malicioso` — variante explicita de `test_par_malicioso_bloqueado` (ja existente em `_glyphs.py`) usando os 5 codepoints reportados (`●○◐△□`). Garante que mesmo com `_CORRECOES[glyph] = ""` injetado, glyph sobrevive (camada 1 + pre-pass + post-pass).
-   - `test_validar_acentuacao_preserva_glyph_em_docstring` — fixture `.py` com docstring contendo `"""Status: ● ativo"""` e palavra-alvo no codigo abaixo. Roda `--fix`. Glyph na docstring preservado.
+   - `test_validar_acentuacao_preserva_glyph_em_docstring` — fixture `.py` com docstring contendo `"""Status: ● ativo"""` e palavra-alvo no codigo abaixo. Roda `--fix`. Glyph na docstring preservado. <!-- noqa: acentuacao -->
    - `test_validar_acentuacao_preserva_dpad_arrows` — fixture com `D-pad (↑↓←→)` (codepoints U+2191, U+2193, U+2190, U+2192). Confirma que setas (Arrows block) sobrevivem identico ao caso BLACK CIRCLE.
-   - `test_validar_acentuacao_preserva_face_buttons` — fixture com `△ ○ □ ×` (U+25B3, U+25CB, U+25A1, U+00D7). Note que `×` (U+00D7 MULTIPLICATION SIGN) **nao** esta em UNICODE_ALLOWED_RANGES; teste documenta o comportamento atual (×nao protegido) e serve como decisao explicita: se for desejado proteger `×`, sprint nova. Aqui o teste asserta que △○□ sobrevivem; `×` pode ou nao ser tocado pelo dicionario (provavelmente nao toca porque nao casa nenhum padrao).
+   - `test_validar_acentuacao_preserva_face_buttons` — fixture com `△ ○ □ ×` (U+25B3, U+25CB, U+25A1, U+00D7). Note que `×` (U+00D7 MULTIPLICATION SIGN) **nao** esta em UNICODE_ALLOWED_RANGES; teste documenta o comportamento atual (×nao protegido) e serve como decisao explicita: se for desejado proteger `×`, sprint nova. Aqui o teste asserta que △○□ sobrevivem; `×` pode ou nao ser tocado pelo dicionario (provavelmente nao toca porque nao casa nenhum padrao). <!-- noqa: acentuacao -->
    - `test_post_pass_reverte_se_glyph_perdido` — teste **white-box** que monkeypatcha o filtro camada 1 para fingir que falhou (ex: forca `_contem_glyph_protegido` a retornar False temporariamente apos o filtro), aplica substituicao que removeria glyph, e confirma que post-pass detectou e reverteu a linha.
    - `test_pre_pass_pula_linha_inteira` — teste branco-box: linha contendo glyph + palavra-alvo. Verifica que apos `--fix` a palavra-alvo permaneceu intacta (não foi corrigida) — comportamento intencional do pre-pass.
 8. **Suite global verde**: `.venv/bin/pytest tests/unit -q` passa sem regressoes (baseline atual ~998 testes; esperado >= 1003 com 5 novos).
@@ -77,7 +77,7 @@ A 3a reproducao sugere que o strip não esta vindo do `corrigir_arquivo()` em si
 
 O **pre-pass** torna o comportamento mais conservador: linhas com glyph protegido NUNCA sao corrigidas, mesmo que tenham palavra-alvo de acento PT-BR legitima. Isto e aceitavel porque:
 
-- Em codigo de runtime (`status_actions.py` etc.), linhas com `●`/`○` sao tipicamente strings de UI ja acentuadas corretamente em PT-BR (`● Conectado Via USB`, `○ Daemon Offline`).
+- Em codigo de runtime (`status_actions.py` etc.), linhas com `●`/`○` sao tipicamente strings de UI ja acentuadas corretamente em PT-BR (`● Conectado Via USB`, `○ Daemon Offline`). <!-- noqa: acentuacao -->
 - O custo de um falso-negativo (palavra sem acento na linha do glyph não corrigida) e infinitamente menor que o custo da regressao reportada (3 reproducoes, dezenas de arquivos corrompidos por ciclo).
 - O modo `--check` (sem `--fix`) continua reportando a violacao normalmente — o usuário pode corrigir manualmente.
 - Isto e explicitamente preferivel a tentativa de "corrigir e validar" (frageil, depende de ordem de operação).
