@@ -161,7 +161,7 @@ jobs:
           echo "smoke limpo: sem AssertionError ou Traceback em $LOG"
       - name: Upload smoke log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: hefesto-dualsense4unix-smoke-${{ matrix.transport }}.log
           path: /tmp/hefesto_dualsense4unix_smoke_${{ matrix.transport }}.log

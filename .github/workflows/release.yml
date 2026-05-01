@@ -53,7 +53,7 @@ jobs:
           REF_NAME: ${{ github.event.inputs.tag || github.ref_name }}
         run: echo "version=${REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ steps.info.outputs.version }}
           path: dist/
@@ -86,7 +86,7 @@ jobs:
       - name: Smoke AppImage
         run: ./dist/appimage/Hefesto-Dualsense4Unix-*-x86_64.AppImage version
       - name: Upload AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: appimage-${{ needs.build.outputs.version }}
           path: dist/appimage/*.AppImage
@@ -106,7 +106,7 @@ jobs:
       - name: Build .deb
         run: bash scripts/build_deb.sh
       - name: Upload pacote .deb
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deb-${{ needs.build.outputs.version }}
           path: dist/*.deb
@@ -213,7 +213,7 @@ jobs:
             Hefesto-Dualsense4Unix.flatpak \
             br.andrefarias.Hefesto
       - name: Upload bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: flatpak-${{ needs.build.outputs.version }}
           path: Hefesto-Dualsense4Unix.flatpak
