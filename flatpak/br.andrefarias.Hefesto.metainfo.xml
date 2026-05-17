@@ -12,6 +12,105 @@
 
   <!-- Versão atual -->
   <releases>
+    <release version="3.4.3" date="2026-05-17">
+      <description>
+        <p>Patch para 2 bugs do ícone em uso real no Pop!_OS COSMIC:
+           (1) install.sh v3.4.2 gerava 11 PNGs a partir do SVG em
+           assets/appimage/Hefesto-Dualsense4Unix.svg, que era um
+           PLACEHOLDER simples (chama laranja + texto "HEFESTO") em vez
+           da logo real (martelo + gradiente roxo/azul/rosa no PNG
+           256x256). Fix: usa PNG real como source com Lanczos
+           downsample do ImageMagick para todas resolucoes. (2) janela
+           GTK setava WM_CLASS instance como "hefesto" mas o .desktop
+           e "hefesto-dualsense4unix.desktop" — dock COSMIC nao
+           associava a janela ao app, mostrando icone generico ao abrir.
+           Fix: WM_CLASS instance ajustada para "hefesto-dualsense4unix"
+           + GLib.set_prgname() + Gtk.Window.set_default_icon_name()
+           no entrypoint da GUI para derivar app_id Wayland correto.</p>
+      </description>
+    </release>
+    <release version="3.4.2" date="2026-05-17">
+      <description>
+        <p>Polish patch — 4 bugs achados em validacao manual pos-v3.4.1:
+           (1) icone do app aparecia generico em sizes nao-256
+           (16/22/32/48 do menu apps, 128 do grid) porque so havia o PNG
+           256x256; install.sh agora gera multi-res (11 PNGs + SVG
+           escalavel + pixmap legacy) via rsvg-convert. (2) theme.css
+           bloco @media (prefers-contrast: more) quebrava GTK3 CSS
+           parser inteiro com "unknown @ rule (1)" — substituido por
+           comentario forward-compat. (3) uninstall.sh morria com exit
+           144 quando rodado do diretorio do repo, pkill -f matchava o
+           proprio script. (4) catalogos .mo do install.sh step 4d
+           ficavam orfaos apos uninstall. Sem mudancas runtime.</p>
+      </description>
+    </release>
+    <release version="3.4.1" date="2026-05-17">
+      <description>
+        <p>Patch para o bug de localizacao no Flatpak v3.4.0: catalogo
+           pt_BR.mo nao chegava no app porque o runtime GNOME//47 injeta
+           symlinks de Locale Extension no deploy, sobrescrevendo
+           /app/share/locale/pt_BR/ apontando para o runtime read-only.
+           Solucao: instalar .mo em /app/share/hefesto-dualsense4unix/
+           locale/ (path proprio do app) e adicionar esse path ao
+           candidate list do utils/i18n.py (gettext.bindtextdomain).
+           Sem mudancas runtime; apenas distribuicao Flatpak.</p>
+      </description>
+    </release>
+    <release version="3.4.0" date="2026-05-16">
+      <description>
+        <p>i18n EN baseline: catalogo po/en.po com 232 strings traduzidas +
+           po/pt_BR.po identidade. Acessibilidade ATK em 15 botoes
+           criticos (Orca anuncia labels descritivas). High-contrast
+           CSS automatico quando tema do sistema casa HighContrast*.
+           Packaging multi-distro: PKGBUILD Arch (AUR-ready), RPM spec
+           Fedora (Copr-ready), Nix flake (NixOS/home-manager). CI smoke
+           matrix Docker (fedora:40, archlinux:latest, debian:12) com
+           cache pip. Locale bundlado em 5 destinos (install.sh, .deb,
+           AppImage, Flatpak, wheel).</p>
+      </description>
+    </release>
+    <release version="3.3.1" date="2026-05-16">
+      <description>
+        <p>Install perfeito: install.sh aplica TODAS as 5 regras udev
+           + modules-load uinput sem prompt (era opt-in; agora default).
+           install-host-udev.sh do bundle Flatpak sincronizado com o
+           caminho source (era só 3 regras; agora 5 + conf). Manifest
+           Flatpak bundla 73-hotplug.rules + 74-hotplug-bt.rules +
+           hefesto-dualsense4unix.conf. install.sh propaga regras para
+           Flatpak instalado se detectado. Idempotente em todos os
+           caminhos: source/.deb/Flatpak.</p>
+      </description>
+    </release>
+    <release version="3.3.0" date="2026-05-16">
+      <description>
+        <p>Janela compacta 320x90 sempre-on-top como surrogate de tray em
+           Pop!_OS COSMIC (cosmic-comp 1.0.x sem StatusNotifierWatcher).
+           Auto + opt-out via HEFESTO_DUALSENSE4UNIX_COMPACT_WINDOW=0.
+           Notificações D-Bus com botão "Abrir Hefesto" (controle
+           desconectado, bateria baixa). Documentação production-ready:
+           novo docs/usage/troubleshooting.md, docs/process/ROADMAP.md
+           público, matriz DE empírica honesta no README. Listener
+           ActionInvoked via jeepney sync em thread daemon.</p>
+      </description>
+    </release>
+    <release version="3.2.0" date="2026-05-16">
+      <description>
+        <p>Wave V3.2 (auditoria + polish): mensagens acionáveis no profile
+           loader, DaemonProtocol substitui daemon: Any em handlers críticos,
+           autoscroll do log da aba Daemon, fallback offline da aba Status
+           após 5s, live preview de gatilhos no combobox. Suporte completo a
+           COSMIC (Pop!_OS 24.04) + Bluetooth validado em hardware real.
+           Fix BUG-FLATPAK-PYGMENTS-MISSING-01: pygments adicionado às deps
+           Python (rich.markdown precisava transitivamente).</p>
+      </description>
+    </release>
+    <release version="3.1.1" date="2026-05-16">
+      <description>
+        <p>Hardening COSMIC + AppImage GUI bundlada + Bluetooth validation
+           end-to-end + notifications D-Bus opt-in + republish de tags
+           históricas no fork.</p>
+      </description>
+    </release>
     <release version="1.1.0" date="2024-04-22">
       <description>
         <p>Primeira versão Flatpak. Daemon + GUI GTK3 empacotados com suporte a

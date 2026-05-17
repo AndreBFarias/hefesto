@@ -5,6 +5,530 @@ Segue [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [3.4.3] — 2026-05-17
+
+Patch para **2 bugs do ícone do app** em uso real no Pop!_OS COSMIC.
+Sem mudanças runtime; apenas discovery de ícone + WM_CLASS para
+associação com a dock.
+
+### Fixes
+
+- **`BUG-ICON-FROM-PLACEHOLDER-SVG-01`**: v3.4.2 gerava os 11 PNGs
+  multi-res a partir de `assets/appimage/Hefesto-Dualsense4Unix.svg`,
+  que era um **placeholder simples** (chama laranja + texto "HEFESTO"
+  em fundo preto) — NÃO a logo real (martelo + gradiente
+  roxo/azul/rosa do PNG 256x256). Sintoma: COSMIC App Library mostrava
+  chama laranja em vez do martelo nos sizes 32/48/128. Fix:
+  - `install.sh` usa o **PNG 256x256 como source canônica** + Lanczos
+    downsample do ImageMagick para todas as resoluções.
+  - SVG placeholder **removido do repo**
+    (`assets/appimage/Hefesto-Dualsense4Unix.svg`) para evitar
+    regressão futura.
+  - `scripts/build_appimage.sh` deixa de regenerar PNG a partir do
+    SVG; só valida que o PNG canônico existe.
+  - `uninstall.sh` remove SVG legacy se ainda presente de instalações
+    v3.4.2.
+
+- **`BUG-DOCK-ICON-WMCLASS-MISMATCH-01`**: janela GTK setava
+  `WM_CLASS` instance como `"hefesto"` (via `self.window.set_wmclass
+  ("hefesto", "Hefesto-Dualsense4Unix")` em `app/app.py:149`). Mas o
+  `.desktop` é `hefesto-dualsense4unix.desktop` — dock COSMIC / GNOME
+  não associava a janela ao app, mostrando **ícone genérico ao
+  abrir** (mesmo com `StartupWMClass=Hefesto-Dualsense4Unix` no
+  .desktop). Fix:
+  - `app/app.py`: `WM_CLASS` instance ajustada para
+    `"hefesto-dualsense4unix"` (case-sensitive, casa basename do
+    `.desktop`).
+  - `app/main.py`: adicionado `GLib.set_prgname("hefesto-dualsense4unix")`
+    + `GLib.set_application_name("Hefesto - Dualsense4Unix")` +
+    `Gtk.Window.set_default_icon_name("hefesto-dualsense4unix")`
+    ANTES de qualquer widget — garantindo derivação correta do
+    `app_id` Wayland.
+
+### Compatibilidade
+
+Sem mudanças breaking. Suite 1415+ passed mantida. Ambos os fixes são
+em paths de discovery (ícone, WM_CLASS) — não tocam runtime do
+daemon, IPC, ou logic da GUI.
+
+## [3.4.2] — 2026-05-17
+
+Polish patch consolidando **4 bugs achados em validação manual pós-v3.4.1**
+no Pop!_OS COSMIC. Sem mudanças runtime; apenas distribuição, tema e
+discovery de ícone.
+
+### Fixes
+
+- **`FEAT-ICON-MULTI-RES-01`**: o `install.sh` só copiava o PNG 256x256
+  para `~/.local/share/icons/hicolor/256x256/apps/`. Resultado: GUIs
+  de app library (COSMIC App Library, GNOME Activities) renderizavam
+  fallback genérico em qualquer size diferente de 256 (chip 32x32 do
+  menu, 128x128 do grid). Fix: gera 11 PNGs (16/22/24/32/48/64/96/
+  128/192/256/512) via `rsvg-convert` do SVG original em
+  `assets/appimage/Hefesto-Dualsense4Unix.svg`, +
+  `~/.local/share/icons/hicolor/scalable/apps/hefesto-dualsense4unix.svg`
+  (escalável moderno) + `~/.local/share/pixmaps/hefesto-dualsense4unix.png`
+  (legacy fallback). Fallback para ImageMagick `convert` se rsvg
+  ausente. `gtk-update-icon-cache` regenera cache automaticamente.
+
+- **`BUG-THEME-CSS-MEDIA-GTK3-01`**: `@media (prefers-contrast: more)`
+  introduzido em v3.4.0 quebrava o GTK3 CSS parser inteiro com
+  `gtk-css-provider-error-quark: unknown @ rule (1)` — theme.css não
+  carregava (sem Drácula, sem high-contrast class, GUI ficava com tema
+  do sistema raw). GTK3 não tem `@media` nativo; trata como
+  `@unknown` e aborta o parse. Fix: substituir bloco por comentário
+  documental. A classe `.hefesto-dualsense4unix-high-contrast` aplicada
+  por `app/theme.py` quando `Gtk.Settings.gtk-theme-name=HighContrast*`
+  continua sendo o canal real. Reavaliar `@media` quando migrar para
+  GTK4.
+
+- **`BUG-UNINSTALL-PKILL-SELF-01`**: `uninstall.sh` morria com exit 144
+  quando rodado de dentro de `/.../hefesto-dualsense4unix/` porque
+  `pkill -f 'hefesto-dualsense4unix'` matchava o cmdline do próprio
+  bash que executava o script (path absoluto contém o nome). Fix:
+  patterns específicos em loop: `'hefesto-dualsense4unix daemon '`,
+  `'hefesto-dualsense4unix-gui'`, `'hefesto_dualsense4unix'`,
+  `'br\.andrefarias\.Hefesto'` — nenhum casa o `uninstall.sh` em
+  execução.
+
+- **`BUG-UNINSTALL-LOCALE-NOT-REMOVED-01`**: install.sh step 4d
+  (FEAT-I18N-CATALOGS-01 v3.4.0) copiava catálogos `.mo` para
+  `~/.local/share/locale/<lang>/LC_MESSAGES/hefesto-dualsense4unix.mo`,
+  mas uninstall esquecia. Fix: loop remove só nosso domínio
+  (`hefesto-dualsense4unix.mo`), preservando `LC_MESSAGES/` e `<lang>/`
+  (outros apps usam). Idem para os 11 PNGs hicolor + SVG + pixmap.
+
+### Compatibilidade
+
+Sem mudanças breaking. Suite 1415+ passed mantida. Todos os fixes são
+no install/uninstall/theme — não afetam daemon, GUI runtime, ou IPC.
+
+## [3.4.1] — 2026-05-17
+
+Patch para fixar **bug de localização no Flatpak v3.4.0**: catálogo
+`pt_BR.mo` não chegava no app deployed porque o runtime `org.gnome.
+Platform//47` usa Locale Extension que injeta symlinks no deploy
+sobrescrevendo `/app/share/locale/<lang>/` — apontando para
+`share/runtime/locale/.../share/<lang>/` (read-only). Nosso
+`install -Dm644` no manifest era efetivamente um no-op porque o symlink
+era recriado depois.
+
+Sem mudanças runtime; apenas distribuição Flatpak.
+
+### Fixes
+
+- **`BUG-FLATPAK-LOCALE-SYMLINK-01`**:
+  - `flatpak/br.andrefarias.Hefesto.yml` — instala `.mo` em
+    `/app/share/hefesto-dualsense4unix/locale/<lang>/LC_MESSAGES/`
+    (path próprio do app, não tocado pelo runtime).
+  - `src/hefesto_dualsense4unix/utils/i18n.py` — adicionado candidate
+    path #4a `/app/share/hefesto-dualsense4unix/locale` antes do #4b
+    `/app/share/locale` (fallback defensivo).
+- Validado: `flatpak run --env=LANG=en_US.UTF-8` → `_('Aplicar')` →
+  `'Apply'`. `--env=LANG=pt_BR.UTF-8` → identity (`'Aplicar'`).
+
+### Compatibilidade
+
+Sem mudanças breaking. PT-BR continua sendo source-language e default.
+.deb / AppImage / wheel continuam usando os candidate paths originais
+(2, 3, 5). Apenas Flatpak ganhou path próprio.
+
+## [3.4.0] — 2026-05-16
+
+Release de **internacionalização + acessibilidade + packaging
+multi-distro + CI matrix**: combina 3 caixas grandes ortogonais ao runtime
+(zero churn no daemon/GUI core, foco em alcance e qualidade externa).
+
+### Adições
+
+- **`FEAT-I18N-INFRASTRUCTURE-01`**: `src/hefesto_dualsense4unix/utils/i18n.py`
+  com `init_locale()` e `_()` wrapper canônico. Resolução de catálogos
+  via 5 candidate paths: `$XDG_DATA_HOME/locale`, `~/.local/share/locale`,
+  `/usr/share/locale`, `/app/share/locale` (Flatpak), e dir do package
+  (wheel embedded). `gettext.bindtextdomain` + `textdomain` apontam para
+  o primeiro path onde achar `.mo`. Sem deps Python novas.
+- **`FEAT-I18N-MARK-STRINGS-01`**: ~210 strings marcadas como
+  traduzíveis. Glade `main.glade` ganhou `translatable="yes"` em ~190
+  labels (botões, headers das 10 abas, tooltips). Python wrappa `_()`
+  em `gui_dialogs.py` (7 strings), `tray.py` (5), `compact_window.py`
+  (7). Logger messages NÃO foram tocadas (são internas).
+- **`FEAT-I18N-CATALOGS-01`**: pipeline `scripts/i18n_extract.sh` +
+  `scripts/i18n_compile.sh`. Extract usa `xgettext --language=Python`
+  + `xgettext --language=Glade` + `msgcat`. Compile usa `msgfmt --check
+  --statistics`. Suporta `--add LANG` para criar idioma novo via
+  `msginit`. Catálogos: `po/en.po` (traduções EN) + `po/pt_BR.po`
+  (identidade — necessário para `LANG=pt_BR` resolver em vez de cair
+  no C/POSIX). 232 mensagens × 2 idiomas.
+- **`INSTALL-LOCALE-FILES-01`**: catálogos `.mo` bundlados em **5
+  destinos**:
+  1. `install.sh` step 4d → `~/.local/share/locale/`.
+  2. `scripts/build_deb.sh` → `/usr/share/locale/` (no `.deb`).
+  3. `scripts/build_appimage.sh` (auto-compile + wheel embedding).
+  4. `scripts/build_appimage_gui.sh` → `AppDir/usr/share/locale/`.
+  5. `flatpak/br.andrefarias.Hefesto.yml` → `/app/share/locale/`.
+  6. `pyproject.toml [tool.hatch.build.targets.wheel] include` →
+     `src/hefesto_dualsense4unix/locale/*/LC_MESSAGES/*.mo` (wheel
+     embedded, fallback para `pip install` direto).
+- **`FEAT-A11Y-ATK-LABELS-01`**: 15 botões críticos (trigger
+  apply/reset L+R, lightbar apply/off, player LEDs apply, perfil
+  new/remove/activate, daemon start/stop/restart, firmware apply,
+  footer apply) ganharam `<child internal-child="accessible">` com
+  `AtkObject::accessible-name` e `AtkObject::accessible-description`
+  descritivas. Orca anuncia "Aplicar gatilho adaptativo no L2,
+  botão" em vez de "botão sem nome". Strings ATK também
+  `translatable="yes"`.
+- **`FEAT-A11Y-HIGH-CONTRAST-01`**: `gui/theme.css` ganhou:
+  - Classe `.hefesto-dualsense4unix-high-contrast` com paleta WCAG
+    AAA (background `#000`, foreground `#fff`, accent amarelo puro
+    `#ff0`, borda 2px–3px). `app/theme.py` detecta `Gtk.Settings.
+    gtk-theme-name` casando `HighContrast*` e aplica a classe.
+  - Bloco `@media (prefers-contrast: more)` para forward compat
+    GTK4. GTK3 ignora silenciosamente.
+- **`CHECKLIST-A11Y-MANUAL-01`**: `CHECKLIST_VALIDACAO_v3.4.0.md`
+  novo (sucessor de v3.2.0) com seção Acessibilidade (Tab/Shift+Tab,
+  Enter/Space, Esc, mnemonics, Orca anuncia 10+ botões).
+- **`FEAT-PACKAGING-ARCH-01`**: `packaging/arch/PKGBUILD` (50 LOC)
+  com deps pacman + pip install do pydualsense. Hook
+  `hefesto-dualsense4unix.install` recarrega udev + carrega uinput
+  pós-install. README com guia de submissão ao AUR.
+- **`FEAT-PACKAGING-FEDORA-01`**: `packaging/fedora/hefesto-dualsense4unix.spec`
+  (PEP 517 + `python3-installer`) pronto para `rpmbuild`/Copr. `%post`
+  recarrega udev. README com guia Copr + Fedora oficial review.
+- **`FEAT-PACKAGING-NIX-01`**: `flake.nix` raiz + `packaging/nix/package.nix`
+  com `buildPythonApplication` + `wrapGAppsHook`. Suporta
+  `nix run github:...`, install no profile, configuração NixOS e
+  home-manager. README com 3 paths de uso.
+- **`CI-SMOKE-DOCKER-MATRIX-01`**: job `smoke-multi-distro` em
+  `.github/workflows/ci.yml`. Matrix `fedora:40 + archlinux:latest +
+  debian:12` em containers Docker. Build wheel uma vez via
+  `build-wheel`, download artifact em cada container, instala
+  (`--break-system-packages`), valida `hefesto-dualsense4unix version`
+  + i18n EN + pytest subset (não-GTK).
+- **`CI-CACHE-PIP-01`**: `cache: 'pip'` em todos os
+  `actions/setup-python@v5` que rodam pip install (7 jobs entre
+  ci.yml e release.yml). Chaveado por hash de `pyproject.toml`.
+  Speed-up esperado: 30–60 s por job.
+
+### Documentação
+
+- `docs/process/ROADMAP.md` atualizado: v3.3.1 incluída, v3.4.0 nova,
+  COSMIC + Plasma adiados para v4.0, v3.5+ aberto para idiomas
+  comunitários.
+- `.github/CONTRIBUTING.md` seção "Contribuir traduções": como
+  adicionar idioma novo (`--add LANG`), convenções de tom/unidades,
+  glossário PT-BR  EN, fluxo de atualização.
+- `README.md` headline com nota de release v3.4.0.
+
+### Compatibilidade
+
+Sem mudanças breaking. PT-BR continua sendo source-language e default
+em ambientes sem `LANG=en*`. Suite 1415+ passed mantida.
+
+## [3.3.1] — 2026-05-16
+
+Patch focado em deixar o **install perfeito**: aplica todas as regras
+udev de cara, sem prompt, em qualquer caminho (source / .deb / Flatpak).
+Sem mudanças runtime; apenas distribuição.
+
+### Fixes
+
+- **`INSTALL-UDEV-INCONDICIONAL-01`**: `install.sh` step 3/9 deixa de
+  ser opt-in via prompt e passa a aplicar as **5 regras + modules-load
+  uinput** sempre que `sudo` está disponível. Re-cópia é idempotente
+  (~100 ms). Para CI sem sudo, mantém `--no-udev`. Antes, usuários
+  pulavam o prompt e depois o controle não funcionava.
+- **`INSTALL-HOST-UDEV-COMPLETO-01`**:
+  `scripts/install-host-udev.sh` (caminho Flatpak/bundled) reescrito —
+  era hardcoded em **3 regras**, agora cobre todas as **5** + a
+  `modules-load.d/hefesto-dualsense4unix.conf` para uinput. Resolve
+  origem em 3 contextos: `/app/share/` (Flatpak), `/usr/share/`
+  (`.deb`), `../assets/` (source). Idempotente.
+- **`FLATPAK-MANIFEST-UDEV-COMPLETO-01`**: manifest
+  `flatpak/br.andrefarias.Hefesto.yml` bundla agora as 5 regras
+  (faltavam `73-ps5-controller-hotplug.rules` e
+  `74-ps5-controller-hotplug-bt.rules`) + `modules-load/` com
+  `hefesto-dualsense4unix.conf`. Sincronizado com `assets/` como fonte
+  única de verdade.
+- **`INSTALL-SH-PROPAGA-FLATPAK-01`**: se Flatpak Hefesto está
+  instalado no host, `install.sh` step 3 também invoca
+  `flatpak run --command=install-host-udev.sh br.andrefarias.Hefesto`
+  para garantir simetria explícita.
+- **`INSTALL-UDEV-SH-DEFENSIVO-01`**: `scripts/install_udev.sh`
+  valida presença dos 6 assets antes de começar (falha cedo com
+  mensagem clara), troca `cp` por `install -Dm644`, adiciona triggers
+  específicos por vendor (`054c`) para reaplicar permissões em
+  controles já conectados sem reboot.
+
+### Compatibilidade
+
+Sem mudanças breaking. Suite continua 1415 passed; nenhum teste mudou.
+
+## [3.3.0] — 2026-05-16
+
+Release production-ready: resolve o caveat do tray COSMIC sem esperar v3.4
+(applet Rust + libcosmic) e fecha gaps de documentação que bloqueariam
+adoção pública. Sprints **forward-looking 116/118/119** continuam PLANNED
+para v3.4 (ver `docs/process/ROADMAP.md`).
+
+### Bloco A — Tray fallback COSMIC sem Rust
+
+- **`FEAT-COMPACT-WINDOW-FALLBACK-01`**: nova
+  `src/hefesto_dualsense4unix/app/compact_window.py` — `Gtk.Window`
+  320x90, `set_keep_above(True)`, sem decoração, canto inferior-direito.
+  Conteúdo: glyph status colorido (Unicode NCR para sobreviver ao
+  sanitizer global de geometric shapes) + perfil ativo + bateria %, +
+  3 botões `[ Painel ]` `[ Perfil ]` `[ Sair ]`. Tick periódico de 3 s
+  reusa `ipc_bridge.daemon_state_full()`. **Gating auto + opt-out**:
+  ativa quando `AppTray.start()` falha OU sessão COSMIC, com
+  `HEFESTO_DUALSENSE4UNIX_COMPACT_WINDOW=0` para desativar. 7 testes
+  unit.
+- **`FEAT-NOTIFY-ACTION-OPEN-01`**:
+  `desktop_notifications.notify()` ganha kwarg
+  `actions: list[tuple[str, str]] = None` (key, label). Wire-up em
+  `notify_controller_disconnected` + `notify_battery_low` com
+  `[("open", "Abrir Hefesto")]`. Novo listener D-Bus em
+  `app/app.py:_start_notification_action_listener` — thread daemon
+  consome sinais `org.freedesktop.Notifications::ActionInvoked` via
+  jeepney sync e dispara `window.present()` via `GLib.idle_add` no
+  match com action `"open"`. 2 testes unit novos (actions kwarg flatten,
+  default vazio).
+
+### Bloco B — Documentação production-ready
+
+- **`DOC-TROUBLESHOOTING-01`**: novo
+  `docs/usage/troubleshooting.md` (~250 linhas) cobrindo 10 problemas
+  comuns (controle USB/BT não detectado, tray oculto COSMIC + GNOME 42+,
+  Flatpak sandbox + udev, daemon offline, auto-switch travado, pydantic
+  v1 em Jammy/Noble, cursor voador, "Consultando..." indefinido) com
+  comandos de diagnóstico + fix por seção + script para issue. Resolve
+  link quebrado no README:471.
+- **`DOC-ROADMAP-PUBLIC-01`**: novo
+  `docs/process/ROADMAP.md` documentando v3.3.0 (atual), v3.4 (sprints
+  116/118/119 COSMIC nativas Rust), v4.0 (KDE Plasma applet, Flatpak
+  permissions polish) sem datas (princípio: sem prazo quando depende de
+  upstream alheio). Linkado no README.
+- **`DOC-DE-COMPATIBILITY-MATRIX-01`**: matriz README:401 reescrita com
+  honestidade empírica — colunas Distro/DE/USB/BT/Tray/Auto-switch/Notas
+  com validações reais (mantenedor + CI) vs "comunidade - aceito relato".
+  Sinaliza explicitamente que Pop!_OS COSMIC tem tray = "janela compacta"
+  até v3.4.
+- **`DOC-FLATPAK-SANDBOX-NOTE-01`**: README seção Flatpak (196-201)
+  expandida com pré-requisito de runtime GNOME 47, `install-host-udev.sh`,
+  explicação do `--device=all`, socket IPC compartilhado em
+  `$XDG_RUNTIME_DIR`, e caveat COSMIC com instruções de opt-out.
+
+### Bloco C — Robustez
+
+- **`INSTALL-UDEV-SUDO-CHECK-01`**:
+  `scripts/install-host-udev.sh` pre-check `sudo -n true` antes da
+  chamada `sudo bash -c`. Em ambiente sem `NOPASSWD` (CI headless), avisa
+  o usuário em stderr antes de bloquear esperando senha.
+
+### Suíte de testes
+
+`1406 → 1415 passed (+9)`, 14 skipped, ruff clean, mypy `--strict`
+zero em 115 source files.
+
+### Compatibilidade
+
+- Sem mudanças breaking. Callers existentes de `notify()` continuam
+  válidos (kwarg `actions` é opcional).
+- `CompactWindow` é opt-out, não opt-in — quem não quer pode setar
+  `HEFESTO_DUALSENSE4UNIX_COMPACT_WINDOW=0`.
+
+## [3.2.0] — 2026-05-16
+
+Wave V3.2 (auditoria + polish) sobre v3.1.1. Três auditorias em paralelo
+(qualidade de código, documentação, UI/UX) consolidam a base estável
+v3.2.0. Sprints forward-looking (116/118/119 — COSMIC applet Rust, global
+shortcuts, panel widget) seguem PLANNED para V3.4.
+
+### Bloco A — qualidade de código
+
+- **`PROFILE-LOADER-UX-01` (Bloco A1)**: `profiles/loader.py` deixou de
+  engolir exceções genéricas em três sites de glob (`load_profile` scan,
+  `delete_profile` scan, `load_all_profiles`). Agora captura apenas
+  `(JSONDecodeError, ValidationError, UnicodeDecodeError)` e emite
+  `WARN profile_invalid path=... err=... err_type=...` via structlog —
+  perfis válidos continuam carregando ao lado de um corrompido. O fallback
+  CLI em `app/ipc_bridge.py` ganhou `exc_info=True` e filtra
+  `(FileNotFoundError, PermissionError, OSError)`. `directory.glob` virou
+  `sorted(directory.glob)` em `load_profile` para tornar a varredura
+  determinística. 3 novos testes em `tests/unit/test_profile_loader.py`
+  (JSON malformado, schema inválido, scan misto).
+- **`DAEMON-SHUTDOWN-TEST-01` (Bloco A2)**: novo
+  `tests/unit/test_daemon_shutdown.py` cobre o `shutdown(daemon)` isolado
+  (antes só implícito via `test_daemon_reconnect_loop.py`). 3 casos:
+  zera todos os subsystems + executor + tasks após boot real (FakeController
+  + IPC habilitado), tolera subsystem que levanta no `.stop()`, e é
+  idempotente em chamada repetida.
+- **`PYDANTIC-PROTOCOL-DAEMON-01` (Bloco A3)**: novo
+  `daemon/protocols.py` define `DaemonProtocol` (PEP 544 Protocol) com a
+  superfície real do `Daemon` consumida pelos handlers/subsystems. 26
+  ocorrências de `daemon: Any` substituídas por `daemon: DaemonProtocol`
+  em `connection.py`, `ipc_handlers.py` e `subsystems/{rumble, mouse,
+  hotkey, autoswitch, ipc, udp, keyboard}.py`. mypy `--strict` continua
+  zero, agora com validação real. Sem mudança de runtime.
+
+### Bloco B — documentação
+
+- **`README-URL-BUMP-V3-2-0` (B1)**: comandos `curl -LO` do README e do
+  `docs/usage/quickstart.md` apontam para `v3.2.0`. Headline do README
+  reflete `Versão: 3.2.0` + estado validado em Pop!_OS 22.04 e 24.04 COSMIC
+  USB+BT. Nota de release substituída por entry v3.2.0.
+- **`ADR-STATUS-FIELD-01` (B2)**: ADRs 001-013 ganharam campo
+  `**Status:**` no header (alinhamento com 014-017). ADR-007 marcado
+  explicitamente `superseded por ADR-014`. ADR-006 anota que continua
+  válido para X11, complementado pelo ADR-014 para Wayland.
+- **`CHECKLIST-V3-2-0-REFRESH-01` (B3)**: novo
+  `CHECKLIST_VALIDACAO_v3.2.0.md` substitui v3 como gate de release atual,
+  com seções dedicadas às sprints da Wave V3.2 + re-validação COSMIC +
+  re-validação BT pós-release. v3 ganhou nota apontando para o sucessor
+  e itens `[x]` permanecem como proof-of-work histórico.
+
+### Bloco C — UI/UX
+
+- **`UI-DAEMON-LOG-AUTOSCROLL-01` (C1)**: aba Daemon — log viewer agora
+  rola automaticamente até o fim quando novo conteúdo chega. Trocou
+  `scroll_to_mark(use_align=False)` por `scroll_to_iter(yalign=1.0)`
+  + reagendamento via `GLib.idle_add` para esperar relayout do TextView.
+- **`UI-STATUS-OFFLINE-FALLBACK-01` (C2)**: aba Status — após 5 s sem
+  nenhum poll IPC bem-sucedido, header passa de "Consultando..." para
+  " Desconectado — abra a aba Daemon e clique em Iniciar". Resolve a
+  janela em que o daemon nunca subiu no boot e o usuário ficava sem
+  saber o próximo passo. Novo `_first_poll_succeeded` é marcado por
+  qualquer um dos 3 ticks (live, profile, reconnect).
+- **`UI-TRIGGERS-LIVE-PREVIEW-01` (C3)**: aba Gatilhos — trocar modo no
+  combobox aplica o trigger no hardware em 300 ms (debounced) sem
+  precisar clicar "Aplicar". Novo `_trigger_live_preview_timer` por side
+  cancela handle anterior em troca rápida de combobox.
+
+### Suíte de testes
+
+`1395 → 1406 passed (+11)`, 14 skipped, ruff clean, mypy `--strict` zero
+em 114 source files.
+
+### Backlog explícito (não entram v3.2.0)
+
+- P2 da Wave V3.2 não-feitos: C4 (lightbar presets), C5 (rumble scale
+  labels), C6 (mnemonics), C7 (firmware tooltip).
+- P3 forward-looking sprints 116/118/119 (Rust applet, global shortcuts,
+  panel widget) continuam PLANNED para V3.4.
+
+## [3.1.1] — 2026-05-16
+
+Patch release fechando 5 sprints adicionais na mesma sessão da V3.1.0.
+
+### Sprints fechadas
+
+- **Sprint 109** `FEAT-BLUETOOTH-CONNECTION-01` PROTOCOL_READY → **MERGED**:
+  validado em hardware real com DualSense A0:FA:9C:C3:11:F0 pareado (USB
+  unplugged + `transport=bt` + battery_pct=75 + lightbar magenta + profile
+  activate fps via BT + evdev event2 + touchpad event4 OK). Proof-of-work
+  em `CHECKLIST_VALIDACAO_v3.md`. Spec ganha **Status: MERGED**.
+
+- **Sprint 108** `FEAT-APPIMAGE-GUI-WITH-GTK-01` (#33): novo
+  `scripts/build_appimage_gui.sh` gera AppImage com GTK3 + PyGObject +
+  Cairo + GdkPixbuf bundlados via `linuxdeploy-plugin-gtk`. AppDir manual
+  + venv embarcada + AppRun com `GI_TYPELIB_PATH` + `GDK_PIXBUF_*`.
+  Tamanho 43 MB (vs 30 MB CLI-only — só +13 MB para GUI bundled). Coexiste
+  com `build_appimage.sh` (CLI-only) — release ganha ambos.
+
+- **Sprint 111** `CHORE-CI-REPUBLISH-TAGS-01`: 12 tags antigas (v1.0.0..v3.0.0)
+  pushadas para o fork. Release entry v3.0.0 anchor histórica criada.
+
+- **Sprint 113** `FEAT-GITHUB-PROJECT-VISIBILITY-01`: aplicado via
+  `gh repo edit` — descrição (140 char) + homepage URL + 20 topics.
+
+- **Sprint 117** `FEAT-COSMIC-NOTIFICATIONS-01`: helpers event-driven
+  `notify_controller_connected/disconnected`, `notify_battery_low` (com
+  dedup via `once_key`), `notify_battery_recovered`, `notify_profile_activated`.
+  Gated por env var `HEFESTO_DUALSENSE4UNIX_DESKTOP_NOTIFICATIONS=1`
+  (default off). Wire-up em `daemon/lifecycle.py`, `daemon/connection.py`,
+  `profiles/manager.py` (5 sites, lazy import + try/except). 14 testes novos.
+
+### Sprints documentadas como PLANNED (forward-looking V3.4)
+
+Sprint stubs em `docs/process/sprints/` para backlog que requer Rust +
+libcosmic + APIs em flux:
+
+- `FEAT-COSMIC-APPLET-RUST-01` (116, XL).
+- `FEAT-COSMIC-GLOBAL-SHORTCUTS-01` (118, M).
+- `FEAT-COSMIC-PANEL-WIDGET-01` (119, L, depende 116).
+
+### Testes / suite
+
+- v3.1.0: 1381 passed.
+- v3.1.1: **1395 passed**, 14 skipped (+14 testes notifications).
+- Ruff + mypy strict: clean (113 source files).
+
+### Artifacts
+
+- `hefesto-dualsense4unix_3.1.1_amd64.deb` (8.3 MB).
+- `Hefesto-Dualsense4Unix-3.1.1-x86_64.AppImage` (30 MB, CLI-only).
+- `Hefesto-Dualsense4Unix-3.1.1-gui-x86_64.AppImage` (43 MB, GUI bundled — NOVO).
+
+## [3.1.0] — 2026-05-16
+
+### Hardening COSMIC pós-rebrand
+
+Cinco sprints corrigem regressões introduzidas no rebrand `Hefesto → Hefesto - Dualsense4Unix` (commits 7f4687a/08e92b8) e formalizam compatibilidade explícita com Pop!_OS 24.04 COSMIC. Validação primária em hardware real do mantenedor (Pop!_OS 24.04 + COSMIC 1.0.0 + DualSense USB 054c:0ce6 conectado).
+
+- **BUG-COSMIC-WLR-BACKEND-REGRESSION-01**: re-portado `WlrctlBackend` para `src/hefesto_dualsense4unix/integrations/window_backends/wlr_toplevel.py` (perdido no rebrand) + cascade portal → wlrctl → None em `window_detect.py`. Threshold `_UNSUPPORTED_THRESHOLD=3` re-introduzido em `WaylandPortalBackend` para abandonar portal silenciosamente após 3 falhas consecutivas — evita 2s de timeout D-Bus a cada 500ms quando o compositor não suporta `GetActiveWindow`. 18 testes novos em `test_wlrctl_backend.py` + 5 testes do cascade em `test_window_detect_factory.py` + 7 testes do threshold em `test_window_backends.py`. Dependência `jeepney>=0.8` registrada como `[cosmic]` opcional em `pyproject.toml` (instalada por default pelo `install.sh`).
+
+- **BUG-COSMIC-INSTALL-SH-REGRESSION-01**: restauradas todas as menções a COSMIC/Wayland/XWayland perdidas no rebrand. `install.sh` agora aceita flag `--force-xwayland`, detecta `XDG_CURRENT_DESKTOP=COSMIC`, oferece instalação de `wlrctl` via apt + gravação de `GDK_BACKEND=x11` no atalho `.desktop`. Mensagens de erro com alternativas para distros sem `wlrctl` no repo (Arch/Fedora/source). `[cosmic]` extra do pyproject puxado por default (`pip install .[emulation,cosmic]`).
+
+- **FEAT-COSMIC-NATIVE-VALIDATION-01**: validação empírica em Pop!_OS 24.04 + COSMIC 1.0.0 documentada em `docs/process/discoveries/2026-05-15-cosmic-1.0-validation.md`. Confirmado: `xdg-desktop-portal-cosmic` não implementa `GetActiveWindow` (portal retorna `None`); `cosmic-comp 1.0.0` não expõe `wlr-foreign-toplevel-management` (`wlrctl toplevel list` retorna "Foreign Toplevel Management interface not found!"). Workaround efetivo: manter XWayland ativo (default em Pop!_OS 24.04) — `XlibBackend` cobre jogos via Steam/Proton, caso primário do projeto. Matriz de compatibilidade no README atualizada.
+
+- **FEAT-COSMIC-TRAY-FALLBACK-01**: tray icon em COSMIC ganha três defesas em `src/hefesto_dualsense4unix/app/tray.py`:
+  - Criação do `AppIndicator` deferida via `GLib.timeout_add(500, ...)` em sessão COSMIC (cobre race condition em que app criava indicator antes do `cosmic-applet-status-area` registrar `org.kde.StatusNotifierWatcher`).
+  - Probe explícito de `NameHasOwner(org.kde.StatusNotifierWatcher)` via D-Bus logo após criar o indicator.
+  - Notificação D-Bus orientadora (`once_key="cosmic_tray_missing"`, 1x por execução) instrui o usuário a habilitar o applet "Área de status" no cosmic-panel.
+
+  Novo módulo `src/hefesto_dualsense4unix/integrations/desktop_notifications.py` expõe `notify()` (signature `susssasa{sv}i` do `org.freedesktop.Notifications`) e `statusnotifierwatcher_available()` via `jeepney`. 16 testes em `test_desktop_notifications.py` + 4 testes COSMIC-specific em `test_tray.py`. Validação real confirmou: em Pop!_OS 24.04 COSMIC com `cosmic-applets 1.0.12` instalado mas applet "Área de status" não-adicionado ao painel, `NameHasOwner` retorna `false`; após o usuário adicionar via "Configurações > Painel > Applets", retorna `true`.
+
+- **CHORE-COSMIC-DOC-UPDATE-01**: `ADR-014` ganhou seções "Camada 2.1 — Cascade portal → wlrctl (v3.1.0)" e "Camada 4 — Tray fallback notification (v3.1.0)" com validação empírica. README ganhou matriz de compatibilidade atualizada (Pop!_OS 24.04 COSMIC: USB OK, autoswitch XWayland-only, tray parcial) e seção dedicada "Pop!_OS COSMIC (Wayland)" com workarounds e comandos reproduzíveis. Plan integral em `docs/process/SPRINT_PLAN_COSMIC.md`.
+
+#### Pacotes opcionais
+
+`pyproject.toml` ganhou extra `[cosmic]` com `jeepney>=0.8` (puro Python, sem deps nativas). Permite ao backend Wayland do portal funcionar. `install.sh` instala por default; usuários que rodam `pip install hefesto-dualsense4unix[cosmic]` ganham o portal habilitado sem precisar do `wlrctl`.
+
+#### Testes / suite
+
+- Antes: 1359 passed, 14 skipped.
+- Depois: 1381 passed, 14 skipped (+22 testes liquido).
+- Ruff: clean em todo `src/` e `tests/`.
+- Mypy strict: clean (113 source files, zero erros — gate v2.2 restaurado).
+
+#### Sprints colaterais (mesma sessão)
+
+- **Sprint 85** (`BUG-TEST-POLL-LOOP-UINPUT-TIMING-01`): flaky test resolvido em `tests/unit/test_poll_loop_evdev_cache.py` — 5 `DaemonConfig` ganharam `keyboard_emulation_enabled=False`, `asyncio.sleep` aumentado de 0.04/0.06 para 0.10/0.15 (margem 2x). 3 runs consecutivos da suite verdes.
+- **Sprint 107** (`BUG-GUI-QUIT-RESIDUAL-01` #32): confirmado resolvido pelo `threading.Thread(target=self._shutdown_backend, daemon=True)` em `app/app.py:279`. Signal handler `SIGUSR2 -> quit_app` adicionado em `app.py:124-127` para reprodução automatizada (`kill -USR2 <pid>`); 5 runs em <200ms, exit=0.
+- **Sprint 110** (`VALIDATION-V3-MOUSE-TECLADO-01`): `UinputKeyboardDevice`, `UinputMouseDevice`, `UinputGamepad` (Xbox 360 vendor 0x45e product 0x28e) todos funcionais em COSMIC + Wayland.
+- **Sprint 115** (`CHORE-CI-COSMIC-MATRIX-01`): `.github/workflows/ci.yml` runtime-smoke job agora tem dimensão `desktop_env: [gnome, cosmic]` que valida `_WaylandCascadeBackend` vs `XlibBackend` conforme env mockado.
+
+#### Achados resolvidos pelo caminho
+
+Bugs colaterais descobertos durante validação real e fechados na mesma sessão (não viram sprints formais, ficam como entries do release):
+
+- **mypy errors pré-existentes (commit fc504e3)**: `core/trigger_effects.py:410` removido `cast("list[list[int]]", params)` redundante (mypy infere via `isinstance(params[0], list)`); `app/main.py:39` ganhou anotação `logger: structlog.stdlib.BoundLogger` (TYPE_CHECKING import). `mypy --strict` agora retorna `Success: no issues found in 113 source files` — gate rígido v2.2 restaurado integralmente.
+
+- **Gtk-CRITICAL benigno no startup da GUI em COSMIC**: warning `gtk_widget_get_scale_factor: assertion 'GTK_IS_WIDGET (widget)' failed` aparece ~160ms após `Indicator.set_menu()` quando o ProxyMenu D-Bus é montado pela libayatana-appindicator3. Confirmado fora do nosso código (não causa crash, sem efeito visível). Documentado em `src/hefesto_dualsense4unix/app/tray.py` docstring + referência aos issues upstream `pop-os/cosmic-applets#1009`. Sem fix (esperar migração para libayatana-appindicator-glib).
+
+- **`hefesto-dualsense4unix daemon status` retornava string vazia quando unit não-instalada**: `service_install.py::status_text()` agora checa `detect_installed_unit()` antes e retorna mensagem orientadora ("hefesto-dualsense4unix.service não instalada. Para instalar via systemd --user: ..."). Também concatena stderr quando systemctl popula só stderr. 2 testes novos em `test_service_install.py` (`test_status_text_unit_nao_instalada_retorna_mensagem_clara`, `test_status_text_concatena_stdout_e_stderr`).
+
+- **`examples/mod_integration_udp.py` referenciado mas inexistente**: `CHECKLIST_MANUAL.md:57` e `docs/process/HEFESTO_PROJECT.md` mencionavam o exemplo, mas o arquivo não existia. Criado script de ~140 linhas demonstrando todas 5 instruções do schema DSX v1 (`TriggerUpdate`, `RGBUpdate`, `PlayerLED`, `MicLED`, `ResetToUserSettings`) via socket UDP em `127.0.0.1:6969`. Validado em hardware real: daemon recebe e processa sem erro.
+
+- **Logger stdlib + format `%s` em `backend_pydualsense.py` e `firmware_actions.py`**: migrado para `structlog.get_logger()` com kwargs estruturados. Eventos canônicos agora: `controller_connected_with_evdev transport=X`, `evdev_reader_stop_failed err=...`, `set_trigger_offline_noop side=X`, `trigger_mode_fora_do_enum_mantendo_raw mode=X`, `firmware_info_falhou detail=X`, `firmware_apply_falhou message=X`.
+
+- **CLI sem flag `--version` global**: adicionado callback Typer `--version` (compat POSIX). `version` subcomando preservado. Ambos retornam `__version__` da package metadata.
+
+- **Tray docstring "(requer extra [tray])" renderizada como "(requer extra )"**: `[tray]` interpretado como markup pelo rich/typer. Trocado por "(requer pip install com extra tray)".
+
+- **Sanitizer global do mantenedor remove glyphs Unicode**: hooks em `~/.config/git/hooks/` + `universal-sanitizer.py` removem caracteres em ranges amplos (incluindo `` U+2194, `` U+25CF, `` U+2717 que o ADR-011 do projeto permite). Substituições aplicadas em `ci.yml` ("" → "vs") e `CHECKLIST_VALIDACAO_v3.md` (codepoints via `python3 -c`). Sem alterar a regra do sanitizer (ambiente do usuário).
+
+Total suite após v3.1.0: **1381 passed, 14 skipped**. Ruff/mypy ambos clean.
+
 ### Hardening pós-publicação v3.0.0 — round 2 (2026-04-27 noite)
 
 Quatro sprints fechadas em sessão única atacando os 3 sintomas mais ofensivos reportados pelo usuário (Pop!_OS 22.04 Jammy + GNOME 42 X11 + DualSense USB) + 1 achado colateral.
@@ -69,7 +593,7 @@ Major release de **rebrand + hardening**: rebrand `Hefesto` → `Hefesto - Duals
 - **CLUSTER-INSTALL-DEPS-01**: `install.sh` ganhou passos 8/9 — detecta GNOME via `XDG_CURRENT_DESKTOP` e habilita `ubuntu-appindicators@ubuntu.com` automaticamente (Pop!_OS/Ubuntu vêm com extension instalada mas desabilitada). Detecta `dualsensectl` ausente e oferece flatpak install (`com.github.nowrep.dualsensectl`); install nunca bloqueia se opcional. Aba Firmware na GUI mostra mensagem clara com URL Flathub quando binário ausente.
 - **CLUSTER-TRAY-POLISH-01**: "Sair" do tray agora mata daemon avulso via PID file (defesa anti-recycle via `is_hefesto_dualsense4unix_process`), não só systemctl stop. Item `(carregando)` zumbi removido do submenu Perfis. Mnemonic GTK underscore corrigido (`use_underline=False` explícito).
 - **FEAT-BLUETOOTH-CONNECTION-01** (PROTOCOL_READY): código de runtime já era transport-agnostic (USB+BT). Sprint adicionou gate da regra udev `74-ps5-controller-hotplug-bt.rules` no `install.sh`, seção "Conexão via Bluetooth" no README com fluxo `bluetoothctl` em PT-BR, e CHECKLIST_HARDWARE_V2 item 8 expandido (5 sub-itens). Promoção a MERGED requer execução em hardware BT pareado.
-- **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-03**: `scripts/validar-acentuacao.py` ganhou defesa em profundidade (pre/post-pass) contra strip silencioso de glyphs ADR-011 (●○◐△□). Pre-pass: linha contendo glyph protegido não é corrigida (conservador). Post-pass: revert se algum codepoint sumiu após substituição.
+- **BUG-VALIDAR-ACENTUACAO-FIX-GLYPHS-03**: `scripts/validar-acentuacao.py` ganhou defesa em profundidade (pre/post-pass) contra strip silencioso de glyphs ADR-011 (□). Pre-pass: linha contendo glyph protegido não é corrigida (conservador). Post-pass: revert se algum codepoint sumiu após substituição.
 
 ### Quebrando compatibilidade
 
@@ -320,7 +844,7 @@ colaterais, zero regressão.
   `--fix`, qualquer substituição cuja faixa original contenha caractere
   protegido é rejeitada e emite warning em stderr citando o glyph e a
   linha. Mesmo que alguém adicione par errado em `_PARES` (ex:
-  `("●", "")`), o filtro bloqueia a remoção. 23 testes regressão
+  `("", "")`), o filtro bloqueia a remoção. 23 testes regressão
   parametrizados em `tests/unit/test_validar_acentuacao_glyphs.py`
   cobrem codepoints canônicos (U+25AE/AF/CB/CF/D0, U+2192, U+2500,
   U+2588), boundaries dos ranges e cenário de par malicioso injetado.
@@ -862,7 +1386,7 @@ Primeira release estável. Daemon + CLI + TUI + GUI GTK3 inteiros, falando com D
 - **AssertionError ruidoso em `udp_server.connection_made`**: assert gratuito contra `asyncio.DatagramTransport` removido (Python 3.10 entrega `_SelectorDatagramTransport` que não passa isinstance público). Journal limpo em cada startup.
 - **GUI congelava com daemon lento ou offline**: `asyncio.run()` síncrono a 20 Hz na thread GTK bloqueava a janela. Migração para `ThreadPoolExecutor` com callbacks via `GLib.idle_add`; `LIVE_POLL_INTERVAL_MS = 100` (10 Hz); timeout de 250ms no `open_unix_connection`. Janela permanece responsiva mesmo com IPC morto.
 - **Dualidade `hefesto-dualsense4unix.service` / `hefesto-dualsense4unix-headless.service` removida**: unit única. Dropdown da aba Daemon virou label estática `Unit: hefesto-dualsense4unix.service`. API singular `detect_installed_unit()`.
-- **Glyphs Unicode de estado preservados**: `●` (U+25CF), `○` (U+25CB), `▮`/`▯` (U+25AE/U+25AF), `◐` (U+25D0) são UI textual funcional, não emojis. Distinção formalizada em ADR-011.
+- **Glyphs Unicode de estado preservados**: `` (U+25CF), `` (U+25CB), ``/`` (U+25AE/U+25AF), `` (U+25D0) são UI textual funcional, não emojis. Distinção formalizada em ADR-011.
 
 ### Modificado
 - **Novo ícone canônico** (`assets/appimage/Hefesto-Dualsense4Unix.png`): martelo + placa de circuito, gradiente teal→magenta. Cache GTK `hicolor` populado em 9 tamanhos (16 a 512 px) pelo `install.sh`.

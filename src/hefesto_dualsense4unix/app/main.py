@@ -7,9 +7,14 @@ import signal
 import subprocess
 import sys
 import time
+from typing import TYPE_CHECKING
 
 from hefesto_dualsense4unix.app.app import HefestoApp
+from hefesto_dualsense4unix.utils.i18n import init_locale
 from hefesto_dualsense4unix.utils.logging_config import configure_logging, get_logger
+
+if TYPE_CHECKING:
+    import structlog
 
 
 def _is_systemd_managed(pid: int) -> bool:
@@ -36,7 +41,7 @@ def _is_systemd_managed(pid: int) -> bool:
         return False
 
 
-def _kill_previous_instances(logger) -> None:
+def _kill_previous_instances(logger: structlog.stdlib.BoundLogger) -> None:
     """Mata processos GUI anteriores; preserva daemon managed por systemd.
 
     Cobre:
@@ -112,7 +117,26 @@ def _kill_previous_instances(logger) -> None:
 def main(argv: list[str] | None = None) -> int:
     configure_logging()
     logger = get_logger(__name__)
-    _ = argv
+    _unused_argv = argv
+
+    # FEAT-I18N-INFRASTRUCTURE-01 (v3.4.0): inicializa locale ANTES de
+    # qualquer Gtk.Builder ou widget, garantindo que set_translation_domain
+    # consiga resolver labels traduzíveis do Glade no boot.
+    init_locale()
+
+    # BUG-DOCK-ICON-WMCLASS-MISMATCH-01 (v3.4.3): seta prgname ANTES de
+    # qualquer Gtk init para o GTK derivar `app_id` Wayland corretamente.
+    # Sem isso, a dock COSMIC nao associa janela ao .desktop e mostra
+    # icone generico. prgname deve casar com basename do .desktop file.
+    # Tambem seta application_name (usado em window title bar fallback).
+    import gi
+    gi.require_version("Gtk", "3.0")
+    from gi.repository import GLib, Gtk
+    GLib.set_prgname("hefesto-dualsense4unix")
+    GLib.set_application_name("Hefesto - Dualsense4Unix")
+    # Default icon do app — janelas filhas (diálogos, etc.) herdam.
+    with contextlib.suppress(Exception):
+        Gtk.Window.set_default_icon_name("hefesto-dualsense4unix")
 
     # Garantia de instância única absoluta — mata qualquer processo antigo do
     # Hefesto - Dualsense4Unix antes de subir. Evita estado inconsistente, socket

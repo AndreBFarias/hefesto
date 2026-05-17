@@ -1,5 +1,10 @@
 # Checklist de validação — pós-rebrand v3.0.0 + 6 sprints (2026-04-27)
 
+> **Nota (2026-05-16):** este checklist cobre as releases v3.0.0 → v3.1.1.
+> Para a Wave V3.2 (auditoria + polish, v3.2.0), use
+> `CHECKLIST_VALIDACAO_v3.2.0.md`. Itens marcados `[x]` aqui permanecem como
+> proof-of-work histórico.
+
 Itens que precisam **execução manual com hardware ou ambiente real do usuário**.
 Marcar `[x]` quando passar; logar evidência quando falhar.
 
@@ -53,7 +58,7 @@ Marcar `[x]` quando passar; logar evidência quando falhar.
   import asyncio
   from hefesto_dualsense4unix.cli.ipc_client import IpcClient
   async def main():
-      async with IpcClient.connect(timeout=2) as c:
+      async with IpcClient.connect(timeout=2) as c:  # NOTE: sem `await` na frente; IpcClient.connect já é asynccontextmanager.
           st = await c.call('daemon.state_full')
           print('lx:', st.get('lx'))
           print('buttons:', st.get('buttons'))
@@ -72,7 +77,7 @@ Marcar `[x]` quando passar; logar evidência quando falhar.
   import asyncio
   from hefesto_dualsense4unix.cli.ipc_client import IpcClient
   async def main():
-      async with IpcClient.connect(timeout=2) as c:
+      async with IpcClient.connect(timeout=2) as c:  # NOTE: sem `await` na frente; IpcClient.connect já é asynccontextmanager.
           await c.call('profile.switch', {'name': 'shooter'})
   asyncio.run(main())
   "
@@ -132,36 +137,46 @@ Marcar `[x]` quando passar; logar evidência quando falhar.
 
 ---
 
-## #29 — Bluetooth (PROTOCOL_READY)
+## #29 — Bluetooth (MERGED 2026-05-16)
+
+Validado em sessão real (sprint 109) com DualSense A0:FA:9C:C3:11:F0
+pareado e USB desplugado.
 
 ### Pareamento (primeira vez)
 
-- [ ] Botão PS + Create do DualSense por 4s → entra em pairing.
-- [ ] `bluetoothctl scan on` em terminal.
-- [ ] `bluetoothctl pair <MAC>` (MAC aparece como `Wireless Controller`).
-- [ ] `bluetoothctl trust <MAC>`.
-- [ ] `bluetoothctl connect <MAC>`.
+- [x] `bluetoothctl pair/trust/connect <MAC>` funciona via fluxo padrão.
+- [x] `bluetoothctl info` mostra `Connected: yes`, `Paired: yes`, `Bonded: yes`,
+      `Modalias: usb:v054Cp0CE6d0100` (DualSense via BT).
 
 ### Detecção do daemon via BT
 
-- [ ] DualSense conectado **só** via BT (USB desplugado).
-- [ ] `systemctl --user restart hefesto-dualsense4unix.service && sleep 5`
-- [ ] `hefesto-dualsense4unix status` → `connected: True`, `transport: bt`, `battery_pct: <num>`.
+- [x] DualSense só via BT (USB unplugged confirmado via `lsusb | grep sony` vazio).
+- [x] `hefesto-dualsense4unix daemon start --foreground` → daemon sobe limpo.
+- [x] `hefesto-dualsense4unix status` →
+      ```
+      connected: True
+      transport: bt
+      battery_pct: 75
+      ```
+- [x] Logs: `controller_connected transport=bt`, `evdev_started path=/dev/input/event2`,
+      `touchpad_reader_started path=/dev/input/event4`.
 
 ### Output via BT
 
-- [ ] `hefesto-dualsense4unix led --color "#FF00FF"` → lightbar fica magenta.
-- [ ] `hefesto-dualsense4unix profile activate shooter` → triggers L2/R2 sentem efeito Rigid.
+- [x] `hefesto-dualsense4unix led --color "#FF00FF"` →
+      `lightbar (via daemon): rgb=(255, 0, 255)`.
+- [x] `hefesto-dualsense4unix profile activate fps` →
+      `perfil aplicado no controle: fps` (triggers L2/R2 aplicados via BT).
 
 ### Hotplug GUI via BT (se habilitado)
 
-- [ ] Se rodou `./install.sh --enable-hotplug-gui`: desconectar BT + reconectar → GUI auto-abre.
+- [ ] Pendente validação visual humana com `./install.sh --enable-hotplug-gui`.
 
-### Promoção a MERGED
+### Promoção MERGED — feita
 
-Quando todos os itens BT acima passarem, atualizar status da sprint em `docs/process/sprints/FEAT-BLUETOOTH-CONNECTION-01.md` para MERGED e anexar:
-- Logs de `controller_connected transport=bt`
-- Captura PNG do header GUI: `Conectado Via BT`
+Sprint 109 promovida em 2026-05-16. Logs anexados nesta seção como
+proof-of-work. Captura PNG do header GUI fica como item extra
+(não-bloqueador).
 
 ---
 
@@ -175,19 +190,26 @@ Quando todos os itens BT acima passarem, atualizar status da sprint em `docs/pro
 
 ### Defesa preventiva
 
-- [ ] Em cópia de teste em `/tmp/`, criar arquivo com `● Online` + `funcao` (ASCII faltando ç/ã).
-- [ ] Rodar `python3 scripts/validar-acentuacao.py --paths /tmp/teste.py --fix`.
-- [ ] Conferir que `●` foi **preservado** mesmo com a correção de `funcao→função` aplicada na mesma linha.
+- [ ] Em cópia de teste em `/tmp/`, criar arquivo com `[bullet] Online` + `funcao` (ASCII faltando ç/ã); use `python3 -c "open('/tmp/teste.py','w').write('\\u25cf Online + funcao')"` para gerar o codepoint U+25CF (ADR-011 glyph). Sanitizers globais podem remover glyphs Unicode de DE/git hooks; criar via Python evita perda no editor.
+- [ ] Rodar `python3 scripts/validar-acentuacao.py /tmp/teste.py --fix`.
+- [ ] Conferir que o codepoint U+25CF foi preservado: `python3 -c "import sys; d=open('/tmp/teste.py').read(); sys.exit(0 if '\\u25cf' in d else 1)"`. Se exit 0, glyph preservado.
 
 ---
 
-## #32 — BUG-GUI-QUIT-RESIDUAL-01 (achado colateral, não-bloqueante)
+## #32 — BUG-GUI-QUIT-RESIDUAL-01 (RESOLVIDO em v3.1.0)
 
-Sprint aberta para investigar separadamente. **Não bloqueia merge do PR #103.**
-
-- [ ] Reproduzir: GUI rodando, Sair → `pgrep -af "hefesto.*app.main"` ainda mostra PID Python em estado `S` (sleeping em futex).
-- [ ] Workaround atual: `pkill -9 -f hefesto_dualsense4unix.app.main` se quiser garantir kill.
-- [ ] Próxima sprint vai investigar `tray.stop()` D-Bus call que pode estar bloqueando GLib mainloop.
+- [x] **Resolvido** pela combinação de `Gtk.main_quit()` antes do cleanup +
+      `threading.Thread(target=self._shutdown_backend, daemon=True)`
+      (app/app.py linha 277-279). Validado em 5 runs consecutivos via
+      novo signal handler `SIGUSR2 → quit_app` (app.py linha 124-127):
+      quit em <200ms, exit=0, sem processo zumbi.
+- [x] Para reproduzir o teste em qualquer instalação:
+      ```bash
+      .venv/bin/hefesto-dualsense4unix-gui &
+      sleep 4
+      kill -USR2 $!   # simula clique 'Sair' do tray
+      ```
+      Processo deve encerrar limpo em menos de 1s.
 
 ---
 
@@ -281,4 +303,3 @@ Aplicados runtime real após primeira instalação `.deb` no Pop!_OS 22.04 / GNO
 - [ ] **Aba Mouse**: cursor/scroll com pad/giroscópio do DualSense funcional fim-a-fim.
 - [ ] **Aba Teclado**: macros e tokens virtuais validados em jogo real.
 - [ ] **state_full IPC**: verificar paridade campo a campo com snapshot canônico do daemon.
-

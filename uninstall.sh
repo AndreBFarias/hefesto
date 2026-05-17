@@ -43,14 +43,22 @@ systemctl --user daemon-reload >/dev/null 2>&1 || true
 
 # Mata GUIs e daemons órfãos — qualquer processo do hefesto, mesmo se rodando
 # fora do systemd (CLI manual, hotplug-gui spawn, foreground dev).
+#
+# BUG-UNINSTALL-PKILL-SELF-01 (fix): patterns precisam ser **específicos**
+# pra não casar o próprio uninstall.sh. Quando o script roda a partir de
+# `/home/.../hefesto-dualsense4unix/uninstall.sh`, o cmdline do bash que o
+# executa contém "hefesto-dualsense4unix" e `pkill -f 'hefesto-dualsense4unix'`
+# se mata (exit 144). Os patterns abaixo casam só processos legítimos:
+# `daemon ` (espaço final) cobre `daemon start/run`, `-gui` cobre o launcher,
+# `_dualsense4unix` (underscore) cobre processos Python que importam o módulo.
 log "matando processos hefesto*"
-pkill -TERM -f 'hefesto_dualsense4unix' 2>/dev/null || true
-pkill -TERM -f 'hefesto-dualsense4unix' 2>/dev/null || true
-pkill -TERM -f 'br\.andrefarias\.Hefesto' 2>/dev/null || true
+for pat in 'hefesto-dualsense4unix daemon ' 'hefesto-dualsense4unix-gui' 'hefesto_dualsense4unix' 'br\.andrefarias\.Hefesto'; do
+    pkill -TERM -f "$pat" 2>/dev/null || true
+done
 sleep 2
-pkill -KILL -f 'hefesto_dualsense4unix' 2>/dev/null || true
-pkill -KILL -f 'hefesto-dualsense4unix' 2>/dev/null || true
-pkill -KILL -f 'br\.andrefarias\.Hefesto' 2>/dev/null || true
+for pat in 'hefesto-dualsense4unix daemon ' 'hefesto-dualsense4unix-gui' 'hefesto_dualsense4unix' 'br\.andrefarias\.Hefesto'; do
+    pkill -KILL -f "$pat" 2>/dev/null || true
+done
 
 # Unit user de hotplug-gui (se existir)
 if [[ -f "${HOTPLUG_UNIT_TARGET}" ]]; then
@@ -71,6 +79,17 @@ for path in "${DESKTOP_TARGET}" "${ICON_TARGET}" "${LAUNCHER}" "${BIN_SYMLINK}";
         log "ausente: ${path}"
     fi
 done
+
+# FEAT-ICON-MULTI-RES-01 (fix): install.sh gera PNGs em 11 resolucoes
+# (16/22/24/32/48/64/96/128/192/256/512) + SVG escalavel + pixmap
+# legacy. Limpa todos. Nunca remove dirs `<size>x<size>/apps/` (outros
+# apps usam).
+log "removendo icones multi-res hicolor + SVG + pixmap"
+for size in 16 22 24 32 48 64 96 128 192 256 512; do
+    rm -f "${HOME}/.local/share/icons/hicolor/${size}x${size}/apps/${APP_ID}.png"
+done
+rm -f "${HOME}/.local/share/icons/hicolor/scalable/apps/${APP_ID}.svg"
+rm -f "${HOME}/.local/share/pixmaps/${APP_ID}.png"
 
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
     gtk-update-icon-cache -q -f "${HOME}/.local/share/icons/hicolor" 2>/dev/null || true
@@ -163,6 +182,20 @@ if [[ "${KEEP_CONFIG}" -eq 0 ]]; then
 else
     log "configs preservadas (--keep-config): ~/.config/hefesto-dualsense4unix"
 fi
+
+# BUG-UNINSTALL-LOCALE-NOT-REMOVED-01 (fix): catalogos .mo do install.sh
+# step 4d (FEAT-I18N-CATALOGS-01) ficavam orfaos em ~/.local/share/locale/
+# <lang>/LC_MESSAGES/. Removemos so o nosso domain (`hefesto-dualsense4unix.mo`),
+# nunca o LC_MESSAGES/ ou <lang>/ inteiro — outros apps podem usar.
+log "removendo catalogos i18n .mo do user"
+for lang_dir in "${HOME}/.local/share/locale"/*/; do
+    [[ -d "$lang_dir" ]] || continue
+    mo="${lang_dir}LC_MESSAGES/${APP_ID}.mo"
+    if [[ -f "$mo" ]]; then
+        log "  ${mo}"
+        rm -f "$mo"
+    fi
+done
 
 # Runtime dir do socket IPC e pid files (sempre limpa, é volátil)
 runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hefesto-dualsense4unix"

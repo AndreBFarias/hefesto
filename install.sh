@@ -2,15 +2,25 @@
 # install.sh — instala Hefesto - Dualsense4Unix completo no ambiente do usuário.
 #
 # Flags:
-#   --no-udev             pula udev rules (sudo) — útil em CI.
-#   --yes, -y             responde sim a todos os prompts sudo.
+#   --no-udev             pula udev rules (sudo) — útil em CI sem hardware.
+#                         POR DEFAULT, as 5 regras + modules-load uinput são
+#                         aplicadas automaticamente (re-cópia é idempotente).
+#                         Se Flatpak Hefesto está instalado, também propaga.
+#   --yes, -y             responde sim a todos os prompts (autostart, hotplug,
+#                         COSMIC XWayland, AppIndicator extension, etc).
 #   --no-systemd          pula a cópia da unit do daemon.
 #   --no-hotplug-gui      pula a cópia da unit hotplug-gui.
 #   --enable-autostart    habilita auto-start do daemon no boot (pula prompt).
 #   --enable-hotplug-gui  habilita GUI auto-abrir ao plugar DualSense (pula prompt).
+#   --force-xwayland      grava GDK_BACKEND=x11 no .desktop (recomendado
+#                         para COSMIC enquanto xdg-desktop-portal-cosmic
+#                         não implementa GetActiveWindow). Ativada
+#                         automaticamente se XDG_CURRENT_DESKTOP casa
+#                         COSMIC e o usuário confirma via prompt.
 #
 # Default: unit do daemon é COPIADA mas NÃO habilitada. Hotplug-GUI idem.
-# Opt-in via prompt interativo ou flags acima (ver BUG-MULTI-INSTANCE-01).
+# udev rules SÃO aplicadas (incondicional desde v3.3.1 — sem elas o controle
+# não funciona em nenhum formato).
 #
 # Reexecutável (idempotente).
 
@@ -31,6 +41,7 @@ SKIP_SYSTEMD=0
 SKIP_HOTPLUG_GUI=0
 ENABLE_AUTOSTART=0
 ENABLE_HOTPLUG_GUI=0
+FORCE_XWAYLAND=0
 AUTO_YES=0
 
 for arg in "$@"; do
@@ -40,14 +51,26 @@ for arg in "$@"; do
         --no-hotplug-gui)     SKIP_HOTPLUG_GUI=1 ;;
         --enable-autostart)   ENABLE_AUTOSTART=1 ;;
         --enable-hotplug-gui) ENABLE_HOTPLUG_GUI=1 ;;
+        --force-xwayland)     FORCE_XWAYLAND=1 ;;
         --yes|-y)             AUTO_YES=1 ;;
         -h|--help)
-            sed -n '2,15p' "${BASH_SOURCE[0]}" | sed 's/^# //; s/^#//'
+            sed -n '2,20p' "${BASH_SOURCE[0]}" | sed 's/^# //; s/^#//'
             exit 0
             ;;
         *) printf 'aviso: argumento desconhecido: %s\n' "$arg" ;;
     esac
 done
+
+# Detecta COSMIC: XDG_CURRENT_DESKTOP contém "COSMIC" (case-insensitive).
+# Se detectado e usuário não passou --force-xwayland explícito, pergunta
+# interativamente se quer ativar (opt-in). O fallback XWayland faz a GUI
+# rodar sob XlibBackend em vez de depender do portal Wayland — até o
+# xdg-desktop-portal-cosmic implementar
+# org.freedesktop.portal.Window::GetActiveWindow.
+DESKTOP_IS_COSMIC=0
+if [[ "${XDG_CURRENT_DESKTOP:-}${XDG_SESSION_DESKTOP:-}" == *[Cc][Oo][Ss][Mm][Ii][Cc]* ]]; then
+    DESKTOP_IS_COSMIC=1
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -163,50 +186,54 @@ fi
 printf '      instalando pacote Python...\n'
 "${VENV_DIR}/bin/python" -m pip install \
     --quiet --disable-pip-version-check --upgrade pip packaging 2>/dev/null
+
+# Extras instalados sempre: emulation (uinput) + cosmic (jeepney para portal Wayland).
+# `jeepney` é puro Python, sem deps nativas; vale habilitar mesmo em DE não-Wayland
+# porque o WaylandPortalBackend faz `try: import jeepney` e ignora se ausente — mas
+# se está instalado o cascade portal→wlrctl funciona em qualquer compositor que
+# implemente o portal.
 "${VENV_DIR}/bin/pip" install \
-    --quiet --disable-pip-version-check -e "${ROOT_DIR}[emulation]" 2>/dev/null
+    --quiet --disable-pip-version-check -e "${ROOT_DIR}[emulation,cosmic]" 2>/dev/null
 ok
 
 # ---------------------------------------------------------------------------
-# 3. udev rules (requer sudo)
+# 3. udev rules — SEMPRE aplicado por default (requer sudo)
 # ---------------------------------------------------------------------------
+# v3.3.1: udev agora é incondicional (era opt-in via prompt). Motivação: sem
+# essas regras o controle não funciona, e o prompt levava usuários a "pular"
+# sem entender que depois nada ia funcionar. Re-cópia é idempotente e o
+# reload/trigger é barato (<100 ms). Para CI sem sudo, use `--no-udev`.
 step "3/9" "udev rules (hidraw + uinput + autosuspend + hotplug)"
 
 if [[ "${SKIP_UDEV}" -eq 1 ]]; then
-    printf '      pulado (--no-udev)\n'
+    printf '      pulado (--no-udev) — IMPORTANTE: o controle precisa das regras\n'
+    printf '      para funcionar. Rode depois: sudo bash scripts/install_udev.sh\n'
+elif ! command -v sudo >/dev/null 2>&1; then
+    warn "sudo ausente — pulando (rode scripts/install_udev.sh manualmente como root)"
 else
-    need_udev=1
-    if [[ -f /etc/udev/rules.d/70-ps5-controller.rules ]] \
-       && [[ -f /etc/udev/rules.d/71-uinput.rules ]] \
-       && [[ -f /etc/udev/rules.d/72-ps5-controller-autosuspend.rules ]] \
-       && [[ -f /etc/udev/rules.d/73-ps5-controller-hotplug.rules ]] \
-       && [[ -f /etc/udev/rules.d/74-ps5-controller-hotplug-bt.rules ]]; then
-        printf '      já instaladas\n'
-        need_udev=0
+    printf '      copiando 5 regras + modules-load uinput (sudo)\n'
+    printf '        70-ps5-controller.rules                permissão hidraw (USB e BT)\n'
+    printf '        71-uinput.rules                        emulação Xbox360 via uinput\n'
+    printf '        72-ps5-controller-autosuspend.rules    evita desconexão intermitente USB\n'
+    printf '        73-ps5-controller-hotplug.rules        hotplug-GUI ao plugar (USB)\n'
+    printf '        74-ps5-controller-hotplug-bt.rules     hotplug-GUI ao parear (BT)\n'
+
+    if bash "${ROOT_DIR}/scripts/install_udev.sh" >/dev/null 2>&1; then
+        printf '      regras aplicadas + udev recarregado + uinput carregado\n'
+    else
+        warn "install_udev.sh falhou — rode manualmente: sudo bash scripts/install_udev.sh"
     fi
 
-    if [[ "${need_udev}" -eq 1 ]]; then
-        printf '\n'
-        printf '      Cinco regras serão copiadas para /etc/udev/rules.d/ (requer sudo):\n'
-        printf '        70-ps5-controller.rules                permissão hidraw (USB e BT)\n'
-        printf '        71-uinput.rules                        emulação Xbox360 via uinput\n'
-        printf '        72-ps5-controller-autosuspend.rules    evita desconexão intermitente USB\n'
-        printf '        73-ps5-controller-hotplug.rules        abre a GUI ao plugar o controle (USB)\n'
-        printf '        74-ps5-controller-hotplug-bt.rules     abre a GUI ao parear o controle (BT)\n\n'
-
-        ask_yn "instalar agora com sudo?" "${AUTO_YES}"
-        if [[ "${REPLY,,}" =~ ^y ]]; then
-            if ! command -v sudo >/dev/null 2>&1; then
-                warn "sudo ausente — instale com --no-udev e rode scripts/install_udev.sh depois"
-            else
-                printf '      instalando...\n'
-                bash "${ROOT_DIR}/scripts/install_udev.sh" >/dev/null \
-                    || warn "install_udev.sh falhou — rode manualmente depois"
-                ok
-            fi
-        else
-            printf '      pulado a pedido — rode ./scripts/install_udev.sh depois\n'
-        fi
+    # v3.3.1: se Flatpak Hefesto está instalado, propagar as regras pelo
+    # caminho oficial do bundle também (defensive — install_udev.sh já cobriu
+    # o host, mas o usuário pode esperar simetria explícita "tudo pro
+    # Flatpak". A chamada é no-op se as regras já estão lá).
+    if command -v flatpak >/dev/null 2>&1 \
+       && flatpak info br.andrefarias.Hefesto >/dev/null 2>&1; then
+        printf '      Flatpak Hefesto detectado — sincronizando regras via bundle\n'
+        flatpak run --command=install-host-udev.sh br.andrefarias.Hefesto \
+            >/dev/null 2>&1 \
+            || warn "flatpak install-host-udev.sh falhou (regras já vieram via install_udev.sh)"
     fi
 fi
 
@@ -215,9 +242,111 @@ fi
 # ---------------------------------------------------------------------------
 step "4/9" "atalho de aplicativo e launcher"
 
+# FEAT-ICON-MULTI-RES-01 (v3.4.2, refinado em v3.4.3): gera o icone em
+# todas resolucoes do hicolor + pixmap legacy. Antes so existia 256x256
+# PNG, fazendo o COSMIC App Library / GNOME Activities renderizar
+# fallback generico em sizes nao-256 (chip 32x32 do menu apps, 128x128
+# do grid).
+#
+# BUG-ICON-FROM-PLACEHOLDER-SVG-01 (v3.4.3 fix): v3.4.2 usava SVG como
+# source para o rsvg-convert. Mas assets/appimage/Hefesto-Dualsense4Unix.
+# svg eh um PLACEHOLDER simples (chama laranja + texto "HEFESTO"),
+# nao a logo real (martelo + gradiente roxo/azul/rosa no PNG 256x256).
+# Resultado: app library mostrava chama laranja em vez do martelo.
+# Fix: source canonico eh o PNG 256x256 sempre, com Lanczos downsample
+# do ImageMagick para outras resolucoes. Sem SVG escalavel ate termos
+# um SVG real do martelo.
+ICON_HICOLOR_BASE="${HOME}/.local/share/icons/hicolor"
+ICON_SIZES="16 22 24 32 48 64 96 128 192 256 512"
+
+# Sempre garante o 256x256 PNG (path legacy)
 mkdir -p "${ICON_TARGET_DIR}"
 cp -f "${ICON_SRC}" "${ICON_TARGET}"
 mkdir -p "$(dirname "${DESKTOP_TARGET}")"
+
+if command -v convert >/dev/null 2>&1; then
+    printf '      gerando icone multi-res do PNG 256x256 (ImageMagick Lanczos)\n'
+    for size in ${ICON_SIZES}; do
+        target_dir="${ICON_HICOLOR_BASE}/${size}x${size}/apps"
+        mkdir -p "${target_dir}"
+        convert "${ICON_SRC}" -filter Lanczos -resize "${size}x${size}" \
+            "${target_dir}/${APP_ID}.png" 2>/dev/null || true
+    done
+    # Pixmap legacy fallback (DEs antigos)
+    mkdir -p "${HOME}/.local/share/pixmaps"
+    cp -f "${ICON_SRC}" "${HOME}/.local/share/pixmaps/${APP_ID}.png"
+    # Remove SVG placeholder de instalacoes anteriores (v3.4.2 colocava lah).
+    rm -f "${ICON_HICOLOR_BASE}/scalable/apps/${APP_ID}.svg"
+else
+    printf '      aviso: ImageMagick (convert) ausente — so 256x256 PNG\n'
+    printf '             instale: sudo apt install imagemagick\n'
+fi
+
+# Detecção COSMIC → dois caminhos complementares para autoswitch funcionar:
+#
+#   1. wlrctl (recomendado): cobre TODOS os apps via protocolo
+#      wlr-foreign-toplevel-management. WlrctlBackend detecta automaticamente
+#      se o binário está no PATH (window_backends/wlr_toplevel.py).
+#
+#   2. XWayland (fallback): força GTK a rodar sob XWayland via GDK_BACKEND=x11.
+#      XlibBackend passa a ver janelas XWayland (Steam, Proton).
+#      Limitação: apps Wayland nativos ficam invisíveis.
+#
+# Os dois são compatíveis — o cascade Wayland em window_detect.py tenta
+# portal → wlrctl → None, e XWayland roda paralelo via XlibBackend.
+#
+# Auto-aplicação: sob --yes/-y, instala wlrctl (se disponível no apt) + ativa
+# XWayland (apenas se --force-xwayland também foi passado, ou se aceitar prompt).
+if [[ "${DESKTOP_IS_COSMIC}" -eq 1 ]]; then
+    printf '\n'
+    printf '      COSMIC detectado (XDG_CURRENT_DESKTOP=%s).\n' \
+        "${XDG_CURRENT_DESKTOP:-$XDG_SESSION_DESKTOP}"
+    printf '      Enquanto o xdg-desktop-portal-cosmic não implementa o\n'
+    printf '      método org.freedesktop.portal.Window::GetActiveWindow,\n'
+    printf '      o autoswitch de perfil precisa de uma das opções abaixo:\n\n'
+
+    # Caminho 1: wlrctl via apt (se não estiver no PATH já).
+    if ! command -v wlrctl >/dev/null 2>&1; then
+        printf '      Caminho recomendado: instalar wlrctl (apt) - cobre qualquer\n'
+        printf '      app Wayland (não so XWayland). Pacote no Ubuntu 24.04+.\n\n'
+        ask_yn "instalar wlrctl via apt agora?" "${AUTO_YES}" "y"
+        if [[ "${REPLY,,}" =~ ^y ]]; then
+            if command -v sudo >/dev/null 2>&1; then
+                if run_apt wlrctl 2>/dev/null; then
+                    printf '      wlrctl instalado (%s)\n' "$(command -v wlrctl)"
+                else
+                    warn "wlrctl não esta nos repos deste sistema (Ubuntu <24.04?)"
+                    printf '      alternativas:\n'
+                    printf '        - Arch:   sudo pacman -S wlrctl\n'
+                    printf '        - Fedora: sudo dnf install wlrctl\n'
+                    printf '        - fonte:  https://git.sr.ht/~brocellous/wlrctl\n'
+                fi
+            else
+                warn "sudo ausente - rode manualmente: sudo apt install wlrctl"
+            fi
+        fi
+    else
+        printf '      wlrctl ja instalado (%s) - WlrctlBackend vai detectar.\n' \
+            "$(command -v wlrctl)"
+    fi
+
+    # Caminho 2: XWayland (fallback, complementar). Se usuário passou
+    # --force-xwayland via CLI, pula o prompt.
+    if [[ "${FORCE_XWAYLAND}" -eq 0 ]]; then
+        printf '\n      Caminho alternativo: rodar a GUI sob XWayland. Cobre so\n'
+        printf '      janelas XWayland (Steam, Proton), mas não precisa wlrctl.\n\n'
+        ask_yn "ativar GDK_BACKEND=x11 no atalho (recomendado como complemento)?" \
+            "${AUTO_YES}" "y"
+        [[ "${REPLY,,}" =~ ^y ]] && FORCE_XWAYLAND=1
+    fi
+fi
+
+if [[ "${FORCE_XWAYLAND}" -eq 1 ]]; then
+    _EXEC_LINE="env GDK_BACKEND=x11 ${ROOT_DIR}/run.sh"
+    printf '      .desktop com GDK_BACKEND=x11 (fallback XWayland)\n'
+else
+    _EXEC_LINE="${ROOT_DIR}/run.sh"
+fi
 
 cat > "${DESKTOP_TARGET}" <<DESKTOP
 [Desktop Entry]
@@ -225,7 +354,7 @@ Type=Application
 Name=Hefesto - Dualsense4Unix
 GenericName=DualSense Controller
 Comment=Daemon de gatilhos adaptativos para DualSense no Linux
-Exec=${ROOT_DIR}/run.sh
+Exec=${_EXEC_LINE}
 Icon=${APP_ID}
 Categories=Settings;HardwareSettings;
 Terminal=false
@@ -265,6 +394,26 @@ fi
 # ---------------------------------------------------------------------------
 if [[ -f "${ROOT_DIR}/scripts/install_profiles.sh" ]]; then
     bash "${ROOT_DIR}/scripts/install_profiles.sh" "${ROOT_DIR}"
+fi
+
+# ---------------------------------------------------------------------------
+# 4d. Catalogos i18n (.mo) — copia locale/ para ~/.local/share/locale/
+# ---------------------------------------------------------------------------
+# FEAT-I18N-CATALOGS-01 (v3.4.0). Idempotente — re-copia sobrescreve. Se
+# locale/ nao existe (usuario clonou e nao rodou scripts/i18n_compile.sh),
+# pulamos silenciosamente e o gettext faz fallback para PT-BR hardcoded.
+readonly LOCALE_SRC="${ROOT_DIR}/locale"
+readonly LOCALE_TARGET="${HOME}/.local/share/locale"
+if [[ -d "${LOCALE_SRC}" ]]; then
+    for lang_dir in "${LOCALE_SRC}"/*/; do
+        [[ -d "${lang_dir}" ]] || continue
+        lang="$(basename "${lang_dir}")"
+        src_mo="${lang_dir}LC_MESSAGES/hefesto-dualsense4unix.mo"
+        [[ -f "${src_mo}" ]] || continue
+        target_dir="${LOCALE_TARGET}/${lang}/LC_MESSAGES"
+        mkdir -p "${target_dir}"
+        cp -f "${src_mo}" "${target_dir}/hefesto-dualsense4unix.mo"
+    done
 fi
 
 # ---------------------------------------------------------------------------

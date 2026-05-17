@@ -128,6 +128,11 @@ class Daemon:
     # se o evdev_reader não conectou). Atualizado 1x por tick em _poll_loop;
     # zerado em shutdown.
     _last_state: ControllerState | None = None
+    # FEAT-KEYBOARD-EMULATOR-01: criados em runtime por start_keyboard_emulation
+    # (OSK helper + touchpad reader). Declarados aqui para satisfazer mypy
+    # strict via DaemonProtocol (PYDANTIC-PROTOCOL-DAEMON-01).
+    _osk_controller: Any = None
+    _touchpad_reader: Any = None
 
     # ------------------------------------------------------------------
     # Ciclo de vida público
@@ -187,6 +192,12 @@ class Daemon:
                         EventTopic.CONTROLLER_CONNECTED, {"transport": transport}
                     )
                     logger.info("controller_connected", transport=transport)
+                    # FEAT-COSMIC-NOTIFICATIONS-01: opt-in via env var.
+                    with contextlib.suppress(Exception):
+                        from hefesto_dualsense4unix.integrations.desktop_notifications import (
+                            notify_controller_connected,
+                        )
+                        notify_controller_connected(transport or "usb")
                     from hefesto_dualsense4unix.daemon.connection import (
                         restore_last_profile,
                     )
@@ -200,7 +211,7 @@ class Daemon:
                     exc_info=True,
                 )
             # Reconnect probe em background — não bloqueia o boot e cobre
-            # transicoes online↔offline em runtime.
+            # transicoes onlineoffline em runtime.
             self._reconnect_task = asyncio.create_task(
                 reconnect_loop(self), name="reconnect_loop"
             )

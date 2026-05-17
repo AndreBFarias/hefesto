@@ -19,13 +19,24 @@
 ---
 
 ```
-Versão: 3.0.0
-Estado: runtime validado em Pop!_OS 22.04 com DualSense USB; 1332 testes unit, ruff clean, mypy zero
+Versão: 3.4.3
+Estado: runtime validado em Pop!_OS 22.04 e 24.04 COSMIC com DualSense USB+BT; 1415+ testes unit, ruff clean, mypy zero; tray fallback via janela compacta em DEs sem StatusNotifierWatcher; install.sh aplica todas as 5 regras udev + uinput de cara (sem prompt)
 Alvo:   Linux com systemd-logind, Python 3.10+
 Licença: MIT
 ```
 
-> **Nota de release v3.0.0** — esta release é o rebrand `Hefesto` → `Hefesto - Dualsense4Unix` + 6 sprints de hardening fechadas no dia da publicação. Pacotes `.deb`, Flatpak e AppImage publicados em [Releases v3.0.0](https://github.com/AndreBFarias/hefesto-dualsense4unix/releases/tag/v3.0.0). A aba **Firmware** foi redesenhada para read-only (sem flash via Linux — atualização oficial é Sony, via PS5/PS4). A AppImage v3.0.0 é **CLI-only** (banner explicativo no double-click); para GUI use `.deb` ou Flatpak. Pendências conhecidas e itens de validação manual estão em `CHECKLIST_VALIDACAO_v3.md` e na seção *Hardening pós-publicação* do `CHANGELOG.md`.
+> **Nota de release v3.4.0** — i18n EN baseline (catálogo `po/en.po`
+> com 232 strings + `pt_BR.po` identidade; carregado via `LANG` do
+> sistema), **acessibilidade ATK** em 15 botões críticos (Orca anuncia
+> "Aplicar gatilho adaptativo no L2" em vez de "botão sem nome") +
+> high-contrast palette WCAG AAA detectada automaticamente pelo tema
+> do sistema, **packaging multi-distro** (PKGBUILD AUR + RPM spec
+> Fedora/Copr + Nix flake), **CI smoke matrix Docker**
+> (fedora:40 + archlinux:latest + debian:12) com cache pip. 4
+> artefatos canônicos continuam: `.deb`, AppImage CLI, AppImage GUI e
+> Flatpak. Para histórico anterior (v3.3.x tray fallback + install
+> perfeito, v3.2.0 auditoria, v3.1.x hardening COSMIC, v3.0.0 rebrand)
+> veja [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 
@@ -74,7 +85,7 @@ A GUI principal expõe 10 abas no `GtkNotebook` central, cada uma cobrindo um ei
 
 | Aba | Pra que serve | Controles principais |
 |-----|---------------|----------------------|
-| **Status** | Dashboard ao vivo do controle e do daemon. É a primeira aba e onde você confirma se conectou. | Conexão, Transporte (USB/BT), Bateria, Perfil ativo, Daemon (online/offline); barras L2/R2 0–255; sticks analógicos esquerdo (L3) e direito (R3) com X/Y; grid 4×4 de glyphs (X, O, □, △, D-pad, L1/R1/L2/R2, Share, Options, PS, Touchpad) que acende em roxo quando pressionado. |
+| **Status** | Dashboard ao vivo do controle e do daemon. É a primeira aba e onde você confirma se conectou. | Conexão, Transporte (USB/BT), Bateria, Perfil ativo, Daemon (online/offline); barras L2/R2 0–255; sticks analógicos esquerdo (L3) e direito (R3) com X/Y; grid 4×4 de glyphs (X, O, □, , D-pad, L1/R1/L2/R2, Share, Options, PS, Touchpad) que acende em roxo quando pressionado. |
 | **Gatilhos** | Configurar o efeito adaptativo de L2 e R2 separadamente. É a feature-flagship do projeto. | Por gatilho (L2 e R2): combobox **Modo** (19 modos: Off, Rigid, Pulse, Galloping, Machine, Bow, Automatic Gun, etc.), combobox **Preset** (intensidade leve/média/dura), botão **Aplicar**, botão **Desligar**. |
 | **Lightbar** | Cor da barra LED frontal e LEDs de jogador. | Color picker RGB com prévia ao vivo, slider de **Luminosidade (%)**, botões **Aplicar no controle** / **Apagar**; checkboxes **LED 1–5** (player LEDs) com presets rápidos **Todos**, **Player 1**, **Player 2**, **Nenhum** + botão **Aplicar LEDs**. |
 | **Rumble** | Política global de vibração e teste dos motores. | Radios de política: **Economia** (0,3×), **Balanceado** (0,7×), **Máximo** (1,0×), **Auto** (dinâmico por bateria); slider **Intensidade global**; testar **Motor fraco (weak)** / **Motor forte (strong)** com **Testar por 500 ms**, **Aplicar**, **Parar**. |
@@ -154,8 +165,8 @@ Para jogos que só aceitam gamepad Microsoft, o daemon expõe `/dev/input/js*` v
 #### Ubuntu / Debian / Pop!\_OS / Mint (.deb — recomendado)
 
 ```bash
-curl -LO https://github.com/AndreBFarias/hefesto/releases/download/v3.0.0/hefesto-dualsense4unix_3.0.0_amd64.deb
-sudo apt install ./hefesto-dualsense4unix_3.0.0_amd64.deb
+curl -LO https://github.com/AndreBFarias/hefesto/releases/download/v3.2.0/hefesto-dualsense4unix_3.2.0_amd64.deb
+sudo apt install ./hefesto-dualsense4unix_3.2.0_amd64.deb
 ```
 
 Depois habilite o daemon (opcional — pode rodar só via GUI):
@@ -188,17 +199,42 @@ pip install pydualsense python-uinput
 #### AppImage (universal)
 
 ```bash
-curl -LO https://github.com/AndreBFarias/hefesto/releases/download/v3.0.0/Hefesto-Dualsense4Unix-3.0.0-x86_64.AppImage
-chmod +x Hefesto-Dualsense4Unix-3.0.0-x86_64.AppImage
-./Hefesto-Dualsense4Unix-3.0.0-x86_64.AppImage
+curl -LO https://github.com/AndreBFarias/hefesto/releases/download/v3.2.0/Hefesto-Dualsense4Unix-3.2.0-x86_64.AppImage
+chmod +x Hefesto-Dualsense4Unix-3.2.0-x86_64.AppImage
+./Hefesto-Dualsense4Unix-3.2.0-x86_64.AppImage
 ```
 
 #### Flatpak (COSMIC, Flathub-compatível)
 
 ```bash
-flatpak install hefesto-dualsense4unix.flatpak
+# Pré-requisito: runtime GNOME 47 + Flathub
+flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+flatpak install -y --user flathub org.gnome.Platform//47
+
+# Instala o bundle e roda
+flatpak install --user hefesto-dualsense4unix-3.3.0.flatpak
 flatpak run br.andrefarias.Hefesto
+
+# Regras udev no host (uma vez só, fora do sandbox)
+flatpak run --command=install-host-udev.sh br.andrefarias.Hefesto
 ```
+
+> **Nota sobre sandbox**: o manifest Flatpak usa `--device=all` (necessário para
+> `/dev/hidraw*` do DualSense + `/dev/uinput` da emulação Xbox) e
+> `--talk-name=org.freedesktop.portal.*` (notificações D-Bus + tray + portal Wayland).
+> O socket IPC do daemon vive em `$XDG_RUNTIME_DIR/hefesto-dualsense4unix/`
+> (mapeado via `--filesystem=xdg-run/hefesto-dualsense4unix:create`), então a CLI
+> nativa (`.deb` ou source install) e a GUI Flatpak conversam pelo mesmo socket
+> automaticamente. Perfis customizados ficam em
+> `~/.var/app/br.andrefarias.Hefesto/config/hefesto-dualsense4unix/profiles/`.
+
+> **Caveat COSMIC**: o cosmic-comp 1.0.x ainda não implementa o protocolo
+> `org.kde.StatusNotifierWatcher` que os tray icons Ayatana usam. O Hefesto
+> detecta isso automaticamente e abre uma **janela compacta** (320×90,
+> sempre-on-top) com bateria + perfil ativo + botões. Para desativar e usar só
+> a GUI principal: `HEFESTO_DUALSENSE4UNIX_COMPACT_WINDOW=0`. Tray nativo via
+> applet Rust/libcosmic está planejado para v3.4 (ver
+> [docs/process/ROADMAP.md](docs/process/ROADMAP.md)).
 
 #### Via fonte (desenvolvimento)
 
@@ -222,6 +258,30 @@ Use `scripts/dev-setup.sh` no início de cada sessão: se `.venv/` falta ou est�
 > **Aba Firmware (opcional):** depende do binário externo `dualsensectl`. O `install.sh`
 > oferece instalação via Flathub (`com.github.nowrep.dualsensectl`). A GUI funciona normalmente
 > com a aba desabilitada se o binário ausente.
+
+#### Re-aplicar regras udev (3 caminhos idempotentes)
+
+As regras udev são instaladas automaticamente pelo `install.sh` (source),
+pelo `.deb` (apt install) e pelo bundle Flatpak. Para **re-aplicar
+manualmente** (depois de troca de kernel, perda de permissão, ou simples
+sanidade), escolha o caminho conforme o formato instalado:
+
+```bash
+# Source / dev (repositório clonado)
+sudo bash scripts/install_udev.sh
+
+# .deb instalado (helper bundled em /usr/share/)
+sudo bash /usr/share/hefesto-dualsense4unix/scripts/install-host-udev.sh
+
+# Flatpak instalado (helper exposto via flatpak run)
+flatpak run --command=install-host-udev.sh br.andrefarias.Hefesto
+```
+
+Todos os 3 aplicam o mesmo conjunto canônico de **5 regras + uinput
+modules-load** (sincronizados via `assets/`), recarregam o udev e
+disparam triggers específicos para o vendor `054c` (Sony). Idempotentes
+— pode rodar quantas vezes quiser sem efeito colateral. Após rodar,
+desconecte e reconecte o controle (USB) ou re-pareie (BT).
 
 Reconecte o DualSense depois de instalar as regras udev. Confira o acesso:
 
@@ -375,16 +435,75 @@ Factories canônicas em `src/hefesto_dualsense4unix/profiles/trigger_modes.py`.
 
 ### Matriz de compatibilidade
 
-| Distro          | Kernel     | Systemd | USB | BT  | Tray | Notas                                   |
-|-----------------|------------|---------|-----|-----|------|-----------------------------------------|
-| Pop!\_OS 22.04  | 6.17       | 249+    | OK  | ?   | ?    | Runtime primário; backend híbrido ativo |
-| Ubuntu 22.04+   | 5.19+      | 249+    | ?   | ?   | ?    | Mesmo ecossistema do Pop!\_OS           |
-| Fedora 39+      | 6.5+       | 254+    | ?   | ?   | ?    | Esperado funcionar                      |
-| Arch (rolling)  | rolling    | atual   | ?   | ?   | ?    | Comunidade                              |
-| Debian 12 stable| 6.1        | 252     | ?   | ?   | ?    | Esperado funcionar                      |
-| Alpine / Void   | qualquer   | —       | —   | —   | —    | Fora de escopo (sem logind)             |
+Validações empíricas reais (mantenedor + CI matrix). Não inflamos
+expectativa: o que não foi rodado em hardware está marcado como
+"comunidade" e aceita relato via issue.
 
-`?` = não validado. Contribuições bem-vindas em `CHECKLIST_MANUAL.md` ou via issues `needs-device`.
+| Distro                  | DE / sessão       | USB | BT | Tray | Auto-switch | Notas                                                      |
+|-------------------------|-------------------|-----|----|------|-------------|------------------------------------------------------------|
+| Pop!\_OS 22.04          | GNOME 42 X11      | OK  | OK | OK   | OK          | Runtime primário do mantenedor                             |
+| Pop!\_OS 24.04          | COSMIC alpha      | OK  | OK | janela compacta\* | OK (portal + wlrctl) | Validado 2026-05-15; tray nativo aguarda v3.4 |
+| Ubuntu 24.04            | GNOME 46 Wayland  | OK  | OK | OK (com extension) | OK         | Cobertura CI matrix                                        |
+| Ubuntu 22.04            | GNOME 42 X11      | OK  | OK | OK (com extension) | OK         | Cobertura CI matrix                                        |
+| Fedora 40+              | GNOME 46 Wayland  | comunidade | comunidade | esperado OK | esperado OK | wlrctl no apt/dnf; relatos bem-vindos                    |
+| Arch / EndeavourOS      | KDE Plasma 6      | comunidade | comunidade | esperado OK | esperado OK | applet SNI nativo do Plasma; relatos bem-vindos          |
+| Debian 12 stable        | GNOME 43 X11      | comunidade | comunidade | esperado OK | esperado OK | python3-pydantic 1.x: `pip install --user pydantic>=2`   |
+| Alpine / Void / Artix   | qualquer          | —   | —  | —    | —           | Fora de escopo (sem systemd-logind — ver ADR-009)         |
+
+`*` Pop!_OS COSMIC: o cosmic-comp 1.0.x ainda não implementa
+`org.kde.StatusNotifierWatcher`, então o tray clássico fica oculto. Hefesto
+detecta automaticamente e abre uma **janela compacta** 320×90 sempre-on-top
+com bateria + perfil + botões. Opt-out via
+`HEFESTO_DUALSENSE4UNIX_COMPACT_WINDOW=0`. Applet nativo
+Rust+libcosmic está planejado para v3.4 — ver
+[docs/process/ROADMAP.md](docs/process/ROADMAP.md).
+
+Para reportar resultado em distro não listada: rode
+[`CHECKLIST_VALIDACAO_v3.2.0.md`](CHECKLIST_VALIDACAO_v3.2.0.md) e abra
+issue com a label `validation-report`.
+
+---
+
+### Pop!_OS COSMIC (Wayland)
+
+A partir de v3.1.0 o projeto tem suporte explícito a **Pop!_OS 24.04 COSMIC** (cosmic-comp 1.0+). Estado real validado em hardware do mantenedor (2026-05-15):
+
+**O que funciona:**
+- Daemon completo: detecção USB do DualSense, lightbar, rumble, gatilhos adaptativos, hotkeys de hardware (combo PS+D-pad), bateria, perfis, IPC, UDP DSX, emulação Xbox 360.
+- GUI GTK3 renderiza nativamente em Wayland (GDK Wayland backend).
+- Autoswitch de perfil para janelas **XWayland** (Steam, Proton, browsers em modo X11): funciona via `XlibBackend`. Pop!_OS 24.04 vem com XWayland ativo por padrão.
+- systemd `--user` service: `WantedBy=default.target` ativa resiliente em cosmic-session.
+- Notificações D-Bus padrão freedesktop (cosmic-notifications): funcionam OOTB.
+
+**Limitações conhecidas (2026-05):**
+- Autoswitch para **apps Wayland nativos** (Firefox-Wayland, apps GNOME, etc.):
+  - `xdg-desktop-portal-cosmic` ainda não implementa `org.freedesktop.portal.Window::GetActiveWindow`.
+  - `cosmic-comp 1.0.0` ainda não expõe `wlr-foreign-toplevel-management` (testado com `wlrctl 0.2.2`).
+  - **Workaround:** trocar perfil manualmente via tray/CLI/combo PS+D-pad.
+- Tray icon (`cosmic-applet-status-area`): instalado em `cosmic-applets 1.0.12` mas **não vem habilitado por padrão no painel**. Hefesto detecta a ausência via D-Bus probe e emite notificação orientadora uma vez por execução. Para habilitar: **Configurações > Painel > Applets > Adicionar "Área de status"**.
+
+**Comandos recomendados em COSMIC:**
+
+```bash
+# Instalação fonte com auto-detecção COSMIC + wlrctl + GDK_BACKEND=x11
+./install.sh --yes --force-xwayland
+
+# Confirmar backend selecionado
+.venv/bin/python -c "
+from hefesto_dualsense4unix.integrations.window_detect import detect_window_backend
+print(type(detect_window_backend()).__name__)
+"
+# Em XWayland (default): XlibBackend
+# Em Wayland puro (raro): _WaylandCascadeBackend
+
+# Probe do StatusNotifierWatcher (tray)
+.venv/bin/python -c "
+from hefesto_dualsense4unix.integrations.desktop_notifications import statusnotifierwatcher_available
+print('tray disponivel:', statusnotifierwatcher_available())
+"
+```
+
+Detalhes empíricos em `docs/process/discoveries/2026-05-15-cosmic-1.0-validation.md`. Decisão arquitetural em `docs/adr/014-cosmic-wayland-support.md`.
 
 ---
 
@@ -465,13 +584,15 @@ Hefesto-DualSense_Unix/
 ### Documentação
 
 - **Guia visual rápido:** [`docs/usage/quickstart.md`](docs/usage/quickstart.md)
+- **Solução de problemas (troubleshooting):** [`docs/usage/troubleshooting.md`](docs/usage/troubleshooting.md)
+- **Roadmap público:** [`docs/process/ROADMAP.md`](docs/process/ROADMAP.md) — v3.3.0 / v3.4 / v4.0
 - **Protocolo de colaboração:** [`AGENTS.md`](AGENTS.md) (anonimato, idioma PT-BR, workflow de issue)
-- **Decisões arquiteturais:** [`docs/adr/`](docs/adr/) — 9 ADRs numeradas
+- **Decisões arquiteturais:** [`docs/adr/`](docs/adr/) — 17 ADRs numeradas (ADR-014 cobre COSMIC/Wayland)
 - **Schemas de protocolo:** [`docs/protocol/`](docs/protocol/) — UDP, IPC JSON-RPC, modos de gatilho
 - **Decisões de processo:** [`docs/process/HEFESTO_DECISIONS_V2.md`](docs/process/HEFESTO_DECISIONS_V2.md), [`HEFESTO_DECISIONS_V3.md`](docs/process/HEFESTO_DECISIONS_V3.md)
 - **Diário de descobertas:** [`docs/process/discoveries/`](docs/process/discoveries/) — uma jornada por arquivo
 - **Changelog:** [`CHANGELOG.md`](CHANGELOG.md)
-- **Roadmap:** [`docs/process/SPRINT_ORDER.md`](docs/process/SPRINT_ORDER.md)
+- **Ordem de sprints internas:** [`docs/process/SPRINT_ORDER.md`](docs/process/SPRINT_ORDER.md)
 
 ---
 
@@ -491,7 +612,7 @@ Leia [`AGENTS.md`](AGENTS.md) antes de abrir PR. Resumo:
 5. Se toca runtime, provar via smoke real (`run.sh --smoke`) ou com hardware conectado.
 6. Se toca UI / TUI, screenshot + sha256 + descrição multimodal no PR.
 7. Descoberta não-óbvia vira registro em [`docs/process/discoveries/`](docs/process/discoveries/).
-8. Commit em PT-BR, sem menção a IA, zero emojis gráficos (glyphs Unicode de estado — `○`, `●`, box drawing — são permitidos).
+8. Commit em PT-BR, sem menção a IA, zero emojis gráficos (glyphs Unicode de estado — ``, ``, box drawing — são permitidos).
 9. Abrir PR com `Closes #N`, squash merge.
 
 Testes manuais com hardware físico têm checklist em [`CHECKLIST_MANUAL.md`](CHECKLIST_MANUAL.md). Revisor com controle marca antes de cada release.

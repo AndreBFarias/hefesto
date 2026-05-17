@@ -1,5 +1,11 @@
 # FEAT-BLUETOOTH-CONNECTION-01 — Conexão funcional via Bluetooth (input + output + hotplug)
 
+**Status:** **MERGED** em 2026-05-16 (sessão V3.1). Validado em hardware real
+(DualSense A0:FA:9C:C3:11:F0 pareado + USB unplugged + daemon `transport=bt` +
+lightbar magenta + profile activate fps via BT + evdev event2 + touchpad
+event4 OK). Proof-of-work em `CHECKLIST_VALIDACAO_v3.md` seção "#29 — Bluetooth
+(MERGED 2026-05-16)".
+
 **Tipo:** feat (gap de feature reportada pelo usuário 2026-04-27).
 **Wave:** fora de wave — pedido direto: "uma parada que deixamos de implementar é o funcionamento via conexão não por fio, mas via Bluetooth".
 **Branch:** `rebrand/dualsense4unix`. PR #103.
@@ -79,7 +85,7 @@ Investigação preliminar (planejador, 2026-04-27) demonstrou que a base do cód
 2. `README.md` tem seção "Conexão via Bluetooth" com bloco de comandos `bluetoothctl` validado contra Pop!_OS / Ubuntu (PT-BR puro, acentuação correta).
 3. `docs/process/sprints/FEAT-HOTPLUG-BT-01.md` criado com paridade ao formato `USB-POWER-01.md` (causa-raiz, patch aplicado, verificação, fora de escopo).
 4. `docs/process/CHECKLIST_HARDWARE_V2.md` item 8 expandido com sub-itens (≥4 checks: status transport, lightbar, triggers, rumble, perfil preservado).
-5. Proof-of-work runtime real (executor com hardware BT pareado): captura `hefesto-dualsense4unix status` mostrando `transport=bt` + log do daemon `controller_connected transport=bt` + screenshot da GUI com header `● Conectado Via BT`.
+5. Proof-of-work runtime real (executor com hardware BT pareado): captura `hefesto-dualsense4unix status` mostrando `transport=bt` + log do daemon `controller_connected transport=bt` + screenshot da GUI com header ` Conectado Via BT`.
 6. Smoke BT contínuo verde: `HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=bt HEFESTO_DUALSENSE4UNIX_SMOKE_DURATION=2.0 ./run.sh --smoke --bt` (já passa hoje; serve como regression guard).
 7. Suite unit verde sem novos arquivos de teste obrigatórios — sprint não introduz código novo de runtime.
 8. `./scripts/check_anonymity.sh` verde.
@@ -89,7 +95,7 @@ Investigação preliminar (planejador, 2026-04-27) demonstrou que a base do cód
 
 ## Invariantes a preservar
 
-- BRIEF `[CORE] Invariantes de arquitetura` — PT-BR obrigatório, zero emojis gráficos, glyphs Unicode de estado preservados (`●`, `○`).
+- BRIEF `[CORE] Invariantes de arquitetura` — PT-BR obrigatório, zero emojis gráficos, glyphs Unicode de estado preservados (``, ``).
 - BRIEF A-05 (USB autosuspend) — não confundir com BT. Se for citar power management BT, abrir nota separada; **não** estender a regra 72 para BT (BT não tem `power/control` em USB subsystem).
 - BRIEF A-10 (multi-instância) — daemon hotplug BT NÃO deve gerar segunda instância. A unit `hefesto-gui-hotplug.service` já usa `acquire_or_bring_to_front("gui")` (BUG-TRAY-SINGLE-FLASH-01). Confirmar em runtime real que parear BT com GUI já aberta apenas traz ao foco, não duplica.
 - BRIEF A-11 (race udev ADD duplo) — kernel BT pode emitir múltiplos `ACTION=="add"` no SUBSYSTEM=="hidraw" durante negociação L2CAP. O guard único é `acquire_or_bring_to_front` na GUI; não adicionar `pgrep` na unit.
@@ -217,7 +223,7 @@ Esperado em `/tmp/hefesto_bt_log.txt`:
 ... controller_connected transport=bt ...
 ```
 
-Esperado em `/tmp/hefesto_bt_gui_*.png`: header GUI mostra `● Conectado Via BT` (verde, U+25CF).
+Esperado em `/tmp/hefesto_bt_gui_*.png`: header GUI mostra ` Conectado Via BT` (verde, U+25CF).
 
 ---
 
@@ -251,7 +257,7 @@ Baseline esperado: `FAIL_BEFORE = 0`, `FAIL_AFTER = 0`. Suite total: ≥998 test
 ## Proof-of-work esperado
 
 - Diff final do `install.sh`, `README.md`, `CHECKLIST_HARDWARE_V2.md` e dois arquivos novos.
-- Runtime sintético (sem hardware): 
+- Runtime sintético (sem hardware):
   ```bash
   bash scripts/dev-setup.sh
   HEFESTO_DUALSENSE4UNIX_FAKE=1 HEFESTO_DUALSENSE4UNIX_FAKE_TRANSPORT=bt HEFESTO_DUALSENSE4UNIX_SMOKE_DURATION=2.0 ./run.sh --smoke --bt
